@@ -1,6 +1,7 @@
 #include <WString.h>
 #include <pgmspace.h>
-// #include <iostream> 
+//#include <vector>
+//#include <iostream> 
 // #include <iomanip> 
 // #include <sstream>
 
@@ -189,6 +190,67 @@ namespace cfg
 			strcat(fs_ssid, id);
 		}
 	}
+}
+
+//configuration summary for LoRaWAN
+
+byte payloadsize = 1;
+
+bool configlorawan[8] = {false, false, false, false, false, false, false, false};
+
+
+static byte booltobyte (bool array[8])
+{
+
+byte result = 0;
+for (int i = 0; i < 8; i++) {
+  if(array[i]){
+	result |= (byte)(1 << (7-i));
+  }
+}
+
+    return result;
+}
+
+static byte payloadsizer (bool array[8]){
+
+// configlorawan[0] = cfg::sds_read;
+// configlorawan[1] = cfg::npm_read ;
+// configlorawan[2] = cfg::bmx280_read;
+// configlorawan[3] = cfg::mhz16_read;
+// configlorawan[4] = cfg::mhz19_read;
+// configlorawan[5] = cfg::sgp40_read;
+// configlorawan[6] = cfg::display_forecast;
+// configlorawan[7] = cfg::has_wifi;
+
+byte size = 0;
+
+if(array[0]){
+size += 8;
+}
+if(array[1]){
+size += 12;
+}
+if(array[2]){
+size += 12;
+}
+if(array[3]){
+size += 4;
+}
+if(array[4]){
+size += 4;
+}
+if(array[5]){
+size += 4;
+}
+if(array[6]){
+size += 9;
+}
+if(array[7]){
+size += 1;
+}
+
+return size;
 }
 
 // define size of the config JSON
@@ -633,10 +695,12 @@ float last_value_NPM_P2 = -1.0;
 float last_value_NPM_N1 = -1.0;
 float last_value_NPM_N10 = -1.0;
 float last_value_NPM_N25 = -1.0;
-// float last_value_GPS_alt = -1000.0;
-// double last_value_GPS_lat = -200.0;
-// double last_value_GPS_lon = -200.0;
-// String last_value_GPS_timestamp;
+
+float last_value_MHZ16 = -1.0;
+float last_value_MHZ19 = -1.0;
+
+float last_value_SGP40 = -1.0;
+
 String last_data_string;
 int last_signal_strength;
 int last_disconnect_reason;
@@ -1233,6 +1297,15 @@ static void init_config()
 		return;
 	}
 	readConfig();
+
+
+
+
+
+
+
+
+	
 }
 
 /*****************************************************************
@@ -1399,6 +1472,32 @@ static String form_checkbox(const ConfigShapeId cfgid, const String &info, const
 	return s;
 }
 
+// static String form_radio(const ConfigShapeId cfgid, const String &info, const bool linebreak)
+// {
+// 	RESERVE_STRING(s, MED_STR);
+// 	s = F("<label for='{n}'>"
+// 		  "<input type='radio' name='{n}' value='1' id='{n}' {c}/>"
+// 		  "<input type='hidden' name='{n}' value='0'/>"
+// 		  "{i}</label><br/>");
+// 	if (*configShape[cfgid].cfg_val.as_bool)
+// 	{
+// 		s.replace("{c}", F(" checked='checked'"));
+// 	}
+// 	else
+// 	{
+// 		s.replace("{c}", emptyString);
+// 	};
+// 	s.replace("{i}", info);
+// 	s.replace("{n}", String(configShape[cfgid].cfg_key()));
+// 	if (!linebreak)
+// 	{
+// 		s.replace("<br/>", emptyString);
+// 	}
+// 	return s;
+// }
+
+
+
 //AJOUTER RADIO ICI ?
 
 
@@ -1538,6 +1637,16 @@ static void webserver_config_send_body_get(String &page_content)
 	{
 		add_form_checkbox(cfgid, add_sensor_type(info));
 	};
+
+	// auto add_form_radio = [&page_content](const ConfigShapeId cfgid, const String &info)
+	// {
+	// 	page_content += form_radio(cfgid, info, true);
+	// };
+
+	// auto add_form_radio_sensor = [&add_form_radio](const ConfigShapeId cfgid, __const __FlashStringHelper *info)
+	// {
+	// 	add_form_radio(cfgid, add_sensor_type(info));
+	// };
 
 	debug_outln_info(F("begin webserver_config_body_get ..."));
 	page_content += F("<form method='POST' action='/config' style='width:100%;'>\n"
@@ -2077,14 +2186,6 @@ static void webserver_values()
 		}
 		page_content += FPSTR(EMPTY_ROW);
 	}
-	// if (cfg::gps_read)
-	// {
-	// 	add_table_value(FPSTR(WEB_GPS), FPSTR(INTL_LATITUDE), check_display_value(last_value_GPS_lat, -200.0, 6, 0), unit_Deg);
-	// 	add_table_value(FPSTR(WEB_GPS), FPSTR(INTL_LONGITUDE), check_display_value(last_value_GPS_lon, -200.0, 6, 0), unit_Deg);
-	// 	add_table_value(FPSTR(WEB_GPS), FPSTR(INTL_ALTITUDE), check_display_value(last_value_GPS_alt, -1000.0, 2, 0), "m");
-	// 	add_table_value(FPSTR(WEB_GPS), FPSTR(INTL_TIME_UTC), last_value_GPS_timestamp, emptyString);
-	// 	page_content += FPSTR(EMPTY_ROW);
-	// }
 
 	server.sendContent(page_content);
 	page_content = emptyString;
@@ -3467,15 +3568,6 @@ static void display_values()
 		}
 	}
 
-	// if (cfg::gps_read)
-	// {
-	// 	lat_value = last_value_GPS_lat;
-	// 	lon_value = last_value_GPS_lon;
-	// 	alt_value = last_value_GPS_alt;
-	// }
-
-
-
 	if (cfg::has_ssd1306)
 	{
 
@@ -4232,7 +4324,7 @@ static unsigned long sendDataToOptionalApis(const String &data)
 }
 
 /*****************************************************************
- * Helium LoRaWAN                  *
+ * Helium/TTN LoRaWAN                  *
  *****************************************************************/
 
 static u1_t PROGMEM appeui_hex[8] = {};
@@ -4247,13 +4339,27 @@ void os_getDevKey(u1_t *buf) { memcpy_P(buf, appkey_hex, 16); }
 
 //Initialiser avec les valeurs -1.0,-128.0 = valeurs par défaut qui doivent être filtrées
 
-static uint8_t datalora_sds[30] = {0x00, 0x00, 0x80, 0xbf, 0x00, 0x00, 0x80, 0xbf, 0x00, 0x00, 0x00, 0xc3, 0x00, 0x00, 0x80, 0xbf, 0x00, 0x00, 0x80, 0xbf, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff};
-static uint8_t datalora_npm[34] = {0x00, 0x00, 0x80, 0xbf, 0x00, 0x00, 0x80, 0xbf, 0x00, 0x00, 0x80, 0xbf, 0x00, 0x00, 0x00, 0xc3, 0x00, 0x00, 0x80, 0xbf, 0x00, 0x00, 0x80, 0xbf, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff};
+uint8_t datalora[31]={0x00, 0xff, 0xff,0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x80, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff}; 
+
+// 0x00, config
+// 0xff, 0xff, sds
+// 0xff, 0xff, sds
+// 0xff, 0xff, npm
+// 0xff, 0xff, npm
+// 0xff, 0xff, npm
+// 0xff, 0xff, co2
+// 0xff, 0xff, co2
+// 0xff, 0xff, cov
+// 0x80, temp
+// 0xff, rh
+// 0xff, 0xff, p
+// 0x00, 0x00, 0x00, 0x00, lat
+// 0x00, 0x00, 0x00, 0x00, lon
+// 0xff sel
 
 const unsigned TX_INTERVAL = (cfg::sending_intervall_ms)/1000;
 
 static osjob_t sendjob;
-
 
 //Mettre en explicit
 
@@ -4382,15 +4488,12 @@ void do_send(osjob_t *j)
 		// Prepare upstream data transmission at the next possible time.
 		//LMIC_setTxData2(1, mydata, sizeof(mydata) - 1, 0);
 
-		if (cfg::sds_read)
-		{
-			LMIC_setTxData2(1, datalora_sds, sizeof(datalora_sds) - 1, 0);
-		}
+			// LMIC_setTxData2(1, datalora, sizeof(datalora) - 1, 0);
 
-		if (cfg::npm_read)
-		{
-			LMIC_setTxData2(1, datalora_npm, sizeof(datalora_npm) - 1, 0);
-		}
+			Debug.print("Size of Data:");
+			Debug.println(sizeof(datalora));
+
+			LMIC_setTxData2(1, datalora, sizeof(datalora)-1, 0); 
 
 		Debug.println(F("Packet queued"));
 	}
@@ -4551,149 +4654,103 @@ static void prepareTxFrame()
 // 00 00 80 bf
 // bf 80 00 00 = -1.0 en Little Endian
 
+	union int16_2_byte
+	{
+		int16_t temp_int;
+		byte temp_byte[2];
+	} u1;
+
+	union uint16_2_byte
+	{
+		uint16_t temp_uint;
+		byte temp_byte[2];
+	} u2;
+
+
 	union float_2_byte
 	{
 		float temp_float;
 		byte temp_byte[4];
-	} u;
+	} u3;
 
-	if (cfg::sds_read)
-	{
-		u.temp_float = last_value_SDS_P1;
+		//datalora[0] already defined
 
-		datalora_sds[0] = u.temp_byte[0];
-		datalora_sds[1] = u.temp_byte[1];
-		datalora_sds[2] = u.temp_byte[2];
-		datalora_sds[3] = u.temp_byte[3];
+		u1.temp_int = (int16_t)last_value_SDS_P1;
 
-		u.temp_float = last_value_SDS_P2;
+		datalora[1] = u1.temp_byte[0];
+		datalora[2] = u1.temp_byte[1];
 
-		datalora_sds[4] = u.temp_byte[0];
-		datalora_sds[5] = u.temp_byte[1];
-		datalora_sds[6] = u.temp_byte[2];
-		datalora_sds[7] = u.temp_byte[3];
+		u1.temp_int = (int16_t)last_value_SDS_P2;
 
-		u.temp_float = last_value_BMX280_T;
+		datalora[3] = u1.temp_byte[0];
+		datalora[4] = u1.temp_byte[1];
 
-		datalora_sds[8] = u.temp_byte[0];
-		datalora_sds[9] = u.temp_byte[1];
-		datalora_sds[10] = u.temp_byte[2];
-		datalora_sds[11] = u.temp_byte[3];
+		u1.temp_int = (int16_t)last_value_NPM_P0;
 
-		u.temp_float = last_value_BMX280_P;
+		datalora[5] = u1.temp_byte[0];
+		datalora[6] = u1.temp_byte[1];
 
-		datalora_sds[12] = u.temp_byte[0];
-		datalora_sds[13] = u.temp_byte[1];
-		datalora_sds[14] = u.temp_byte[2];
-		datalora_sds[15] = u.temp_byte[3];
+		u1.temp_int = (int16_t)last_value_NPM_P1;
 
-		u.temp_float = last_value_BME280_H;
+		datalora[7] = u1.temp_byte[0];
+		datalora[8] = u1.temp_byte[1];
 
-		datalora_sds[16] = u.temp_byte[0];
-		datalora_sds[17] = u.temp_byte[1];
-		datalora_sds[18] = u.temp_byte[2];
-		datalora_sds[19] = u.temp_byte[3];
+		u1.temp_int = (int16_t)last_value_NPM_P2;
+		
+		datalora[9] = u1.temp_byte[0];
+		datalora[10] = u1.temp_byte[1];
 
-		debug_outln_info(F(cfg::latitude));
+		u1.temp_int = (int16_t)last_value_MHZ16;
 
-		u.temp_float = atof(cfg::latitude);
+		datalora[11] = u1.temp_byte[0];
+		datalora[12] = u1.temp_byte[1];
 
-		datalora_sds[20] = u.temp_byte[0];
-		datalora_sds[21] = u.temp_byte[1];
-		datalora_sds[22] = u.temp_byte[2];
-		datalora_sds[23] = u.temp_byte[3];
+		u1.temp_int = (int16_t)last_value_MHZ19;
 
-		debug_outln_info(F(cfg::longitude));
+		datalora[13] = u1.temp_byte[0];
+		datalora[14] = u1.temp_byte[1];
 
-		u.temp_float = atof(cfg::longitude);
+		u1.temp_int = (int16_t)last_value_SGP40;
 
-		datalora_sds[24] = u.temp_byte[0];
-		datalora_sds[25] = u.temp_byte[1];
-		datalora_sds[26] = u.temp_byte[2];
-		datalora_sds[27] = u.temp_byte[3];
+		datalora[15] = u1.temp_byte[0];
+		datalora[16] = u1.temp_byte[1];
 
-		datalora_sds[28] = forecast_selector;
+
+		datalora[17] = (int8_t)last_value_BMX280_T;
+
+		datalora[18] = (int8_t)last_value_BME280_H;
+
+		u1.temp_uint = (int16_t)last_value_BMX280_P;
+
+		datalora[19] = u1.temp_byte[0];
+		datalora[20] = u1.temp_byte[1];
+
+		u3.temp_float = atof(cfg::latitude);
+
+		datalora[21] = u3.temp_byte[0];
+		datalora[22] = u3.temp_byte[1];
+		datalora[23] = u3.temp_byte[2];
+		datalora[24] = u3.temp_byte[3];
+
+		u3.temp_float = atof(cfg::longitude);
+
+		datalora[25] = u3.temp_byte[0];
+		datalora[26] = u3.temp_byte[1];
+		datalora[27] = u3.temp_byte[2];
+	    datalora[28] = u3.temp_byte[3];
+
+		datalora[29] = forecast_selector;
 
 		Debug.printf("HEX values:\n");
-		for (int i = 0; i < 29; i++)
+		for (int i = 0; i < 30; i++)
 		{
-			Debug.printf(" %02x", datalora_sds[i]);
-			if (i == 28)
+			Debug.printf(" %02x", datalora[i]);
+			if (i == 29)
 			{
 				Debug.printf("\n");
 			}
 		}
-	}
-	if (cfg::npm_read)
-	{
-		u.temp_float = last_value_NPM_P0;
 
-		datalora_npm[0] = u.temp_byte[0];
-		datalora_npm[1] = u.temp_byte[1];
-		datalora_npm[2] = u.temp_byte[2];
-		datalora_npm[3] = u.temp_byte[3];
-
-		u.temp_float = last_value_NPM_P1;
-
-		datalora_npm[4] = u.temp_byte[0];
-		datalora_npm[5] = u.temp_byte[1];
-		datalora_npm[6] = u.temp_byte[2];
-		datalora_npm[7] = u.temp_byte[3];
-
-		u.temp_float = last_value_NPM_P2;
-
-		datalora_npm[8] = u.temp_byte[0];
-		datalora_npm[9] = u.temp_byte[1];
-		datalora_npm[10] = u.temp_byte[2];
-		datalora_npm[11] = u.temp_byte[3];
-
-		u.temp_float = last_value_BMX280_T;
-
-		datalora_npm[12] = u.temp_byte[0];
-		datalora_npm[13] = u.temp_byte[1];
-		datalora_npm[14] = u.temp_byte[2];
-		datalora_npm[15] = u.temp_byte[3];
-
-		u.temp_float = last_value_BMX280_P;
-
-		datalora_npm[16] = u.temp_byte[0];
-		datalora_npm[17] = u.temp_byte[1];
-		datalora_npm[18] = u.temp_byte[2];
-		datalora_npm[19] = u.temp_byte[3];
-
-		u.temp_float = last_value_BME280_H;
-
-		datalora_npm[20] = u.temp_byte[0];
-		datalora_npm[21] = u.temp_byte[1];
-		datalora_npm[22] = u.temp_byte[2];
-		datalora_npm[23] = u.temp_byte[3];
-
-		u.temp_float = atof(cfg::latitude);
-
-		datalora_npm[24] = u.temp_byte[0];
-		datalora_npm[25] = u.temp_byte[1];
-		datalora_npm[26] = u.temp_byte[2];
-		datalora_npm[27] = u.temp_byte[3];
-
-		u.temp_float = atof(cfg::longitude);
-
-		datalora_npm[28] = u.temp_byte[0];
-		datalora_npm[29] = u.temp_byte[1];
-		datalora_npm[30] = u.temp_byte[2];
-		datalora_npm[31] = u.temp_byte[3];
-
-		datalora_npm[32] = forecast_selector;
-
-		Debug.printf("HEX values:\n");
-		for (int i = 0; i < 33; i++)
-		{
-			Debug.printf(" %02x", datalora_npm[i]);
-			if (i == 32)
-			{
-				Debug.printf("\n");
-			}
-		}
-	}
 }
 
 /*****************************************************************
@@ -4811,7 +4868,6 @@ init_matrix();
 
 }
 
-
 	if (cfg::has_lora)
 	{
 
@@ -4870,7 +4926,28 @@ forecast_selector = 0; //initialisation après envoie 1 lora
 
 }
 
-Debug.printf("FIN SETUP!!!\n");
+
+// Prepare the configuration summary for the following messgaes (the first is 00000000)
+
+configlorawan[0] = cfg::sds_read;
+configlorawan[1] = cfg::npm_read ;
+configlorawan[2] = cfg::bmx280_read;
+configlorawan[3] = cfg::mhz16_read;
+configlorawan[4] = cfg::mhz19_read;
+configlorawan[5] = cfg::sgp40_read;
+configlorawan[6] = cfg::display_forecast;
+configlorawan[7] = cfg::has_wifi;
+
+Debug.print("Configuration:");
+Debug.println(booltobyte(configlorawan));
+
+// payloadsize = payloadsizer(configlorawan) + 1;
+// Debug.print("Payload size:");
+// Debug.println(payloadsize);
+
+datalora[0] = booltobyte(configlorawan);
+
+Debug.printf("END OF SETUP!!!\n");
 
 }
 
