@@ -1,0 +1,451 @@
+curl --location \
+  --header 'Authorization: Bearer NNSXS.XTRUNRZF4BCA23DCOMRA762AYDSJPEHTL24T2DA.3ZCGNXZ2NYTIWQSTJUMJEAD7LZAOGM4QDTUBN7XFIE7OGFZEPR7A' \
+  --header 'Content-Type: application/json' \
+  --header 'User-Agent: my-integration/my-integration-version' \
+  --request POST \
+  --data '{"downlinks":[{
+      "frm_payload":"vu8=",
+      "f_port":15,
+      "priority":"NORMAL"
+    }]
+  }' \
+  'https://eu1.cloud.thethings.network/api/v3/as/applications/moduleair-test/webhooks/test-pj/devices/eui-70b3d57ed004fb6c/down/push'
+
+
+IDmoduleair-test
+
+
+IDeui-70b3d57ed004fb6c
+
+
+JL5HXRBXYXBQ7J7RIKUDYNOJ4GBKTB7KFYLP5DA
+
+
+curl --location   --header 'Authorization: NNSXS.JL5HXRBXYXBQ7J7RIKUDYNOJ4GBKTB7KFYLP5DA.V4GDUE2YSSASKZM2FNPQTOCJA7P7TKRYJ2DRSBA4DCVBLCYFF5NA'   --header 'Content-Type: application/json'   --header 'User-Agent: my-integration/my-integration-version'   --request POST   --data '{"downlinks":[{
+      "frm_payload":"vu8=",
+      "f_port":15,
+      "priority":"NORMAL"
+    }]
+  }'   'https://eu1.cloud.thethings.network/api/v3/as/applications/moduleair-test/webhooks/test-pj/devices/eui-70b3d57ed004fb6c/down/push'
+
+
+API key2:
+
+NNSXS.XTRUNRZF4BCA23DCOMRA762AYDSJPEHTL24T2DA.3ZCGNXZ2NYTIWQSTJUMJEAD7LZAOGM4QDTUBN7XFIE7OGFZEPR7A
+
+OK:
+
+curl --location \
+  --header 'Authorization: Bearer NNSXS.XTRUNRZF4BCA23DCOMRA762AYDSJPEHTL24T2DA.3ZCGNXZ2NYTIWQSTJUMJEAD7LZAOGM4QDTUBN7XFIE7OGFZEPR7A' \
+  --header 'Content-Type: application/json' \
+  --header 'User-Agent: my-integration/my-integration-version' \
+  --request POST \
+  --data '{"downlinks":[{
+      "frm_payload":"vu8=",
+      "f_port":15,
+      "priority":"NORMAL"
+    }]
+  }' \
+  'https://eu1.cloud.thethings.network/api/v3/as/applications/moduleair-test/webhooks/test-pj/devices/eui-70b3d57ed004fb6c/down/push'
+
+
+BEEF
+
+
+curl --location \
+  --header 'Authorization: Bearer NNSXS.XTRUNRZF4BCA23DCOMRA762AYDSJPEHTL24T2DA.3ZCGNXZ2NYTIWQSTJUMJEAD7LZAOGM4QDTUBN7XFIE7OGFZEPR7A' \
+  --header 'Content-Type: application/json' \
+  --header 'User-Agent: my-integration/my-integration-version' \
+  --request POST \
+  --data '{"downlinks":[{
+      "frm_payload":"vu8=",
+      "f_port":15,
+      "priority":"NORMAL",
+    "decoded_payload": {"bytes": [1, 2, 3]}
+    }]
+  }' \
+  'https://eu1.cloud.thethings.network/api/v3/as/applications/moduleair-test/webhooks/test-pj/devices/eui-70b3d57ed004fb6c/down/push'
+
+
+{
+  "name": "as.down.data.receive",
+  "time": "2022-05-27T09:40:33.116004712Z",
+  "identifiers": [
+    {
+      "device_ids": {
+        "device_id": "eui-70b3d57ed004fb6c",
+        "application_ids": {
+          "application_id": "moduleair-test"
+        }
+      }
+    },
+    {
+      "device_ids": {
+        "device_id": "eui-70b3d57ed004fb6c",
+        "application_ids": {
+          "application_id": "moduleair-test"
+        }
+      }
+    }
+  ],
+  "data": {
+    "@type": "type.googleapis.com/ttn.lorawan.v3.ApplicationDownlink",
+    "f_port": 1,
+    "frm_payload": "vu8=",
+    "decoded_payload": {
+      "bytes": [
+        1,
+        2,
+        3
+      ]
+    },
+    "priority": "NORMAL",
+    "correlation_ids": [
+      "as:downlink:01G42E75PTREXXCMC5K1WQFHSS"
+    ]
+  },
+  "correlation_ids": [
+    "as:downlink:01G42E75PTREXXCMC5K1WQFHSS"
+  ],
+  "origin": "ip-10-100-7-2.eu-west-1.compute.internal",
+  "context": {
+    "tenant-id": "CgN0dG4="
+  },
+  "visibility": {
+    "rights": [
+      "RIGHT_APPLICATION_TRAFFIC_READ",
+      "RIGHT_APPLICATION_TRAFFIC_READ"
+    ]
+  },
+  "authentication": {
+    "type": "Bearer",
+    "token_type": "APIKey",
+    "token_id": "XTRUNRZF4BCA23DCOMRA762AYDSJPEHTL24T2DA"
+  },
+  "remote_ip": "95.90.205.89",
+  "user_agent": "my-integration/my-integration-version",
+  "unique_id": "01G42E75PWAV04DDZE40DMXAWG"
+}
+
+
+eui-70b3d57ed004f178
+
+
+curl --location \
+  --header 'Authorization: Bearer NNSXS.XTRUNRZF4BCA23DCOMRA762AYDSJPEHTL24T2DA.3ZCGNXZ2NYTIWQSTJUMJEAD7LZAOGM4QDTUBN7XFIE7OGFZEPR7A' \
+  --header 'Content-Type: application/json' \
+  --header 'User-Agent: my-integration/my-integration-version' \
+  --request POST \
+  --data '{"downlinks":[{
+      "frm_payload":"1234",
+      "f_port":2,
+      "priority":"NORMAL"
+    }]
+  }' \
+  'https://eu1.cloud.thethings.network/api/v3/as/applications/moduleair-test/webhooks/test-pj/devices/eui-70b3d57ed004f178/down/push'
+
+D76DF8
+
+Helleo world : SGVsbG8gV29ybGQh
+
+D76DF8
+
+on doit envoyer en base 64
+
+
+curl --location \
+  --header 'Authorization: Bearer NNSXS.XTRUNRZF4BCA23DCOMRA762AYDSJPEHTL24T2DA.3ZCGNXZ2NYTIWQSTJUMJEAD7LZAOGM4QDTUBN7XFIE7OGFZEPR7A' \
+  --header 'Content-Type: application/json' \
+  --header 'User-Agent: my-integration/my-integration-version' \
+  --request POST \
+  --data '{"downlinks":[{
+      "f_port":2,
+      "frm_payload": "vu8=",                   
+    "decoded_payload" : {                    
+      "PM1": 13.45,
+      "PM2": 5.78
+    },
+    "priority": "NORMAL",                    
+    "confirmed": true,                       
+    "correlation_ids" : [ "custom-id" ]
+    }]
+  }' \
+  'https://eu1.cloud.thethings.network/api/v3/as/applications/moduleair-test/webhooks/test-pj/devices/eui-70b3d57ed004f178/down/push'
+
+
+function decodeDownlink(input) {
+  return {
+    data: {
+      bytes: input.bytes
+    },
+    warnings: [],
+    errors: []
+  }
+}
+
+
+
+curl --location \
+  --header 'Authorization: Bearer NNSXS.XTRUNRZF4BCA23DCOMRA762AYDSJPEHTL24T2DA.3ZCGNXZ2NYTIWQSTJUMJEAD7LZAOGM4QDTUBN7XFIE7OGFZEPR7A' \
+  --header 'Content-Type: application/json' \
+  --header 'User-Agent: my-integration/my-integration-version' \
+  --request POST \
+  --data '{"downlinks":[{
+      "decoded_payload":{"data": {"selector":0, "value":"12.34"}},
+      "f_port":1,
+    }]
+  }' \
+  'https://eu1.cloud.thethings.network/api/v3/as/applications/moduleair-test/webhooks/test-pj/devices/eui-70b3d57ed004fb6c/down/push'
+
+
+
+
+
+[{"f_port":1,"decoded_payload": {"data": {"selector":0, "value":"12.34"}}}]}' \
+
+
+
+
+
+
+
+curl --location \
+  --header 'Authorization: Bearer NNSXS.XTRUNRZF4BCA23DCOMRA762AYDSJPEHTL24T2DA.3ZCGNXZ2NYTIWQSTJUMJEAD7LZAOGM4QDTUBN7XFIE7OGFZEPR7A' \
+  --header 'Content-Type: application/json' \
+  --header 'User-Agent: my-integration/my-integration-version' \
+  --request POST \
+  --data '{"downlinks":[{
+      "f_port":1,
+      "frm_payload": "vu8=",                   
+    "decoded_payload" : {                    
+      "selector": "0",
+      "value": "12.34"
+    },
+    "priority": "NORMAL",                    
+    "confirmed": true,                       
+    "correlation_ids" : [ "custom-id" ]
+    }]
+  }' \
+  'https://eu1.cloud.thethings.network/api/v3/as/applications/moduleair-test/webhooks/test-pj/devices/eui-70b3d57ed004fb6c/down/push'
+
+
+
+
+
+
+
+
+curl --location \
+  --header 'Authorization: Bearer NNSXS.BD7U....G5QFZQV6CQ.NZCY2ECBWDW72D6VCPT446EIKZ4T3QMSFNELZSFY6EZPYFXVRBFQ' \
+  --header 'Content-Type: application/json' \
+  --header 'User-Agent: my-integration/my-integration-version' \
+  --request POST \
+  --data '{"downlinks": [{"f_port":1,"decoded_payload": {"data": {"state1":"false", "state2":"true"}}}]}' \
+ 'https://eu1.cloud.thethings.network/api/v3/as/applications/heltec-e2-otaa-led1/webhooks/testhook2/devices/heltec-esp32-lora-2/down/push'
+
+
+
+414570A4 = 12.34
+
+ajouter selecteur
+
+"data": {
+    "@type": "type.googleapis.com/ttn.lorawan.v3.ApplicationDownlink",
+    "f_port": 1,
+    "frm_payload": "AEFFcKQ=",
+    "correlation_ids": [
+      "as:downlink:01G4MA7QDYGD629A4WJ1W693CY",
+      "rpc:/ttn.lorawan.v3.AppAs/DownlinkQueueReplace:4e65e396-dabd-4ad7-af5f-cd1bddd0f5bb"
+    ]
+
+
+  --data '{"downlinks": [{"f_port":1,"decoded_payload": {"data": {"selector":0, "value":"12.34"}}}]}' \
+
+
+
+
+  function encodeDownlink(input) {
+    var data = input.data.downlinks[0].decoded_payload.bytes;
+    	return {
+    		bytes: data
+    	};
+    }
+
+  function decodeDownlink(input) {
+    var data = input.data.downlinks[0].decoded_payload.bytes;
+    	return {
+    		bytes: data
+    	};
+    }
+
+curl --location \
+  --header 'Authorization: Bearer NNSXS.BD7U....G5QFZQV6CQ.NZCY2ECBWDW72D6VCPT446EIKZ4T3QMSFNELZSFY6EZPYFXVRBFQ' \
+  --header 'Content-Type: application/json' \
+  --header 'User-Agent: my-integration/my-integration-version' \
+  --request POST \
+  --data '{"downlinks": [{"f_port":1,"decoded_payload": {"data": {"selector":0, "value":"12.34"}}}]}' \
+ 'https://eu1.cloud.thethings.network/api/v3/as/applications/heltec-e2-otaa-led1/webhooks/testhook2/devices/heltec-esp32-lora-2/down/push'
+
+
+
+
+
+     "selector": "0",
+      "value": "12.34"
+
+
+
+
+https://eu1.cloud.thethings.network/api/v3/as/applications/moduleair-test/webhooks/test-pj/devices/eui-70b3d57ed004fb6c/down/push
+
+
+
+
+
+
+{
+  "end_device_ids" : {
+    "device_id" : "dev1",
+    "application_ids" : {
+      "application_id" : "app1"
+    }
+  },
+  "downlinks": [{
+    "f_port": 15,
+    "frm_payload": "vu8=",
+    "decoded_payload" : {
+      "temperature": 1.0,
+      "luminosity": 0.64
+    },
+    "priority": "NORMAL",
+    "confirmed": true,
+    "correlation_ids" : [ "custom-id" ]
+  }]
+}
+
+
+
+
+____________
+
+
+function __encodeDownlink(input) {
+  // Input is a string true or false
+  var bytes = [];
+  var floatArray = new Float32Array(1)
+  
+  switch(input.data.data.selector) {
+  case "0":
+    bytes[0] = 0;
+    break;
+  case "1":
+    bytes[0] = 1;
+    break;
+  case "2":
+    bytes[0] = 2;
+    break;
+  case "3":
+    bytes[0] = 3;
+    break;
+  case "4":
+    bytes[0] = 4;
+    break;
+} 
+  
+floatArray[0]= parseFloat(input.data.data.value);
+
+var byteArray = new Uint8Array(floatArray.buffer);
+
+bytes[1] = byteArray[0];
+bytes[2] = byteArray[1];
+bytes[3] = byteArray[2];
+bytes[4] = byteArray[3];
+
+return {
+    bytes: bytes,
+    fPort: input.fPort,
+  };
+}
+
+function __decodeDownlink(input) {
+  
+var buf = new ArrayBuffer(4);
+var view = new DataView(buf);
+
+input.bytes.forEach(function (b, i) {
+    view.setUint8(i, b);
+});
+
+  return {
+    data: {
+      selector:input.byte[0],
+      value: view.getFloat32(1,true).toString()
+    }
+  };
+}
+
+
+
+
+
+
+
+{
+  "end_device_ids" : {
+    "device_id" : "eui-70b3d57ed004fb6c",
+    "application_ids" : {
+      "application_id" : "moduleair-test"
+    }
+  },
+  "downlinks": [{
+    "f_port": 15,
+    "frm_payload": "vu8=",
+    "decoded_payload" : {
+      "temperature": 1.0,
+      "luminosity": 0.64
+    },
+    "priority": "NORMAL",
+    "confirmed": true,
+    "correlation_ids" : [ "custom-id" ]
+  }]
+}
+
+
+
+curl --location \
+>   --header 'Authorization: Bearer NNSXS.XTRUNRZF4BCA23DCOMRA762AYDSJPEHTL24T2DA.3ZCGNXZ2NYTIWQSTJUMJEAD7LZAOGM4QDTUBN7XFIE7OGFZEPR7A' \
+>   --header 'Content-Type: application/json' \
+>   --header 'User-Agent: my-integration/my-integration-version' \
+>   --request POST \
+>   --data '{"downlinks":[{
+>       "f_port":1,
+>     "decoded_payload" : {                    
+>       "selector": "0",
+>       "value": "12.34"
+>     }
+>     }]
+>   }' \
+>   'https://eu1.cloud.thethings.network/api/v3/as/applications/moduleair-test/webhooks/test-pj/devices/eui-70b3d57ed004f178/down/push'
+
+___________
+
+curl --location \
+  --header 'Authorization: Bearer NNSXS.XTRUNRZF4BCA23DCOMRA762AYDSJPEHTL24T2DA.3ZCGNXZ2NYTIWQSTJUMJEAD7LZAOGM4QDTUBN7XFIE7OGFZEPR7A' \
+  --header 'Content-Type: application/json' \
+  --header 'User-Agent: my-integration/my-integration-version' \
+  --request POST \
+  --data '{"downlinks":[{
+      "f_port":1,
+     "decoded_payload" : {                    
+       "selector": "0",
+       "value": "12.34"
+     }
+    }]
+  }' \
+  'https://eu1.cloud.thethings.network/api/v3/as/applications/moduleair-test/webhooks/test-pj/devices/eui-70b3d57ed004f178/down/push'
+
+
+
+  "appeui": "0000000000000000",
+  "deveui": "70B3D57ED004F178",
+  "appkey": "36DF87832B8ECF4C0A4015EC677E78CE",
