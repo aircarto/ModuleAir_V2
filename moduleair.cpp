@@ -30,6 +30,10 @@ String SOFTWARE_VERSION(SOFTWARE_VERSION_STR);
 // SPIClass SPI(FSPI);
 // #endif
 
+// Dans SPI.h
+
+// extern SPIClass SPI_H; en bas
+
 //Dans PXMatrix
 
 //On remplace tous les SPI. par SPI_H.
@@ -39,8 +43,8 @@ String SOFTWARE_VERSION(SOFTWARE_VERSION_STR);
 // // HW SPI PINS
 // #define SPI_BUS_CLK 14
 // #define SPI_BUS_MOSI 13
-// #define SPI_BUS_MISO 12 //Pas utilisé => override?   12
-// #define SPI_BUS_SS 4    //Pas utilisé => override   0
+// #define SPI_BUS_MISO 12 
+// #define SPI_BUS_SS 4    
 
 
 #include <NDIRZ16.h> // CO2
@@ -1102,20 +1106,6 @@ static String NPM_temp_humi()
 			return String(NPM_temp / 100.0f) + " / "+ String(NPM_humi / 100.0f);
 }
 
-
-
-/*****************************************************************
- * disable unneeded NMEA sentences, TinyGPS++ needs GGA, RMC     *
- *****************************************************************/
-// static void disable_unneeded_nmea()
-// {
-// 	serialGPS->println(F("$PUBX,40,GLL,0,0,0,0*5C")); // Geographic position, latitude / longitude
-// 													  //	serialGPS->println(F("$PUBX,40,GGA,0,0,0,0*5A"));       // Global Positioning System Fix Data
-// 	serialGPS->println(F("$PUBX,40,GSA,0,0,0,0*4E")); // GPS DOP and active satellites
-// 													  //	serialGPS->println(F("$PUBX,40,RMC,0,0,0,0*47"));       // Recommended minimum specific GPS/Transit data
-// 	serialGPS->println(F("$PUBX,40,GSV,0,0,0,0*59")); // GNSS satellites in view
-// 	serialGPS->println(F("$PUBX,40,VTG,0,0,0,0*5E")); // Track made good and ground speed
-// }
 
 /*****************************************************************
  * write config to spiffs                                        *
@@ -4720,7 +4710,7 @@ static void prepareTxFrame()
 
 		datalora[18] = (int8_t)last_value_BME280_H;
 
-		u1.temp_uint = (int16_t)last_value_BMX280_P;
+		u1.temp_int = (int16_t)last_value_BMX280_P;
 
 		datalora[19] = u1.temp_byte[0];
 		datalora[20] = u1.temp_byte[1];
@@ -4752,6 +4742,19 @@ static void prepareTxFrame()
 		}
 
 }
+
+
+bool lorachip;
+bool loratest(int lora_dio0)
+{
+pinMode(lora_dio0, INPUT_PULLUP);
+  delay(200);
+  if (!digitalRead(lora_dio0)) {      // low => LoRa chip detected
+    return true;
+  }
+  return false;
+}
+
 
 /*****************************************************************
  * Check stack                                                    *
@@ -4790,10 +4793,14 @@ void setup()
 
 #if defined(ESP32) and not defined(ARDUINO_HELTEC_WIFI_LORA_32_V2) and not defined(ARDUINO_TTGO_LoRa32_v21new)
 	Wire.begin(I2C_PIN_SDA, I2C_PIN_SCL);
+	lorachip = loratest(D26); // test if the LoRa module is connected when LoRaWAN option checked, otherwise freeze...
+	Debug.print("Lora chip connected:");
+	Debug.println(lorachip);
 #endif
 
 #if defined(ARDUINO_TTGO_LoRa32_v21new)
 	Wire.begin(I2C_PIN_SDA, I2C_PIN_SCL);
+	lorachip = true;
 #endif
 
 #if defined(ARDUINO_HELTEC_WIFI_LORA_32_V2)
@@ -4803,6 +4810,7 @@ void setup()
 	digitalWrite(OLED_RESET, HIGH); // while OLED is running, must set GPIO16 in high、
 	Wire.begin(I2C_SCREEN_SDA, I2C_SCREEN_SCL);
 	Wire1.begin(I2C_PIN_SDA, I2C_PIN_SCL);
+	lorachip = true;
 #endif
 
 	if (cfg::npm_read)
@@ -4868,7 +4876,7 @@ init_matrix();
 
 }
 
-	if (cfg::has_lora)
+	if (cfg::has_lora && lorachip)
 	{
 
 		ToByteArray(); 
@@ -5151,7 +5159,7 @@ void loop()
 
 		}
 
-		if (cfg::has_lora)
+		if (cfg::has_lora && lorachip)
 	{
 		prepareTxFrame();
 
@@ -5230,7 +5238,7 @@ void loop()
 		//		Serial.println(ESP.getFreeHeap(),DEC);
 	}
 
-if (cfg::has_lora)
+if (cfg::has_lora && lorachip)
 	{
 		os_runloop_once();
 		//deplacer dans le send now
