@@ -93,6 +93,7 @@ const char INTL_TEMPERATURE[] PROGMEM = "";
 const char INTL_HUMIDITY[] PROGMEM = "";
 const char INTL_PRESSURE[] PROGMEM = "";
 const char INTL_DEW_POINT[] PROGMEM = "";
+const char INTL_CO2[] PROGMEM = "";
 const char INTL_LATITUDE[] PROGMEM = "";
 const char INTL_LONGITUDE[] PROGMEM = "";
 const char INTL_ALTITUDE[] PROGMEM = "";

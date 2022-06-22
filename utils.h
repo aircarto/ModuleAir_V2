@@ -52,8 +52,8 @@ namespace cfg {
 
 
 #define serialSDS (Serial1)
-#define serialGPS (&(Serial2))
-#define serialNPM (Serial1) //works????
+#define serialNPM (Serial1) 
+#define serialMHZ (Serial2)
 
 enum class PmSensorCmd {
 	Start,

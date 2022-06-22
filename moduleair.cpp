@@ -50,7 +50,7 @@ String SOFTWARE_VERSION_SHORT(SOFTWARE_VERSION_STR_SHORT);
 // #define SPI_BUS_MISO 12
 // #define SPI_BUS_SS 4
 
-#include <NDIRZ16.h> // CO2
+#include <MHZ16_uart.h> // CO2
 #include <MHZ19.h>
 
 #include <SensirionI2CSgp40.h>
@@ -569,7 +569,6 @@ uint8_t forecast_selector;
 #define serialSDS (Serial1)
 #define serialNPM (Serial1)
 #define serialMHZ (Serial2)
-// #define serialGPS (&(Serial2)) // as pointer
 
 /*****************************************************************
  * BMP/BME280 declaration                                        *
@@ -579,12 +578,12 @@ BMX280 bmx280;
 /*****************************************************************
  * MH-Z16 declaration                                        *
  *****************************************************************/
-// BMX280 bmx280;
+MHZ16_uart mhz16;
 
 /*****************************************************************
  * MH-Z19 declaration                                        *
  *****************************************************************/
-// BMX280 bmx280;
+MHZ19 mhz19; 
 
 /*****************************************************************
  * SGP40 declaration                                        *
@@ -2165,6 +2164,11 @@ static void webserver_values()
 		add_table_row_from_value(page_content, sensor, param, check_display_value(value, -1, 1, 0), "%");
 	};
 
+	auto add_table_co2_value = [&page_content](const __FlashStringHelper *sensor, const __FlashStringHelper *param, const float &value)
+	{
+		add_table_row_from_value(page_content, sensor, param, check_display_value(value, -1, 1, 0).substring(0,check_display_value(value, -1, 1, 0).indexOf(".")), "ppm"); //remove after .
+	};
+
 	auto add_table_value = [&page_content](const __FlashStringHelper *sensor, const __FlashStringHelper *param, const String &value, const String &unit)
 	{
 		add_table_row_from_value(page_content, sensor, param, value, unit);
@@ -2203,6 +2207,21 @@ static void webserver_values()
 			dew_point_temp = dew_point(last_value_BMX280_T, last_value_BME280_H);
 			add_table_value(FPSTR(sensor_name), FPSTR(INTL_DEW_POINT), isnan(dew_point_temp) ? "-" : String(dew_point_temp, 1), unit_T);
 		}
+		page_content += FPSTR(EMPTY_ROW);
+	}
+
+	if (cfg::mhz16_read)
+	{
+		const char *const sensor_name = SENSORS_MHZ16;
+		add_table_co2_value(FPSTR(sensor_name), FPSTR(INTL_CO2), last_value_MHZ16);
+		page_content += FPSTR(EMPTY_ROW);
+	}
+
+
+		if (cfg::mhz19_read)
+	{
+		const char *const sensor_name = SENSORS_MHZ19;
+		add_table_co2_value(FPSTR(sensor_name), FPSTR(INTL_CO2), last_value_MHZ19);
 		page_content += FPSTR(EMPTY_ROW);
 	}
 
@@ -3191,6 +3210,61 @@ static void fetchSensorBMX280(String &s)
 	debug_outln_verbose(FPSTR(DBG_TXT_END_READING), FPSTR(sensor_name));
 }
 
+
+
+/*****************************************************************
+ * read MHZ16 sensor values                              *
+ *****************************************************************/
+static void fetchSensorMHZ16(String &s)
+{
+	const char *const sensor_name = SENSORS_MHZ16;
+	debug_outln_verbose(FPSTR(DBG_TXT_START_READING), FPSTR(sensor_name));
+
+	int value = mhz16.getPPM();
+
+	if (isnan(value))
+	{
+		last_value_MHZ16 = -1.0;
+		debug_outln_error(F("MHZ16 read failed"));
+	}
+	else
+	{
+		last_value_MHZ16 = (float)value;
+		add_Value2Json(s, F("MHZ16_CO2"), FPSTR(DBG_TXT_CO2PPM), last_value_MHZ16);
+	}
+	debug_outln_info(FPSTR(DBG_TXT_SEP));
+	debug_outln_verbose(FPSTR(DBG_TXT_END_READING), FPSTR(sensor_name));
+}
+
+/*****************************************************************
+ * read MHZ19 sensor values                              *
+ *****************************************************************/
+static void fetchSensorMHZ19(String &s)
+{
+	const char *const sensor_name = SENSORS_MHZ19;
+	debug_outln_verbose(FPSTR(DBG_TXT_START_READING), FPSTR(sensor_name));
+
+	int value; 
+
+    value = mhz19.getCO2();
+
+	if (isnan(value))
+	{
+		last_value_MHZ19 = -1.0;
+		debug_outln_error(F("MHZ19 read failed"));
+	}
+	else
+	{
+		last_value_MHZ19 = (float)value;
+		add_Value2Json(s, F("MHZ19_CO2"), FPSTR(DBG_TXT_CO2PPM), last_value_MHZ19);
+	}
+
+	debug_outln_info(FPSTR(DBG_TXT_SEP));
+	debug_outln_verbose(FPSTR(DBG_TXT_END_READING), FPSTR(sensor_name));
+}
+
+
+
 /*****************************************************************
  * read SDS011 sensor values                                     *
  *****************************************************************/
@@ -3733,7 +3807,7 @@ static void display_values_matrix()
 	String display_header;
 	String display_lines[3] = {"", "", ""};
 	uint8_t screen_count = 0;
-	uint8_t screens[22];
+	uint8_t screens[23];
 	int line_count = 0;
 	debug_outln_info(F("output values to display..."));
 
@@ -3811,37 +3885,41 @@ static void display_values_matrix()
 			screens[screen_count++] = 9; //P
 		}
 
-		if ((cfg::mhz16_read || cfg::mhz19_read) && cfg::display_measure)
+		if (cfg::mhz16_read  && cfg::display_measure)
 		{
 			screens[screen_count++] = 10;
 		}
-		if (cfg::sgp40_read && cfg::display_measure)
+		if (cfg::mhz19_read && cfg::display_measure)
 		{
 			screens[screen_count++] = 11;
+		}
+		if (cfg::sgp40_read && cfg::display_measure)
+		{
+			screens[screen_count++] = 12;
 		}
 
 		if (cfg::display_forecast)
 		{
-			screens[screen_count++] = 12; // Air exterieur
-			screens[screen_count++] = 13; // Atmo Sud forecast Indice
-			screens[screen_count++] = 14; // Atmo Sud forecast NO2
-			screens[screen_count++] = 15; // Atmo Sud forecast O3
-			screens[screen_count++] = 16; // Atmo Sud forecast PM10
-			screens[screen_count++] = 17; // Atmo Sud forecast PM2.5
+			screens[screen_count++] = 13; // Air exterieur
+			screens[screen_count++] = 14; // Atmo Sud forecast Indice
+			screens[screen_count++] = 15; // Atmo Sud forecast NO2
+			screens[screen_count++] = 16; // Atmo Sud forecast O3
+			screens[screen_count++] = 17; // Atmo Sud forecast PM10
+			screens[screen_count++] = 18; // Atmo Sud forecast PM2.5
 		}
 
 		if (cfg::display_wifi_info && cfg::has_wifi)
 		{
-			screens[screen_count++] = 18; // Wifi info
+			screens[screen_count++] = 19; // Wifi info
 		}
 		if (cfg::display_device_info)
 		{
-			screens[screen_count++] = 19; // chipID, firmware and count of measurements
-			screens[screen_count++] = 20; // Latitude, longitude, altitude
+			screens[screen_count++] = 20; // chipID, firmware and count of measurements
+			screens[screen_count++] = 21; // Latitude, longitude, altitude
 		}
 		if (cfg::display_lora_info && cfg::has_lora)
 		{
-			screens[screen_count++] = 21; // Lora info
+			screens[screen_count++] = 22; // Lora info
 		}
 
 
@@ -3936,24 +4014,78 @@ static void display_values_matrix()
 		act_milli += 5000;
 			break;
 		case 6:
-		act_milli += 5000;
+		if(cfg::npm_fulltime){
+
+		}else{
+		act_milli += 5000;	
+		}
 			break;
 		case 7:
-		act_milli += 5000;
+			display.setTextColor(myWHITE);
+			display.setFont(NULL);
+			display.setCursor(0, 0);
+			display.setTextSize(1);
+			display.print("Temp.");
+			display.write(251);
+			display.setFont(&Font4x7Fixed);
+			display.setCursor(display.getCursorX()+2, 7);
+			display.write(176);
+			display.print("C");
 			break;
 		case 8:
-		act_milli += 5000;
+			display.setTextColor(myWHITE);
+			display.setFont(NULL);
+			display.setCursor(0, 0);
+			display.setTextSize(1);
+			display.print("Humi.");
+			display.write(251);
+			display.setFont(&Font4x7Fixed);
+			display.setCursor(display.getCursorX()+2, 7);
+			display.write(37);
 			break;
 		case 9:
-		act_milli += 5000;
+			display.setTextColor(myWHITE);
+			display.setFont(NULL);
+			display.setCursor(0, 0);
+			display.setTextSize(1);
+			display.print("Press.");
+			display.write(251);
+			display.setFont(&Font4x7Fixed);
+			display.setCursor(display.getCursorX()+2, 7);
+			display.print("hPa");
 			break;
 		case 10:
-		act_milli += 5000;
+			display.setTextColor(myWHITE);
+			display.setFont(NULL);
+			display.setCursor(0, 0);
+			display.setTextSize(1);
+			display.print("C0");
+			display.write(251);
+			display.setFont(&Font4x7Fixed);
+			display.setCursor(display.getCursorX()+2, 7);
+			display.print("ppm");
 			break;
 		case 11:
-		act_milli += 5000;
+			display.setTextColor(myWHITE);
+			display.setFont(NULL);
+			display.setCursor(0, 0);
+			display.setTextSize(1);
+			display.print("C0");
+			display.setFont(&Font4x7Fixed);
+			display.setCursor(display.getCursorX()+2, 7);
+			display.print("ppm");
 			break;
 		case 12:
+			display.setTextColor(myWHITE);
+			display.setFont(NULL);
+			display.setCursor(0, 0);
+			display.setTextSize(1);
+			display.print("COV");
+			display.setFont(&Font4x7Fixed);
+			display.setCursor(display.getCursorX()+2, 7);
+			display.print("ppm");
+			break;
+		case 13:
 		if(atmoSud.multi != -1.0 || atmoSud.no2 != -1.0 || atmoSud.o3 != -1.0 || atmoSud.pm10 != -1.0 || atmoSud.pm2_5 != -1.0){
 		drawImage(0, 0, 32, 64, exterieur);
 		display.setTextColor(myWHITE);
@@ -3970,7 +4102,7 @@ static void display_values_matrix()
 			act_milli += 5000;  
 			}
 			break;
-		case 13:
+		case 14:
 			if(atmoSud.multi != -1.0){
 			display.setTextColor(myCYAN);
 			display.setFont(NULL);
@@ -3992,7 +4124,7 @@ static void display_values_matrix()
 			act_milli += 5000;  
 			}
 			break;
-		case 14:
+		case 15:
 			if(atmoSud.no2 != -1.0){
 			display.setTextColor(myCYAN);
 			display.setFont(NULL);
@@ -4014,7 +4146,7 @@ static void display_values_matrix()
 			act_milli += 5000;
 			}
 			break;
-		case 15:
+		case 16:
 			if(atmoSud.o3 != -1.0){
 			display.setTextColor(myCYAN);
 			display.setFont(NULL);
@@ -4036,7 +4168,7 @@ static void display_values_matrix()
 			act_milli += 5000;
 			}
 			break;
-		case 16:
+		case 17:
 			if(atmoSud.pm10 != -1.0){
 			display.setTextColor(myCYAN);
 			display.setFont(NULL);
@@ -4058,7 +4190,7 @@ static void display_values_matrix()
 			act_milli += 5000;
 			}
 			break;
-		case 17:
+		case 18:
 			 if(atmoSud.pm2_5 != -1.0){
 			display.setTextColor(myCYAN);
 			display.setFont(NULL);
@@ -4080,7 +4212,7 @@ static void display_values_matrix()
 			act_milli += 5000;
 			}
 			break;
-		case 18:
+		case 19:
 			display.setTextColor(myCYAN);
 			display.setFont(&Font4x5Fixed);
 			display.setTextSize(1); // ICI???
@@ -4096,7 +4228,7 @@ static void display_values_matrix()
 			display.print("Signal:");
 			display.print(String(calcWiFiSignalQuality(last_signal_strength)));
 			break;
-		case 19:
+		case 20:
 			display.setTextColor(myCYAN);
 			display.setFont(&Font4x5Fixed);
 			display.setCursor(0, 4);
@@ -4111,7 +4243,7 @@ static void display_values_matrix()
 			display.print("Meas.:");
 			display.print(String(count_sends));
 			break;
-		case 20:
+		case 21:
 			display.setTextColor(myCYAN);
 			display.setFont(&Font4x5Fixed);
 			display.setCursor(0, 4);
@@ -4126,7 +4258,7 @@ static void display_values_matrix()
 			display.print("Altitude:");
 			display.print(cfg::height_above_sealevel);
 			break;
-		case 21:
+		case 22:
 			display.setTextColor(myCYAN);
 			display.setFont(&Font4x5Fixed);
 			display.setCursor(0, 4);
@@ -4992,9 +5124,22 @@ void setup()
 
 	if (cfg::mhz16_read || cfg::mhz19_read)
 	{
+		//serialMHZ.begin(9600, SERIAL_8N1, CO2_SERIAL_RX, CO2_SERIAL_TX);
+		Debug.println("serialMHZ 9600 8N1");		  
+		//serialMHZ.setTimeout((4 * 12 * 1000) / 9600); //VOIR ICI LE TIMEOUT
+		
+		if (cfg::mhz16_read)
+		{
+		mhz16.begin(CO2_SERIAL_RX, CO2_SERIAL_TX, 2);                                
+        //mhz16.autoCalibration(false);                              
+		}
+
+		if (cfg::mhz19_read)
+		{
 		serialMHZ.begin(9600, SERIAL_8N1, CO2_SERIAL_RX, CO2_SERIAL_TX);
-		Debug.println("serialMHZ 9600 8N1");		  // VOIR ICI
-		serialMHZ.setTimeout((4 * 12 * 1000) / 9600); //VOIR ICI LE TIMEOUT
+		mhz19.begin(serialMHZ);                                
+        mhz19.autoCalibration(false);                              
+		}
 	}
 
 	if (cfg::has_ssd1306)
@@ -5170,6 +5315,7 @@ void loop()
 		}
 	}
 
+
 	if ((msSince(last_display_millis_oled) > DISPLAY_UPDATE_INTERVAL_MS) && (cfg::has_ssd1306))
 	{
 		display_values_oled();
@@ -5235,6 +5381,31 @@ void loop()
 				result = emptyString;
 				Debug.println(data);
 			}
+
+			if (cfg::mhz16_read)
+			{
+				
+				fetchSensorMHZ16(result);
+				data += result;
+				result = emptyString;
+				Debug.println(data);
+			}
+
+			if (cfg::mhz19_read)
+			{
+				fetchSensorMHZ19(result);
+				data += result;
+				result = emptyString;
+				Debug.println(data);
+			}
+
+			// if (cfg::sgp40_read)
+			// {
+			// 	fetchSensorSGP40(result);
+			// 	data += result;
+			// 	result = emptyString;
+			// 	Debug.println(data);
+			// }
 
 			add_Value2Json(data, F("samples"), String(sample_count));
 			add_Value2Json(data, F("min_micro"), String(min_micro));
