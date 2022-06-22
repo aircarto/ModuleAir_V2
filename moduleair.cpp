@@ -71,7 +71,10 @@ String SOFTWARE_VERSION_SHORT(SOFTWARE_VERSION_STR_SHORT);
 // includes external libraries
 
 #include "./Fonts/oledfont.h" // avoids including the default Arial font, needs to be included before SSD1306.h
-#include "./Fonts/Picopixel.h"
+// #include "./Fonts/Picopixel.h"
+#include "./Fonts/Font4x7Fixed.h"  // modified 
+#include "./Fonts/Font4x5Fixed.h"
+//#include "./Fonts/kongtext4pt7b.h"  
 #include <SSD1306Wire.h>
 
 #define ARDUINOJSON_ENABLE_ARDUINO_STREAM 0
@@ -3853,18 +3856,38 @@ static void display_values_matrix()
 		switch (screens[next_display_count % screen_count])
 		{
 		case 0:
-		act_milli += 5000;
+		drawImage(0, 0, 32, 64, interieur);
+		display.setTextColor(myWHITE);
+		display.setFont(&Font4x7Fixed);
+		display.setCursor(13, 9);
+		display.print("Air");
+		display.setCursor(1, 19);
+		display.print("int");
+		display.write(233);
+		display.print("rieur");
 			break;
 		case 1:
-			display.setTextColor(myCYAN);
+			display.setTextColor(myWHITE);
 			display.setFont(NULL);
 			display.setCursor(0, 0);
 			display.setTextSize(1);
 			display.print("PM10");
-			drawImage(50, 0, 8, 9, maison);
+			// display.write(229);
+			// display.print("g/m");
+			// display.write(252);
+			display.setFont(&Font4x7Fixed);
+			display.setCursor(display.getCursorX()+2, 7);
+			display.write(181);
+			display.print("g/m");
+			display.write(179);
+			// display.setFont(&Font4x5Fixed);
+			// display.setCursor(display.getCursorX(), display.getCursorY() -2);
+			// display.print("3");
+			drawImage(55, 0, 8, 9, maison);
 			displayColor = interpolate(pm10_value, 20, 40, 50, 100, 150);
 			myCUSTOM = display.color565(displayColor.R, displayColor.G, displayColor.B);
 			display.fillRect(50, 9, 14, 14, myCUSTOM);
+			display.setFont(NULL);
 			display.setCursor(0, 9);
 			display.setTextSize(2);
 			display.print(String(pm10_value, 0));
@@ -3879,10 +3902,22 @@ static void display_values_matrix()
 			display.setCursor(0, 0);
 			display.setTextSize(1);
 			display.print("PM2.5");
-			drawImage(50, 0, 8, 9, maison);
+			// display.write(229);
+			// display.print("g/m");
+			// display.write(252);
+			display.setFont(&Font4x7Fixed);
+			display.setCursor(display.getCursorX()+2, 7);
+			display.write(181);
+			display.print("g/m");
+			display.write(179);
+			// display.setFont(&Font4x5Fixed);
+			// display.setCursor(display.getCursorX(), display.getCursorY() -2);
+			// display.print("3");
+			drawImage(55, 0, 8, 9, maison);
 			displayColor = interpolate(pm25_value, 10, 20, 25, 50, 75);
 			myCUSTOM = display.color565(displayColor.R, displayColor.G, displayColor.B);
 			display.fillRect(50, 9, 14, 14, myCUSTOM);
+			display.setFont(NULL);
 			display.setCursor(0, 9);
 			display.setTextSize(2);
 			display.print(String(pm10_value, 0));
@@ -3919,7 +3954,21 @@ static void display_values_matrix()
 		act_milli += 5000;
 			break;
 		case 12:
-		act_milli += 5000;
+		if(atmoSud.multi != -1.0 || atmoSud.no2 != -1.0 || atmoSud.o3 != -1.0 || atmoSud.pm10 != -1.0 || atmoSud.pm2_5 != -1.0){
+		drawImage(0, 0, 32, 64, exterieur);
+		display.setTextColor(myWHITE);
+		display.setFont(&Font4x7Fixed);
+		display.setTextSize(1);
+		display.setCursor(13, 9);
+		display.print("Air");
+		display.setCursor(1, 19);
+		display.print("ext");
+		display.write(233);
+		display.print("rieur");
+		}
+		else{
+			act_milli += 5000;  
+			}
 			break;
 		case 13:
 			if(atmoSud.multi != -1.0){
@@ -4033,7 +4082,7 @@ static void display_values_matrix()
 			break;
 		case 18:
 			display.setTextColor(myCYAN);
-			display.setFont(&Picopixel);
+			display.setFont(&Font4x5Fixed);
 			display.setTextSize(1); // ICI???
 			display.setCursor(0, 4);
 			display.print("Wifi Info");
@@ -4049,7 +4098,7 @@ static void display_values_matrix()
 			break;
 		case 19:
 			display.setTextColor(myCYAN);
-			display.setFont(&Picopixel);
+			display.setFont(&Font4x5Fixed);
 			display.setCursor(0, 4);
 			display.print("Device Info");
 			display.setCursor(0, 10);
@@ -4061,17 +4110,10 @@ static void display_values_matrix()
 			display.setCursor(0, 22);
 			display.print("Meas.:");
 			display.print(String(count_sends));
-			display.setCursor(0, 30);
-			display.setFont(NULL);
-			display.write(229);
-			display.print("g/m");
-			display.setFont(&Picopixel);
-			display.setCursor(24, 28);
-			display.print("3");
 			break;
 		case 20:
 			display.setTextColor(myCYAN);
-			display.setFont(&Picopixel);
+			display.setFont(&Font4x5Fixed);
 			display.setCursor(0, 4);
 			display.print("GPS");
 			display.setCursor(0,10 );
@@ -4086,7 +4128,7 @@ static void display_values_matrix()
 			break;
 		case 21:
 			display.setTextColor(myCYAN);
-			display.setFont(&Picopixel);
+			display.setFont(&Font4x5Fixed);
 			display.setCursor(0, 4);
 			display.print("LoRaWAN Info");
 			display.setCursor(0, 10);
@@ -4169,26 +4211,12 @@ static void init_matrix()
 	display.fillScreen(myBLACK);
 	drawImage(0, 0, 32, 64, logo_aircarto);
 	delay(5000);
-	//   drawColor(0, 0 , red);
-	//   display.clearDisplay();
-	//   drawImage(0, 0, maison);
-	//    delay(5000);
 	display.fillScreen(myBLACK);
-	//   drawImage(0, 0 , logo_sc);
-	  delay(5000);
-	//   display.clearDisplay();
+	drawImage(0, 0, 32, 64, logo_atmo);
+	delay(5000);
+	display.fillScreen(myBLACK);
 	drawImage(0, 0, 32, 64, logo_region);
-	 delay(5000);
-	display.fillScreen(myBLACK);
-    drawImage(0, 0, 32, 64, logo_atmo);
  	delay(5000);
-	display.fillScreen(myBLACK);
-    drawImage(0, 0, 32, 64, exterieur);
- 	delay(5000);
-	display.fillScreen(myBLACK);
-    drawImage(0, 0, 32, 64, interieur);
- 	delay(5000);
-
 	//display.clearDisplay();
 	//display_update_enable(false);
 }
