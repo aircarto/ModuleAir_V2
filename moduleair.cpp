@@ -1103,6 +1103,7 @@ static void display_debug(const String &text1, const String &text2)
 {
 	debug_outln_info(F("output debug text to displays..."));
 
+if(cfg::has_ssd1306){
 	if (oled_ssd1306)
 	{
 		oled_ssd1306->clear();
@@ -1112,6 +1113,7 @@ static void display_debug(const String &text1, const String &text2)
 		oled_ssd1306->drawString(0, 24, text2);
 		oled_ssd1306->display();
 	}
+}
 }
 
 /*****************************************************************
@@ -1456,20 +1458,7 @@ static bool writeConfig()
 		switch (c.cfg_type)
 		{
 		case Config_Type_Bool:
-			// Debug.println(c.cfg_key());
-			// Debug.println(*c.cfg_val.as_bool);
-
-			// if(c.cfg_key() == "pmsensor")
-			// 	{
-			// json[c.sds_read].set(*c.cfg_val.as_str == "sds_read" ? true : false);
-			// json[c.npm_read].set(*c.cfg_val.as_str =="npm_read" ? true : false);
-			// 	}
-			// else{
-			// json[c.cfg_key()].set(*c.cfg_val.as_bool);
-			// }
-
 			json[c.cfg_key()].set(*c.cfg_val.as_bool);
-
 			break;
 		case Config_Type_UInt:
 		case Config_Type_Time:
@@ -1492,6 +1481,7 @@ static bool writeConfig()
 	File configFile = SPIFFS.open(F("/config.json"), "w");
 	if (configFile)
 	{
+		serializeJsonPretty(json, Debug);
 		serializeJson(json, configFile);
 		configFile.close();
 		debug_outln_info(F("Config written successfully."));
@@ -1915,9 +1905,9 @@ static void webserver_root()
 {
 	// Si entre dans boucle de reboot
 
-	// if (cfg::has_matrix){
-	// 	display_update_enable(false);
-	// }
+	if (cfg::has_matrix){
+		display_update_enable(true);
+	}
 
 	if (WiFi.status() != WL_CONNECTED)
 	{
@@ -1959,16 +1949,6 @@ static void webserver_config_send_body_get(String &page_content)
 	{
 		add_form_checkbox(cfgid, add_sensor_type(info));
 	};
-
-	// auto add_form_radio = [&page_content](const ConfigShapeId cfgid, const String &info)
-	// {
-	// 	page_content += form_radio(cfgid, info, true);
-	// };
-
-	// auto add_form_radio_sensor = [&add_form_radio](const ConfigShapeId cfgid, __const __FlashStringHelper *info)
-	// {
-	// 	add_form_radio(cfgid, add_sensor_type(info));
-	// };
 
 	debug_outln_info(F("begin webserver_config_body_get ..."));
 	page_content += F("<form method='POST' action='/config' style='width:100%;'>\n"
@@ -2232,28 +2212,7 @@ static void webserver_config_send_body_post(String &page_content)
 			*(c.cfg_val.as_uint) = server_arg.toInt() * 1000;
 			break;
 		case Config_Type_Bool:
-			// if(c.cfg_key() == "pmsensor".c_str())
-			// {
-
-			// if(server_arg == "sds_read")
-			// {
-			// 	*(c.cfg_val.as_str) = server_arg.c_str();
-
-			// }
-
-			// if(server_arg == "npm_read")
-			// {
-			// 	*(c.cfg_val.as_str) = server_arg.c_str();
-
-			// }
-
-			// // }else if(c.cfg_key() == "co2sensor")
-			// // {
-			// // 	*(c.cfg_val.as_bool) = (server_arg == "npm_read") ? true : false;
-			// }else
-			// {
 			*(c.cfg_val.as_bool) = (server_arg == "1");
-			// }
 			break;
 		case Config_Type_String:
 			strncpy(c.cfg_val.as_str, server_arg.c_str(), c.cfg_len);
@@ -2310,9 +2269,9 @@ static void webserver_config()
 
 	// Si entre dans boucle de reboot
 
-	// 		if (cfg::has_matrix){
-	// 	display_update_enable(false);
-	// }
+			if (cfg::has_matrix){
+		display_update_enable(false);
+	}
 
 	if (!webserver_request_auth())
 	{
@@ -2341,19 +2300,12 @@ static void webserver_config()
 	}
 	else
 	{
-
 		webserver_config_send_body_post(page_content);
 	}
 	end_html_page(page_content);
 
 	if (server.method() == HTTP_POST)
 	{
-		// DESACTIVER LES INTERRUPT AVANT D'ECRIRE !!!OBLIGATOIRE!!!
-		if (cfg::has_matrix)
-		{
-			display_update_enable(false);
-		}
-
 		display_debug(F("Writing config"), emptyString);
 		if (writeConfig())
 		{
@@ -2438,6 +2390,7 @@ static void webserver_wifi()
  *****************************************************************/
 static void webserver_values()
 {
+
 	if (WiFi.status() != WL_CONNECTED)
 	{
 		sendHttpRedirect();
@@ -2746,9 +2699,9 @@ static void webserver_removeConfig()
 {
 	// Si entre dans boucle de reboot
 
-	// 			if (cfg::has_matrix){
-	// 	display_update_enable(false);
-	// }
+				if (cfg::has_matrix){
+		display_update_enable(false);
+	}
 
 	if (!webserver_request_auth())
 	{
@@ -2798,9 +2751,9 @@ static void webserver_reset()
 {
 
 	// Si entre dans boucle de reboot
-	// if (cfg::has_matrix){
-	// 	display_update_enable(false);
-	// }
+	if (cfg::has_matrix){
+		display_update_enable(false);
+	}
 
 	if (!webserver_request_auth())
 	{
@@ -4245,15 +4198,6 @@ static void display_values_matrix()
 			screens[screen_count++] = 22; // Lora info
 		}
 
-
-		//   display.setTextColor(myCYAN);
-		//   display.setCursor(10,10);
-		//   display.print("Pixel");
-		//   display.setTextColor(myMAGENTA);
-		//   display.setCursor(20,20);
-		//   display.print("Time");
-		//   display_update_enable(true);
-
 		switch (screens[next_display_count % screen_count])
 		{
 		case 0:
@@ -4711,8 +4655,17 @@ static void init_display()
 #endif
 
 #if defined(ARDUINO_HELTEC_WIFI_LORA_32_V2)
-		oled_ssd1306 = new SSD1306Wire(0x3c, I2C_SCREEN_SDA, I2C_SCREEN_SCL);
+		oled_ssd1306 = new SSD1306Wire(0x3c, I2C_SCREEN_SDA, I2C_SCREEN_SCL); 
 #endif
+
+#if defined(ARDUINO_ESP32_DEV) and defined(KIT_V1)
+	oled_ssd1306 = new SSD1306Wire(0x3c, I2C_PIN_SDA, I2C_PIN_SCL);
+#endif
+
+#if defined(ARDUINO_ESP32_DEV) and defined(KIT_C)
+	oled_ssd1306 = new SSD1306Wire(0x3c, I2C_PIN_SDA, I2C_PIN_SCL);
+#endif
+
 
 		oled_ssd1306->init();
 		oled_ssd1306->flipScreenVertically(); // ENLEVER ???
