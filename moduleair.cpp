@@ -17,8 +17,6 @@ String SOFTWARE_VERSION_SHORT(SOFTWARE_VERSION_STR_SHORT);
 #include <hal/hal.h>
 #include <SPI.h>
 
-
-
 /*****************************************************************
  * IMPORTANT                                          *
  *****************************************************************/
@@ -50,6 +48,12 @@ String SOFTWARE_VERSION_SHORT(SOFTWARE_VERSION_STR_SHORT);
 // #define SPI_BUS_MISO 12
 // #define SPI_BUS_SS 4
 
+//on remplace la glcdfont.c original dans AdaFruitGFX => mod dans le dossier Fonts
+
+/*****************************************************************
+ * IMPORTANT FIN                                          *
+ *****************************************************************/
+
 #include <MHZ16_uart.h> // CO2
 #include <MHZ19.h>
 
@@ -71,10 +75,8 @@ String SOFTWARE_VERSION_SHORT(SOFTWARE_VERSION_STR_SHORT);
 // includes external libraries
 
 #include "./Fonts/oledfont.h" // avoids including the default Arial font, needs to be included before SSD1306.h
-// #include "./Fonts/Picopixel.h"
-#include "./Fonts/Font4x7Fixed.h"  // modified 
-#include "./Fonts/Font4x5Fixed.h"
-//#include "./Fonts/kongtext4pt7b.h"  
+#include "./Fonts/Font4x7Fixed.h"  // modified Pour l'affichage des unités
+#include "./Fonts/Font4x5Fixed.h" //pour l'affichage des infos de debug
 #include <SSD1306Wire.h>
 
 #define ARDUINOJSON_ENABLE_ARDUINO_STREAM 0
@@ -83,7 +85,6 @@ String SOFTWARE_VERSION_SHORT(SOFTWARE_VERSION_STR_SHORT);
 #include <ArduinoJson.h>
 #include <DNSServer.h>
 #include <StreamString.h>
-// #include <TinyGPS++.h>
 #include "./bmx280_i2c.h"
 
 // includes files
@@ -93,7 +94,9 @@ String SOFTWARE_VERSION_SHORT(SOFTWARE_VERSION_STR_SHORT);
 #include "ext_def.h"
 #include "html-content.h"
 
-// configuration
+/*****************************************************************
+ * CONFIGURATION                                          *
+ *****************************************************************/
 namespace cfg
 {
 	unsigned debug = DEBUG;
@@ -224,58 +227,59 @@ static byte booltobyte(bool array[8])
 	return result;
 }
 
-static byte payloadsizer(bool array[8])
-{
+// static byte payloadsizer(bool array[8])
+// {
 
-	// configlorawan[0] = cfg::sds_read;
-	// configlorawan[1] = cfg::npm_read ;
-	// configlorawan[2] = cfg::bmx280_read;
-	// configlorawan[3] = cfg::mhz16_read;
-	// configlorawan[4] = cfg::mhz19_read;
-	// configlorawan[5] = cfg::sgp40_read;
-	// configlorawan[6] = cfg::display_forecast;
-	// configlorawan[7] = cfg::has_wifi;
+// 	// configlorawan[0] = cfg::sds_read;
+// 	// configlorawan[1] = cfg::npm_read ;
+// 	// configlorawan[2] = cfg::bmx280_read;
+// 	// configlorawan[3] = cfg::mhz16_read;
+// 	// configlorawan[4] = cfg::mhz19_read;
+// 	// configlorawan[5] = cfg::sgp40_read;
+// 	// configlorawan[6] = cfg::display_forecast;
+// 	// configlorawan[7] = cfg::has_wifi;
 
-	byte size = 0;
+// 	byte size = 0;
 
-	if (array[0])
-	{
-		size += 8;
-	}
-	if (array[1])
-	{
-		size += 12;
-	}
-	if (array[2])
-	{
-		size += 12;
-	}
-	if (array[3])
-	{
-		size += 4;
-	}
-	if (array[4])
-	{
-		size += 4;
-	}
-	if (array[5])
-	{
-		size += 4;
-	}
-	if (array[6])
-	{
-		size += 9;
-	}
-	if (array[7])
-	{
-		size += 1;
-	}
+// 	if (array[0])
+// 	{
+// 		size += 8;
+// 	}
+// 	if (array[1])
+// 	{
+// 		size += 12;
+// 	}
+// 	if (array[2])
+// 	{
+// 		size += 12;
+// 	}
+// 	if (array[3])
+// 	{
+// 		size += 4;
+// 	}
+// 	if (array[4])
+// 	{
+// 		size += 4;
+// 	}
+// 	if (array[5])
+// 	{
+// 		size += 4;
+// 	}
+// 	if (array[6])
+// 	{
+// 		size += 9;
+// 	}
+// 	if (array[7])
+// 	{
+// 		size += 1;
+// 	}
 
-	return size;
-}
+// 	return size;
+// }
 
 // define size of the config JSON
 #define JSON_BUFFER_SIZE 2300
+// define size of the AtmoSud Forecast API JSON
 #define JSON_BUFFER_SIZE2 200
 
 LoggerConfig loggerConfigs[LoggerCount];
@@ -312,6 +316,14 @@ struct RGB
 	byte G;
 	byte B;
 };
+
+// struct HSV
+// {
+// 	uint16_t H;
+// 	float S;
+// 	byte V;
+// };
+
 
 struct RGB displayColor
 {
@@ -372,20 +384,20 @@ void drawImage(int x, int y, int h, int w, uint16_t image[])
 	}
 }
 
-void drawColor(int x, int y, uint16_t image[])
-{
-	int imageHeight = 10;
-	int imageWidth = 10;
-	int counter = 0;
-	for (int yy = 0; yy < imageHeight; yy++)
-	{
-		for (int xx = 0; xx < imageWidth; xx++)
-		{
-			display.drawPixel(xx + x, yy + y, image[counter]);
-			counter++;
-		}
-	}
-}
+// void drawColor(int x, int y, uint16_t image[])
+// {
+// 	int imageHeight = 10;
+// 	int imageWidth = 10;
+// 	int counter = 0;
+// 	for (int yy = 0; yy < imageHeight; yy++)
+// 	{
+// 		for (int xx = 0; xx < imageWidth; xx++)
+// 		{
+// 			display.drawPixel(xx + x, yy + y, image[counter]);
+// 			counter++;
+// 		}
+// 	}
+// }
 
 //A VOIR:
 
@@ -394,25 +406,204 @@ void drawColor(int x, int y, uint16_t image[])
 
 // drawColor(x, y, myWHITE);
 
-void drawColor(int x, int y, uint16_t color)
-{
-	int imageHeight = 33;
-	int imageWidth = 33;
-	int counter = 0;
-	for (int yy = 0; yy < imageHeight; yy++)
-	{
-		for (int xx = 0; xx < imageWidth; xx++)
-		{
-			display.drawPixel(xx + x, yy + y, color);
-			counter++;
-		}
-	}
-}
+// void drawColor(int x, int y, uint16_t color)
+// {
+// 	int imageHeight = 33;
+// 	int imageWidth = 33;
+// 	int counter = 0;
+// 	for (int yy = 0; yy < imageHeight; yy++)
+// 	{
+// 		for (int xx = 0; xx < imageWidth; xx++)
+// 		{
+// 			display.drawPixel(xx + x, yy + y, color);
+// 			counter++;
+// 		}
+// 	}
+// }
+
+
+
+// /**
+//  * interpolate 2 RGB colors
+//  * @param color1    integer containing color as 0x00RRGGBB
+//  * @param color2    integer containing color as 0x00RRGGBB
+//  * @param fraction  how much interpolation (0..1)
+//  * - 0: full color 1
+//  * - 1: full color 2
+//  * @return the new color after interpolation
+//  */
+// int interpolate(int color1, int color2, float fraction)
+// {
+//         unsigned char   r1 = (color1 >> 16) & 0xff;
+//         unsigned char   r2 = (color2 >> 16) & 0xff;
+//         unsigned char   g1 = (color1 >> 8) & 0xff;
+//         unsigned char   g2 = (color2 >> 8) & 0xff;
+//         unsigned char   b1 = color1 & 0xff;
+//         unsigned char   b2 = color2 & 0xff;
+
+//         return (int) ((r2 - r1) * fraction + r1) << 16 |
+//                 (int) ((g2 - g1) * fraction + g1) << 8 |
+//                 (int) ((b2 - b1) * fraction + b1);
+// }
+
+// /* 
+//  * 0x0097ceff == RGB(151,206,255)
+//  * 0x00727f9d == RGB(114,127,157)
+//  */
+// int new_color = interpolate(0x0097ceff, 0x00727f9d, 0.3f);
+
+
+
+// struct HSV rgb2hsv(RGB in)
+// {
+//     HSV         out;
+//     double      min, max, delta;
+// 	double r = in.R/255;
+// 	double g = in.G/255;
+// 	double b = in.B/255;
+
+// Debug.println("Color in RGB:");
+// Debug.print(in.R);
+// Debug.print(" ");
+// Debug.print(in.G);
+// Debug.print(" ");
+// Debug.print(in.B);
+// Debug.printf("\n");
+
+//     min = r < g ? r : g;
+//     min = min  < b ? min  : b;
+
+//     max = r > g ? r : g;
+//     max = max  > b ? max  : b;
+
+//     out.V = (byte)(max*100);                                // v
+//     delta = max - min;
+//     if (delta < 0.00001)
+//     {
+//         out.S = 0;
+//         out.H = 0; // undefined, maybe nan?
+//         return out;
+//     }
+//     if( max > 0.0 ) { // NOTE: if Max is == 0, this divide would cause a crash
+//         out.S = (float)(delta / max);                  // s
+//     } else {
+//         // if max is 0, then r = g = b = 0              
+//         // s = 0, h is undefined
+//         out.S = 0.0;
+//         out.H = NAN;                            // its now undefined
+//         return out;
+//     }
+//     if( r >= max )                           // > is bogus, just keeps compilor happy
+//         out.H = ()( g - b ) / delta;        // between yellow & magenta
+//     else
+//     if( g >= max )
+//         out.h = 2.0 + ( b - r ) / delta;  // between cyan & yellow
+//     else
+//         out.h = 4.0 + ( r - g ) / delta;  // between magenta & cyan
+
+//     out.h *= 60.0;                              // degrees
+
+//     if( out.h < 0.0 )
+//         out.h += 360;
+
+// Debug.println("Color out HSV:");
+// Debug.print(out.H);
+// Debug.print(" ");
+// Debug.print(out.S);
+// Debug.print(" ");
+// Debug.print(out.V);
+// Debug.printf("\n");
+
+//     return out;
+// }
+
+
+// struct RGB hsv2rgb(HSV in)
+// {
+//     double      hh, p, q, t, ff;
+//     long        i;
+//     RGB         out;
+
+//     if(in.s <= 0.0) {       // < is bogus, just shuts up warnings
+//         out.R = in.v*255;
+//         out.G = in.v*255;
+//         out.B = in.v*255;
+//         return out;
+//     }
+
+//     hh = in.h;
+//     if(hh >= 360.0) hh = 0.0;
+//     hh /= 60.0;
+//     i = (long)hh;
+//     ff = hh - i;
+//     p = in.v * (1.0 - in.s);
+//     q = in.v * (1.0 - (in.s * ff));
+//     t = in.v * (1.0 - (in.s * (1.0 - ff)));
+
+//     switch(i) {
+//     case 0:
+//         out.R = in.v*255;
+//         out.G = t*255;
+//         out.B = p*255;
+//         break;
+//     case 1:
+//         out.R = q*255;
+//         out.G = in.v*255;
+//         out.B = p*255;
+//         break;
+//     case 2:
+//         out.R = p*255;
+//         out.G = in.v*255;
+//         out.B = t*255;
+//         break;
+
+//     case 3:
+//         out.R = p*255;
+//         out.G = q*255;
+//         out.B = in.v*255;
+//         break;
+//     case 4:
+//         out.R = t*255;
+//         out.G = p*255;
+//         out.B = in.v*255;
+//         break;
+//     case 5:
+//     default:
+//         out.R = in.v*255;
+//         out.G = p*255;
+//         out.B = q*255;
+//         break;
+//     }
+//     return out;     
+// }
+
+// template<typename F>
+
+// struct RGB interpolation(RGB a, RGB b, float t, F interpolator)
+// {
+//     // 0.0 <= t <= 1.0
+//     HSV ca = rgb2hsv(a);
+//     HSV cb = rgb2hsv(b);
+//     HSV final;
+
+//     final.h = interpolator(ca.h, cb.h, t);
+//     final.s = interpolator(ca.s, cb.s, t);
+//     final.v = interpolator(ca.v, cb.v, t);
+
+//     return hsv2rgb(final);
+// }
+
+// int linear(int a, int b, float t)
+// {
+//     return (a * (1 - t) + b * t);
+// }
+
+// // // use: result = interpolation(color1,color2,ratio,&linear);
+
+
 
 struct RGB interpolate(float valueSensor, int step1, int step2, int step3, int step4, int step5)
 {
-
-	//AJOUTER LES STEPS EN PARAMETRES
 
 	byte endColorValueR;
 	byte startColorValueR;
@@ -420,63 +611,128 @@ struct RGB interpolate(float valueSensor, int step1, int step2, int step3, int s
 	byte startColorValueG;
 	byte endColorValueB;
 	byte startColorValueB;
+
+	//   RGB startColor;
+	//   RGB endColor;
+
 	int valueLimitHigh;
 	int valueLimitLow;
 	struct RGB result;
 
 	//   if (valueSensor >= 0 && valueSensor <= step1)
-	if (valueSensor >= -1 && valueSensor <= step1)
+	if (valueSensor == 0)
 	{
-		result.R = 0;
-		result.G = 255; //Green
-		result.B = 0;
+
+		result.R = 80;
+		result.G = 240;   //blue
+		result.B = 230;
+
+		// result.R = 0;
+		// result.G = 255; //Green  //blue
+		// result.B = 0;
 	}
-	else if (valueSensor > step1 && valueSensor <= step5)
+	else if (valueSensor > 0 && valueSensor <= step5)
 	{
-		if (valueSensor <= step2)
+		if (valueSensor <= step1)
 		{
+
+		// startColor = {80,240,230};
+		// endColor = {80,204,170};
+
+			valueLimitHigh = step1;
+			valueLimitLow = 0;
+			endColorValueR = 80;
+			startColorValueR = 80;  //blue to green
+			endColorValueG = 204;
+			startColorValueG = 240; 
+			endColorValueB = 170;
+			startColorValueB = 230;
+
+			// valueLimitHigh = step2;
+			// valueLimitLow = step1;
+			// endColorValueR = 255;
+			// startColorValueR = 0;
+			// endColorValueG = 255;
+			// startColorValueG = 255; //Green to Yellow b
+			// endColorValueB = 0;
+			// startColorValueB = 0;
+		}
+		else if (valueSensor > step1 && valueSensor <= step2)
+		{
+
+		// startColor = {80,240,230};
+		// endColor = {80,204,170};
 			valueLimitHigh = step2;
 			valueLimitLow = step1;
-			endColorValueR = 255;
-			startColorValueR = 0;
-			endColorValueG = 255;
-			startColorValueG = 255; //Green to Yellow
-			endColorValueB = 0;
-			startColorValueB = 0;
+			endColorValueR = 237;
+			startColorValueR = 80;
+			endColorValueG = 230; //green to yellow
+			startColorValueG = 204;
+			endColorValueB = 97;
+			startColorValueB = 170;
+
+			// valueLimitHigh = step3;
+			// valueLimitLow = step2;
+			// endColorValueR = 255;
+			// startColorValueR = 255;
+			// endColorValueG = 127; // Yellow to orange
+			// startColorValueG = 255;
+			// endColorValueB = 0;
+			// startColorValueB = 0;
 		}
 		else if (valueSensor > step2 && valueSensor <= step3)
 		{
+
+		// startColor = {80,240,230};
+		// endColor = {80,204,170};
 			valueLimitHigh = step3;
 			valueLimitLow = step2;
-			endColorValueR = 255;
-			startColorValueR = 255;
-			endColorValueG = 127; // Yellow to orange
-			startColorValueG = 255;
-			endColorValueB = 0;
-			startColorValueB = 0;
+			endColorValueR = 237;
+			startColorValueR = 237;
+			endColorValueG = 94;		//yellow to orange
+			startColorValueG = 230; 
+			endColorValueB = 88;
+			startColorValueB = 97;
+
+
+			// valueLimitHigh = step4;
+			// valueLimitLow = step3;
+			// endColorValueR = 255;
+			// startColorValueR = 255;
+			// endColorValueG = 0;
+			// startColorValueG = 127; // Orange to Red
+			// endColorValueB = 0;
+			// startColorValueB = 0;
 		}
 		else if (valueSensor > step3 && valueSensor <= step4)
 		{
+		// startColor = {80,240,230};
+		// endColor = {80,204,170};
 			valueLimitHigh = step4;
 			valueLimitLow = step3;
-			endColorValueR = 255;
-			startColorValueR = 255;
-			endColorValueG = 0;
-			startColorValueG = 127; // Orange to Red
-			endColorValueB = 0;
-			startColorValueB = 0;
+			endColorValueR = 136;
+			startColorValueR = 237;
+			endColorValueG = 26; // orange to red
+			startColorValueG = 94;
+			endColorValueB = 51;
+			startColorValueB = 88;
 		}
-		else
+		else if (valueSensor > step4 && valueSensor <= step5)
 		{
+		// startColor = {80,240,230};
+		// endColor = {80,204,170};
 			valueLimitHigh = step5;
 			valueLimitLow = step4;
-			endColorValueR = 255;
-			startColorValueR = 255;
-			endColorValueG = 0; // RED to Violet
-			startColorValueG = 0;
-			endColorValueB = 255;
-			startColorValueB = 0;
+			endColorValueR = 115;
+			startColorValueR = 136;
+			endColorValueG = 40; // red to violet
+			startColorValueG = 26;
+			endColorValueB = 125;
+			startColorValueB = 51;
 		}
+
+
+		// result = interpolation(startColor,endColor,((valueSensor - valueLimitLow) / (valueLimitHigh - valueLimitLow)),&linear);
 
 		result.R = (byte)(((endColorValueR - startColorValueR) * ((valueSensor - valueLimitLow) / (valueLimitHigh - valueLimitLow))) + startColorValueR);
 		result.G = (byte)(((endColorValueG - startColorValueG) * ((valueSensor - valueLimitLow) / (valueLimitHigh - valueLimitLow))) + startColorValueG);
@@ -484,9 +740,9 @@ struct RGB interpolate(float valueSensor, int step1, int step2, int step3, int s
 	}
 	else if (valueSensor > step5)
 	{
-		result.R = 255;
-		result.G = 0;
-		result.B = 255;
+		result.R = 115;
+		result.G = 40;  //violet
+		result.B = 125;
 	}
 	else
 	{
@@ -499,8 +755,75 @@ struct RGB interpolate(float valueSensor, int step1, int step2, int step3, int s
 	// Debug.println(result.G);
 	// Debug.println(result.B);
 
+// Debug.println("Value in");
+// Debug.println(valueSensor);
+
+// Debug.println("Color in low RGB:");
+// Debug.print(startColorValueR);
+// Debug.print(" ");
+// Debug.print(startColorValueG);
+// Debug.print(" ");
+// Debug.print(startColorValueB);
+// Debug.printf("\n");
+
+// Debug.println("Color in high RGB:");
+// Debug.print(endColorValueR);
+// Debug.print(" ");
+// Debug.print(endColorValueG);
+// Debug.print(" ");
+// Debug.print(endColorValueB);
+// Debug.printf("\n");
+
+// Debug.println("Color out RGB:");
+// Debug.print(result.R);
+// Debug.print(" ");
+// Debug.print(result.G);
+// Debug.print(" ");
+// Debug.print(result.B);
+// Debug.printf("\n");
+
+uint16_t rgb565 = ((result.R & 0b11111000) << 8) | ((result.G & 0b11111100) << 3) | (result.B >> 3);
+Debug.println(rgb565);
 	return result;
 }
+
+
+void drawgradient(int x, int y, float valueSensor, int step1, int step2, int step3, int step4, int step5)
+{
+	int gradientHeight = 7;
+	int gradientWidth = 64;
+	int pixelvalue[64];
+	RGB pixelcolors[64];
+
+
+Debug.println("Pixel values");
+for (uint8_t i = 0; i < gradientWidth; i++){
+	pixelvalue[i]= (int)((i*step5)/(gradientWidth-1));
+	Debug.print(" ");
+	Debug.print(pixelvalue[i]);
+	if (i == 63)
+	{
+	Debug.printf("\n");
+	}
+}
+
+for (uint8_t j = 0; j < gradientWidth; j++){
+	uint8_t value = pixelvalue[j];
+	pixelcolors[j] = interpolate(value, step1, step2, step3, step4, step5);
+
+}
+
+for (uint8_t k = 0; k < gradientHeight; k++){
+
+	for (int l = 0; l < gradientWidth; l++){
+	uint16_t myPIXEL = display.color565(pixelcolors[l].R, pixelcolors[l].G, pixelcolors[l].B);
+	display.drawPixel(x + l, y + k, myPIXEL);
+	}
+}
+}
+
+
+//REVOIR POUR LE TRAITEMENT DES CARACTERES SPECIAUX
 
 String messager(float valueSensor, int step1, int step2, int step3, int step4, int step5, int type)
 {
@@ -3809,7 +4132,7 @@ static void display_values_matrix()
 	uint8_t screen_count = 0;
 	uint8_t screens[23];
 	int line_count = 0;
-	debug_outln_info(F("output values to display..."));
+	//debug_outln_info(F("output values to display..."));
 
 	// 	  "display_measure": false,
 	//   "display_forecast": false,
@@ -3964,6 +4287,7 @@ static void display_values_matrix()
 			drawImage(55, 0, 8, 9, maison);
 			displayColor = interpolate(pm10_value, 20, 40, 50, 100, 150);
 			myCUSTOM = display.color565(displayColor.R, displayColor.G, displayColor.B);
+			//myCUSTOM = display.color565(displayColor.R, displayColor.G, displayColor.B,true); //AVEC GAMMA CORRECTION
 			display.fillRect(50, 9, 14, 14, myCUSTOM);
 			display.setFont(NULL);
 			display.setCursor(0, 9);
@@ -4119,6 +4443,14 @@ static void display_values_matrix()
 			//display.setTextSize(1);
 			// message = messager(atmoSud.multi, 20, 40, 50, 100, 150, 1);
 			// display.print(message);
+			//drawgradient(0, 25, atmoSud.no2, 20, 40, 50, 100, 150);
+			drawImage(0, 25, 7, 64, gradient_20_150);
+			display.setTextColor(myWHITE);
+			display.setFont(NULL);
+			display.setTextSize(1);
+			display.setCursor((uint8_t)((63*atmoSud.multi)/150)-2, 25-2); //2 pixels de offset
+			display.write(31);
+			//delay(10000);
 			}
 			else{
 			act_milli += 5000;  
@@ -4131,16 +4463,19 @@ static void display_values_matrix()
 			display.setCursor(0, 0);
 			display.setTextSize(1);
 			display.print("NO2 Atmo");
-			displayColor = interpolate(atmoSud.no2, 20, 40, 50, 100, 150);
+			displayColor = interpolate(atmoSud.no2, 40, 90, 120, 230, 340);
 			myCUSTOM = display.color565(displayColor.R, displayColor.G, displayColor.B);
 			display.fillRect(50, 9, 14, 14, myCUSTOM);
 			display.setCursor(0, 9);
 			display.setTextSize(2);
 			display.print(String(atmoSud.no2, 0));
-			// display.setCursor(0, 25);
-			// display.setTextSize(1);
-			// message = messager(atmoSud.no2, 20, 40, 50, 100, 150, 1);
-			// display.print(message);
+			//drawgradient(0, 25, atmoSud.no2, 40, 90, 120, 230, 340);
+			drawImage(0, 25, 7, 64, gradient_40_340);
+			display.setTextColor(myWHITE);
+			display.setFont(NULL);
+			display.setTextSize(1);
+			display.setCursor((uint8_t)((63*atmoSud.no2)/340)-2, 25-2); //2 pixels de offset
+			display.write(31);
 			 }
 		else{
 			act_milli += 5000;
@@ -4153,16 +4488,19 @@ static void display_values_matrix()
 			display.setCursor(0, 0);
 			display.setTextSize(1);
 			display.print("O3 Atmo");
-			displayColor = interpolate(atmoSud.o3, 20, 40, 50, 100, 150);
+			displayColor = interpolate(atmoSud.o3, 50, 100, 130, 240, 380);
 			myCUSTOM = display.color565(displayColor.R, displayColor.G, displayColor.B);
 			display.fillRect(50, 9, 14, 14, myCUSTOM);
 			display.setCursor(0, 9);
 			display.setTextSize(2);
 			display.print(String(atmoSud.o3, 0));
-			// display.setCursor(0, 25);
-			// display.setTextSize(1);
-			// message = messager(atmoSud.o3, 20, 40, 50, 100, 150, 1);
-			// display.print(message);
+			//drawgradient(0, 25, atmoSud.o3, 50, 100, 130, 240, 380);
+			drawImage(0, 25, 7, 64, gradient_50_380);
+			display.setTextColor(myWHITE);
+			display.setFont(NULL);
+			display.setTextSize(1);
+			display.setCursor((uint8_t)((63*atmoSud.o3)/380)-2, 25-2); //2 pixels de offset
+			display.write(31);
 			 }
 			else{
 			act_milli += 5000;
@@ -4181,10 +4519,13 @@ static void display_values_matrix()
 			display.setCursor(0, 9);
 			display.setTextSize(2);
 			display.print(String(atmoSud.pm10, 0));
-			// display.setCursor(0, 25);
-			// display.setTextSize(1);
-			// message = messager(atmoSud.pm10, 20, 40, 50, 100, 150, 1);
-			// display.print(message);
+			//drawgradient(0, 25, atmoSud.pm10, 20, 40, 50, 100, 150);
+			drawImage(0, 25, 7, 64, gradient_20_150);
+			display.setTextColor(myWHITE);
+			display.setFont(NULL);
+			display.setTextSize(1);
+			display.setCursor((uint8_t)((63*atmoSud.pm10)/150)-2, 25-2); //2 pixels de offset
+			display.write(31);
 			}
 			else{
 			act_milli += 5000;
@@ -4197,16 +4538,19 @@ static void display_values_matrix()
 			display.setCursor(0, 0);
 			display.setTextSize(1);
 			display.print("PM2.5 Atmo");
-			displayColor = interpolate(atmoSud.pm2_5, 20, 40, 50, 100, 150);
+			displayColor = interpolate(atmoSud.pm2_5, 10, 20, 25, 50, 75);
 			myCUSTOM = display.color565(displayColor.R, displayColor.G, displayColor.B);
 			display.fillRect(50, 9, 14, 14, myCUSTOM);
 			display.setCursor(0, 9);
 			display.setTextSize(2);
 			display.print(String(atmoSud.pm2_5, 0));
-			// display.setCursor(0, 25);
-			// display.setTextSize(1);
-			// message = messager(atmoSud.pm2_5, 20, 40, 50, 100, 150, 1);
-			// display.print(message);
+			//drawgradient(0, 25, atmoSud.pm2_5, 10, 20, 25, 50, 75);
+			drawImage(0, 25, 7, 64, gradient_10_75);
+			display.setTextColor(myWHITE);
+			display.setFont(NULL);
+			display.setTextSize(1);
+			display.setCursor((uint8_t)((63*atmoSud.pm2_5)/75)-2, 25-2); //2 pixels de offset
+			display.write(31);
 			}
 			else{
 			act_milli += 5000;
