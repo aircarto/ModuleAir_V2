@@ -808,7 +808,7 @@ for (uint8_t i = 0; i < gradientWidth; i++){
 }
 
 for (uint8_t j = 0; j < gradientWidth; j++){
-	uint8_t value = pixelvalue[j];
+	int value = pixelvalue[j];
 	pixelcolors[j] = interpolate(value, step1, step2, step3, step4, step5);
 
 }
