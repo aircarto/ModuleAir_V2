@@ -56,33 +56,34 @@ The payload consists in a 31 bytes array.
 
 The value are initialised for the first uplink at the end of the void setup() which is send according to the LMIC library examples.
 
-0x00, config = 0 (see below)
-0xff, 0xff, sds PM10 = -1
-0xff, 0xff, sds PM2.5 = -1
-0xff, 0xff, npm PM10 = -1
-0xff, 0xff, npm PM2.5 = -1
-0xff, 0xff, npm PM1 = -1
-0xff, 0xff, mhz16 CO2 = -1 
-0xff, 0xff, mhz19 CO2 -1
-0xff, 0xff, sgp40 OVC = -1
-0x80, bme temp = -128
-0xff, bme rh = -1
-0xff, 0xff, bme press = -1
-0x00, 0x00, 0x00, 0x00, lat = 0.0 (as float)
-0x00, 0x00, 0x00, 0x00, lon = 0.0 (as float)
-0xff sel = -1 (see below) 
+0x00, config = 0 (see below)\
+0xff, 0xff, sds PM10 = -1\
+0xff, 0xff, sds PM2.5 = -1\
+0xff, 0xff, npm PM10 = -1\
+0xff, 0xff, npm PM2.5 = -1\
+0xff, 0xff, npm PM1 = -1\
+0xff, 0xff, mhz16 CO2 = -1\
+0xff, 0xff, mhz19 CO2 -1\
+0xff, 0xff, sgp40 OVC = -1\
+0x80, bme temp = -128\
+0xff, bme rh = -1\
+0xff, 0xff, bme press = -1\
+0x00, 0x00, 0x00, 0x00, lat = 0.0 (as float)\
+0x00, 0x00, 0x00, 0x00, lon = 0.0 (as float)\
+0xff sel = -1 (see below)\
 
 Those default values will be replaced during the normal use of the station according to the selected sensors.
 
 The fist byte is the configuation summary, representeed as an array of 0/1 for false/true:
-configlorawan[0] = cfg::sds_read;
-configlorawan[1] = cfg::npm_read ;
-configlorawan[2] = cfg::bmx280_read;
-configlorawan[3] = cfg::mhz16_read;
-configlorawan[4] = cfg::mhz19_read;
-configlorawan[5] = cfg::sgp40_read;
-configlorawan[6] = cfg::display_forecast;
-configlorawan[7] = cfg::has_wifi;
+
+configlorawan[0] = cfg::sds_read;\
+configlorawan[1] = cfg::npm_read;\
+configlorawan[2] = cfg::bmx280_read;\
+configlorawan[3] = cfg::mhz16_read;\
+configlorawan[4] = cfg::mhz19_read;\
+configlorawan[5] = cfg::sgp40_read;\
+configlorawan[6] = cfg::display_forecast;\
+configlorawan[7] = cfg::has_wifi;\
 
 It produce single byte which will have to be decoded on server side.
 
