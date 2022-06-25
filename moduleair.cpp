@@ -3972,7 +3972,7 @@ static void display_values_matrix()
 			display.setCursor(0, 0);
 			display.setTextSize(1);
 			display.print("Ind. Atmo");
-			displayColor = interpolate(atmoSud.multi, 20, 40, 50, 100, 150 true);
+			displayColor = interpolate(atmoSud.multi, 20, 40, 50, 100, 150, true);
 			myCUSTOM = display.color565(displayColor.R, displayColor.G, displayColor.B);
 			display.fillRect(50, 9, 14, 14, myCUSTOM);
 			display.setCursor(0, 9);
