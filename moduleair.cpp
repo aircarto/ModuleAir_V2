@@ -208,9 +208,16 @@ namespace cfg
 
 //configuration summary for LoRaWAN
 
-byte payloadsize = 1;
-
 bool configlorawan[8] = {false, false, false, false, false, false, false, false};
+
+// configlorawan[0] = cfg::sds_read;
+// configlorawan[1] = cfg::npm_read ;
+// configlorawan[2] = cfg::bmx280_read;
+// configlorawan[3] = cfg::mhz16_read;
+// configlorawan[4] = cfg::mhz19_read;
+// configlorawan[5] = cfg::sgp40_read;
+// configlorawan[6] = cfg::display_forecast;
+// configlorawan[7] = cfg::has_wifi;
 
 static byte booltobyte(bool array[8])
 {
@@ -226,56 +233,6 @@ static byte booltobyte(bool array[8])
 
 	return result;
 }
-
-// static byte payloadsizer(bool array[8])
-// {
-
-// 	// configlorawan[0] = cfg::sds_read;
-// 	// configlorawan[1] = cfg::npm_read ;
-// 	// configlorawan[2] = cfg::bmx280_read;
-// 	// configlorawan[3] = cfg::mhz16_read;
-// 	// configlorawan[4] = cfg::mhz19_read;
-// 	// configlorawan[5] = cfg::sgp40_read;
-// 	// configlorawan[6] = cfg::display_forecast;
-// 	// configlorawan[7] = cfg::has_wifi;
-
-// 	byte size = 0;
-
-// 	if (array[0])
-// 	{
-// 		size += 8;
-// 	}
-// 	if (array[1])
-// 	{
-// 		size += 12;
-// 	}
-// 	if (array[2])
-// 	{
-// 		size += 12;
-// 	}
-// 	if (array[3])
-// 	{
-// 		size += 4;
-// 	}
-// 	if (array[4])
-// 	{
-// 		size += 4;
-// 	}
-// 	if (array[5])
-// 	{
-// 		size += 4;
-// 	}
-// 	if (array[6])
-// 	{
-// 		size += 9;
-// 	}
-// 	if (array[7])
-// 	{
-// 		size += 1;
-// 	}
-
-// 	return size;
-// }
 
 // define size of the config JSON
 #define JSON_BUFFER_SIZE 2300
@@ -310,6 +267,8 @@ uint8_t display_draw_time = 30; //10-50 is usually fine
 PxMATRIX display(64, 32, P_LAT, P_OE, P_A, P_B, P_C, P_D, P_E);
 // Some standard colors
 
+extern const uint8_t gamma8[]; //for gamma correction
+
 struct RGB
 {
 	byte R;
@@ -317,22 +276,11 @@ struct RGB
 	byte B;
 };
 
-// struct HSV
-// {
-// 	uint16_t H;
-// 	float S;
-// 	byte V;
-// };
-
 
 struct RGB displayColor
 {
 	0, 0, 0
 };
-
-String message = "";
-
-//color565 = color888 de la V1 Module air
 
 uint16_t myRED = display.color565(255, 0, 0);
 uint16_t myGREEN = display.color565(0, 255, 0);
@@ -384,225 +332,7 @@ void drawImage(int x, int y, int h, int w, uint16_t image[])
 	}
 }
 
-// void drawColor(int x, int y, uint16_t image[])
-// {
-// 	int imageHeight = 10;
-// 	int imageWidth = 10;
-// 	int counter = 0;
-// 	for (int yy = 0; yy < imageHeight; yy++)
-// 	{
-// 		for (int xx = 0; xx < imageWidth; xx++)
-// 		{
-// 			display.drawPixel(xx + x, yy + y, image[counter]);
-// 			counter++;
-// 		}
-// 	}
-// }
-
-//A VOIR:
-
-//  uint32_t x = 1;
-//   uint32_t y = 1;
-
-// drawColor(x, y, myWHITE);
-
-// void drawColor(int x, int y, uint16_t color)
-// {
-// 	int imageHeight = 33;
-// 	int imageWidth = 33;
-// 	int counter = 0;
-// 	for (int yy = 0; yy < imageHeight; yy++)
-// 	{
-// 		for (int xx = 0; xx < imageWidth; xx++)
-// 		{
-// 			display.drawPixel(xx + x, yy + y, color);
-// 			counter++;
-// 		}
-// 	}
-// }
-
-
-
-// /**
-//  * interpolate 2 RGB colors
-//  * @param color1    integer containing color as 0x00RRGGBB
-//  * @param color2    integer containing color as 0x00RRGGBB
-//  * @param fraction  how much interpolation (0..1)
-//  * - 0: full color 1
-//  * - 1: full color 2
-//  * @return the new color after interpolation
-//  */
-// int interpolate(int color1, int color2, float fraction)
-// {
-//         unsigned char   r1 = (color1 >> 16) & 0xff;
-//         unsigned char   r2 = (color2 >> 16) & 0xff;
-//         unsigned char   g1 = (color1 >> 8) & 0xff;
-//         unsigned char   g2 = (color2 >> 8) & 0xff;
-//         unsigned char   b1 = color1 & 0xff;
-//         unsigned char   b2 = color2 & 0xff;
-
-//         return (int) ((r2 - r1) * fraction + r1) << 16 |
-//                 (int) ((g2 - g1) * fraction + g1) << 8 |
-//                 (int) ((b2 - b1) * fraction + b1);
-// }
-
-// /* 
-//  * 0x0097ceff == RGB(151,206,255)
-//  * 0x00727f9d == RGB(114,127,157)
-//  */
-// int new_color = interpolate(0x0097ceff, 0x00727f9d, 0.3f);
-
-
-
-// struct HSV rgb2hsv(RGB in)
-// {
-//     HSV         out;
-//     double      min, max, delta;
-// 	double r = in.R/255;
-// 	double g = in.G/255;
-// 	double b = in.B/255;
-
-// Debug.println("Color in RGB:");
-// Debug.print(in.R);
-// Debug.print(" ");
-// Debug.print(in.G);
-// Debug.print(" ");
-// Debug.print(in.B);
-// Debug.printf("\n");
-
-//     min = r < g ? r : g;
-//     min = min  < b ? min  : b;
-
-//     max = r > g ? r : g;
-//     max = max  > b ? max  : b;
-
-//     out.V = (byte)(max*100);                                // v
-//     delta = max - min;
-//     if (delta < 0.00001)
-//     {
-//         out.S = 0;
-//         out.H = 0; // undefined, maybe nan?
-//         return out;
-//     }
-//     if( max > 0.0 ) { // NOTE: if Max is == 0, this divide would cause a crash
-//         out.S = (float)(delta / max);                  // s
-//     } else {
-//         // if max is 0, then r = g = b = 0              
-//         // s = 0, h is undefined
-//         out.S = 0.0;
-//         out.H = NAN;                            // its now undefined
-//         return out;
-//     }
-//     if( r >= max )                           // > is bogus, just keeps compilor happy
-//         out.H = ()( g - b ) / delta;        // between yellow & magenta
-//     else
-//     if( g >= max )
-//         out.h = 2.0 + ( b - r ) / delta;  // between cyan & yellow
-//     else
-//         out.h = 4.0 + ( r - g ) / delta;  // between magenta & cyan
-
-//     out.h *= 60.0;                              // degrees
-
-//     if( out.h < 0.0 )
-//         out.h += 360;
-
-// Debug.println("Color out HSV:");
-// Debug.print(out.H);
-// Debug.print(" ");
-// Debug.print(out.S);
-// Debug.print(" ");
-// Debug.print(out.V);
-// Debug.printf("\n");
-
-//     return out;
-// }
-
-
-// struct RGB hsv2rgb(HSV in)
-// {
-//     double      hh, p, q, t, ff;
-//     long        i;
-//     RGB         out;
-
-//     if(in.s <= 0.0) {       // < is bogus, just shuts up warnings
-//         out.R = in.v*255;
-//         out.G = in.v*255;
-//         out.B = in.v*255;
-//         return out;
-//     }
-
-//     hh = in.h;
-//     if(hh >= 360.0) hh = 0.0;
-//     hh /= 60.0;
-//     i = (long)hh;
-//     ff = hh - i;
-//     p = in.v * (1.0 - in.s);
-//     q = in.v * (1.0 - (in.s * ff));
-//     t = in.v * (1.0 - (in.s * (1.0 - ff)));
-
-//     switch(i) {
-//     case 0:
-//         out.R = in.v*255;
-//         out.G = t*255;
-//         out.B = p*255;
-//         break;
-//     case 1:
-//         out.R = q*255;
-//         out.G = in.v*255;
-//         out.B = p*255;
-//         break;
-//     case 2:
-//         out.R = p*255;
-//         out.G = in.v*255;
-//         out.B = t*255;
-//         break;
-
-//     case 3:
-//         out.R = p*255;
-//         out.G = q*255;
-//         out.B = in.v*255;
-//         break;
-//     case 4:
-//         out.R = t*255;
-//         out.G = p*255;
-//         out.B = in.v*255;
-//         break;
-//     case 5:
-//     default:
-//         out.R = in.v*255;
-//         out.G = p*255;
-//         out.B = q*255;
-//         break;
-//     }
-//     return out;     
-// }
-
-// template<typename F>
-
-// struct RGB interpolation(RGB a, RGB b, float t, F interpolator)
-// {
-//     // 0.0 <= t <= 1.0
-//     HSV ca = rgb2hsv(a);
-//     HSV cb = rgb2hsv(b);
-//     HSV final;
-
-//     final.h = interpolator(ca.h, cb.h, t);
-//     final.s = interpolator(ca.s, cb.s, t);
-//     final.v = interpolator(ca.v, cb.v, t);
-
-//     return hsv2rgb(final);
-// }
-
-// int linear(int a, int b, float t)
-// {
-//     return (a * (1 - t) + b * t);
-// }
-
-// // // use: result = interpolation(color1,color2,ratio,&linear);
-
-
-
-struct RGB interpolate(float valueSensor, int step1, int step2, int step3, int step4, int step5)
+struct RGB interpolate(float valueSensor, int step1, int step2, int step3, int step4, int step5, bool gamma)
 {
 
 	byte endColorValueR;
@@ -612,33 +342,22 @@ struct RGB interpolate(float valueSensor, int step1, int step2, int step3, int s
 	byte endColorValueB;
 	byte startColorValueB;
 
-	//   RGB startColor;
-	//   RGB endColor;
-
 	int valueLimitHigh;
 	int valueLimitLow;
 	struct RGB result;
+	uint16_t rgb565;
 
-	//   if (valueSensor >= 0 && valueSensor <= step1)
 	if (valueSensor == 0)
 	{
 
 		result.R = 80;
 		result.G = 240;   //blue
 		result.B = 230;
-
-		// result.R = 0;
-		// result.G = 255; //Green  //blue
-		// result.B = 0;
 	}
 	else if (valueSensor > 0 && valueSensor <= step5)
 	{
 		if (valueSensor <= step1)
 		{
-
-		// startColor = {80,240,230};
-		// endColor = {80,204,170};
-
 			valueLimitHigh = step1;
 			valueLimitLow = 0;
 			endColorValueR = 80;
@@ -647,21 +366,9 @@ struct RGB interpolate(float valueSensor, int step1, int step2, int step3, int s
 			startColorValueG = 240; 
 			endColorValueB = 170;
 			startColorValueB = 230;
-
-			// valueLimitHigh = step2;
-			// valueLimitLow = step1;
-			// endColorValueR = 255;
-			// startColorValueR = 0;
-			// endColorValueG = 255;
-			// startColorValueG = 255; //Green to Yellow b
-			// endColorValueB = 0;
-			// startColorValueB = 0;
 		}
 		else if (valueSensor > step1 && valueSensor <= step2)
 		{
-
-		// startColor = {80,240,230};
-		// endColor = {80,204,170};
 			valueLimitHigh = step2;
 			valueLimitLow = step1;
 			endColorValueR = 237;
@@ -670,21 +377,9 @@ struct RGB interpolate(float valueSensor, int step1, int step2, int step3, int s
 			startColorValueG = 204;
 			endColorValueB = 97;
 			startColorValueB = 170;
-
-			// valueLimitHigh = step3;
-			// valueLimitLow = step2;
-			// endColorValueR = 255;
-			// startColorValueR = 255;
-			// endColorValueG = 127; // Yellow to orange
-			// startColorValueG = 255;
-			// endColorValueB = 0;
-			// startColorValueB = 0;
 		}
 		else if (valueSensor > step2 && valueSensor <= step3)
 		{
-
-		// startColor = {80,240,230};
-		// endColor = {80,204,170};
 			valueLimitHigh = step3;
 			valueLimitLow = step2;
 			endColorValueR = 237;
@@ -693,21 +388,10 @@ struct RGB interpolate(float valueSensor, int step1, int step2, int step3, int s
 			startColorValueG = 230; 
 			endColorValueB = 88;
 			startColorValueB = 97;
-
-
-			// valueLimitHigh = step4;
-			// valueLimitLow = step3;
-			// endColorValueR = 255;
-			// startColorValueR = 255;
-			// endColorValueG = 0;
-			// startColorValueG = 127; // Orange to Red
-			// endColorValueB = 0;
-			// startColorValueB = 0;
 		}
 		else if (valueSensor > step3 && valueSensor <= step4)
 		{
-		// startColor = {80,240,230};
-		// endColor = {80,204,170};
+
 			valueLimitHigh = step4;
 			valueLimitLow = step3;
 			endColorValueR = 136;
@@ -719,8 +403,6 @@ struct RGB interpolate(float valueSensor, int step1, int step2, int step3, int s
 		}
 		else if (valueSensor > step4 && valueSensor <= step5)
 		{
-		// startColor = {80,240,230};
-		// endColor = {80,204,170};
 			valueLimitHigh = step5;
 			valueLimitLow = step4;
 			endColorValueR = 115;
@@ -730,9 +412,6 @@ struct RGB interpolate(float valueSensor, int step1, int step2, int step3, int s
 			endColorValueB = 125;
 			startColorValueB = 51;
 		}
-
-
-		// result = interpolation(startColor,endColor,((valueSensor - valueLimitLow) / (valueLimitHigh - valueLimitLow)),&linear);
 
 		result.R = (byte)(((endColorValueR - startColorValueR) * ((valueSensor - valueLimitLow) / (valueLimitHigh - valueLimitLow))) + startColorValueR);
 		result.G = (byte)(((endColorValueG - startColorValueG) * ((valueSensor - valueLimitLow) / (valueLimitHigh - valueLimitLow))) + startColorValueG);
@@ -782,11 +461,21 @@ struct RGB interpolate(float valueSensor, int step1, int step2, int step3, int s
 // Debug.print(result.B);
 // Debug.printf("\n");
 
-uint16_t rgb565 = ((result.R & 0b11111000) << 8) | ((result.G & 0b11111100) << 3) | (result.B >> 3);
-Debug.println(rgb565);
+//Gamma Correction
+
+if (gamma == true){
+result.R = pgm_read_byte(&gamma8[result.R]);
+result.G = pgm_read_byte(&gamma8[result.G]);
+result.B = pgm_read_byte(&gamma8[result.B]);
+}
+
+rgb565 = ((result.R & 0b11111000) << 8) | ((result.G & 0b11111100) << 3) | (result.B >> 3);
+Debug.println(rgb565); // to get list of color if drawGradient is acitvated
 	return result;
 }
 
+
+//You can use drawGradient once in order to get the list of colors and then create an image which is much faster to display
 
 void drawgradient(int x, int y, float valueSensor, int step1, int step2, int step3, int step4, int step5)
 {
@@ -809,7 +498,7 @@ for (uint8_t i = 0; i < gradientWidth; i++){
 
 for (uint8_t j = 0; j < gradientWidth; j++){
 	int value = pixelvalue[j];
-	pixelcolors[j] = interpolate(value, step1, step2, step3, step4, step5);
+	pixelcolors[j] = interpolate(value, step1, step2, step3, step4, step5, true);
 
 }
 
@@ -825,44 +514,54 @@ for (uint8_t k = 0; k < gradientHeight; k++){
 
 //REVOIR POUR LE TRAITEMENT DES CARACTERES SPECIAUX
 
-String messager(float valueSensor, int step1, int step2, int step3, int step4, int step5, int type)
+void messager(float valueSensor, int step1, int step2, int step3, int step4, int step5, int type)
 {
 
-	String result;
+display.setFont(NULL);
+display.setCursor(0, 25); //voir les position?
+display.setTextSize(1);
 
 	//   if (valueSensor >= 0 && valueSensor <= step1)
 	if (valueSensor >= -1 && valueSensor <= step1)
 	{
-		result = "Bon";
+
+		display.print("Bon");
 	}
 	else if (valueSensor > step1 && valueSensor <= step5)
 	{
 		if (valueSensor <= step2)
 		{
-			result = "Moyen";
+		display.print("Moyen");
 		}
 		else if (valueSensor > step2 && valueSensor <= step3)
 		{
-			result = "Dégradé";
+		display.print("D");
+		display.write(130);
+		display.print("grad");
 		}
 		else if (valueSensor > step3 && valueSensor <= step4)
 		{
-			result = "Mauvais";
+		display.print("Mauvais");
 		}
 		else
 		{
-			result = "Très mauvais";
+		display.print("Tr");
+		display.write(138);
+		display.print("s mauvais");
 		}
 	}
 	else if (valueSensor > step5)
 	{
-		result = "Extrêmement mauvais";
+		display.print("Extr");
+		display.write(136);
+		display.print("mement mauvais");
 	}
 	else
 	{
-		result = "Erreur";
+		display.setCursor(0, 25);
+		display.setTextSize(1);
+		display.print("Erreur");
 	}
-	return result;
 }
 
 /*****************************************************************
@@ -1162,12 +861,10 @@ static uint8_t NPM_get_state()
 	debug_outln_info(F("State NPM..."));
 	NPM_cmd(PmSensorCmd2::State);
 
-	//ATTENTION METTRE UN MILLI POUR EVITER BOUCLES INFINI
-
-	// while (!serialNPM.available())
-	// {
-	// 	debug_outln("Wait for Serial...", DEBUG_MAX_INFO);
-	// }
+	while (!serialNPM.available())
+	{
+		debug_outln("Wait for Serial...", DEBUG_MAX_INFO);
+	}
 
 	while (serialNPM.available() >= NPM_waiting_for_4)
 	{
@@ -1212,10 +909,10 @@ static bool NPM_start_stop()
 	debug_outln_info(F("Switch start/stop NPM..."));
 	NPM_cmd(PmSensorCmd2::Change);
 
-	// while (!serialNPM.available())
-	// {
-	// 	debug_outln("Wait for Serial...", DEBUG_MAX_INFO);
-	// }
+	while (!serialNPM.available())
+	{
+		debug_outln("Wait for Serial...", DEBUG_MAX_INFO);
+	}
 
 	while (serialNPM.available() >= NPM_waiting_for_4)
 	{
@@ -1276,10 +973,10 @@ static String NPM_version_date()
 	debug_outln_info(F("Version NPM..."));
 	NPM_cmd(PmSensorCmd2::Version);
 
-	// while (!serialNPM.available())
-	// {
-	// 	debug_outln("Wait for Serial...", DEBUG_MAX_INFO);
-	// }
+	while (!serialNPM.available())
+	{
+		debug_outln("Wait for Serial...", DEBUG_MAX_INFO);
+	}
 
 	while (serialNPM.available() >= NPM_waiting_for_6)
 	{
@@ -1336,10 +1033,10 @@ static void NPM_fan_speed()
 	debug_outln_info(F("Set fan speed to 50 %..."));
 	NPM_cmd(PmSensorCmd2::Speed);
 
-	// while (!serialNPM.available())
-	// {
-	// 	debug_outln("Wait for Serial...", DEBUG_MAX_INFO);
-	// }
+	while (!serialNPM.available())
+	{
+		debug_outln("Wait for Serial...", DEBUG_MAX_INFO);
+	}
 
 	while (serialNPM.available() >= NPM_waiting_for_5)
 	{
@@ -1391,10 +1088,11 @@ static String NPM_temp_humi()
 	NPM_waiting_for_8 = NPM_REPLY_HEADER_8;
 	debug_outln_info(F("Temperature/Humidity in Next PM..."));
 	NPM_cmd(PmSensorCmd2::Temphumi);
-	// while (!serialNPM.available())
-	// {
-	// 	debug_outln("Wait for Serial...", DEBUG_MAX_INFO);
-	// }
+	
+	while (!serialNPM.available())
+	{
+		debug_outln("Wait for Serial...", DEBUG_MAX_INFO);
+	}
 
 	while (serialNPM.available() >= NPM_waiting_for_8)
 	{
@@ -1789,36 +1487,6 @@ static String form_checkbox(const ConfigShapeId cfgid, const String &info, const
 	return s;
 }
 
-// static String form_radio(const ConfigShapeId cfgid, const String &info, const bool linebreak)
-// {
-// if (cfgid == 13 || cfgid == 14){
-
-// 	RESERVE_STRING(s, MED_STR);
-// 	s = F("<label for='pmsensor'>"
-// 		  "<input type='radio' name='pmsensor' value='{v}' id='{n}' {c}/>"
-// 		  "{i}</label><br/>");
-// 	if (*configShape[cfgid].cfg_val.as_bool)
-// 	{
-// 		s.replace("{c}", F(" checked='checked'"));
-// 	}
-// 	else
-// 	{
-// 		s.replace("{c}", emptyString);
-// 	};
-// 	s.replace("{i}", info);
-// 	s.replace("{n}", String(configShape[cfgid].cfg_key()));
-// 	s.replace("{v}", String(configShape[cfgid].cfg_key()));
-// 	if (!linebreak)
-// 	{
-// 		s.replace("<br/>", emptyString);
-// 	}
-// }
-
-// 	return s;
-// }
-
-//AJOUTER RADIO ICI ?
-
 static String form_submit(const String &value)
 {
 	String s = F("<tr>"
@@ -1903,7 +1571,7 @@ static void sendHttpRedirect()
  *****************************************************************/
 static void webserver_root()
 {
-	// Si entre dans boucle de reboot
+	// Reactivate the interrupt to turn on the matrix if the user return to homepage
 
 	if (cfg::has_matrix){
 		display_update_enable(true);
@@ -2075,10 +1743,6 @@ static void webserver_config_send_body_get(String &page_content)
 	page_content += FPSTR(WEB_B_BR);
 	add_form_checkbox_sensor(Config_sds_read, FPSTR(INTL_SDS011));
 	add_form_checkbox_sensor(Config_npm_read, FPSTR(INTL_NPM));
-
-	// add_form_radio_sensor(Config_sds_read, FPSTR(INTL_SDS011));
-	// add_form_radio_sensor(Config_npm_read, FPSTR(INTL_NPM));
-
 	add_form_checkbox_sensor(Config_npm_fulltime, FPSTR(INTL_NPM_FULLTIME));
 
 	// Paginate page after ~ 1500 Bytes  //ATTENTION RYTHME PAGINATION !
@@ -2111,12 +1775,6 @@ static void webserver_config_send_body_get(String &page_content)
 	page_content += FPSTR(WEB_B_BR);
 
 	add_form_checkbox_sensor(Config_sgp40_read, FPSTR(INTL_SGP40));
-
-	// page_content += FPSTR(WEB_BR_LF_B);
-	// page_content += FPSTR(INTL_MORE_SENSORS);
-	// page_content += FPSTR(WEB_B_BR);
-
-	// add_form_checkbox(Config_gps_read, FPSTR(INTL_NEO6M));
 
 	// Paginate page after ~ 1500 Bytes
 	server.sendContent(page_content);
@@ -2267,9 +1925,9 @@ static void sensor_restart()
 static void webserver_config()
 {
 
-	// Si entre dans boucle de reboot
+	// For any work with SPIFFS or server, the interrupts must be deactivated. The matrix is turned off.
 
-			if (cfg::has_matrix){
+	if (cfg::has_matrix){
 		display_update_enable(false);
 	}
 
@@ -2697,9 +2355,9 @@ static void webserver_debug_level()
  *****************************************************************/
 static void webserver_removeConfig()
 {
-	// Si entre dans boucle de reboot
+	// For any work with SPIFFS or server, the interrupts must be deactivated. The matrix is turned off.
 
-				if (cfg::has_matrix){
+	if (cfg::has_matrix){
 		display_update_enable(false);
 	}
 
@@ -2749,8 +2407,8 @@ static void webserver_removeConfig()
  *****************************************************************/
 static void webserver_reset()
 {
+	// For any work with SPIFFS or server, the interrupts must be deactivated. The matrix is turned off.
 
-	// Si entre dans boucle de reboot
 	if (cfg::has_matrix){
 		display_update_enable(false);
 	}
@@ -2935,8 +2593,6 @@ static void setup_webserver()
 	server.on(F("/favicon.ico"), webserver_favicon);
 	server.on(F(STATIC_PREFIX), webserver_static);
 	server.onNotFound(webserver_not_found);
-
-	// debug_outln_info(F("Starting Webserver... "), WiFi.localIP().toString());
 	debug_outln_info(F("Starting Webserver... "));
 	server.begin();
 }
@@ -3350,6 +3006,10 @@ static void getDataLora(uint8_t array[5])
 float getDataAtmoSud(unsigned int type)
 {
 
+//https://geoservices.atmosud.org/geoserver/azurjour/wms?&INFO_FORMAT=application/json&REQUEST=GetFeatureInfo&SERVICE=WMS%20&VERSION=1.1.1&WIDTH=1%20&HEIGHT=1&X=1&Y=1&BBOX=5.38658,43.29855,5.38659,43.29856&LAYERS=azurjour:paca-pm2_5-2022-05-23&QUERY_LAYERS=azurjour:paca-pm2_5-2022-05-23&TYPENAME=azurjour:paca-pm10-2022-05-23&srs=EPSG:4326
+//https://geoservices.atmosud.org/geoserver/azurjour/wms?&INFO_FORMAT=application/json&REQUEST=GetFeatureInfo&SERVICE=WMS &VERSION=1.1.1&WIDTH=1 &HEIGHT=1&X=1&Y=1&BBOX=5.38658,43.29855,5.38659,43.29856&LAYERS=azurjour:paca-pm2_5-2022-05-23&QUERY_LAYERS=azurjour:paca-pm2_5-2022-05-23&TYPENAME=azurjour:paca-pm2_5-2022-05-23&srs=EPSG:4326
+
+
 	// ATTENTION ATTENDRE FIN DES PROCESSUS LORAWAN AVANT D'APPELER L'API => bool?
 	String sensor_type = "";
 	struct tm timeinfo;
@@ -3359,7 +3019,7 @@ float getDataAtmoSud(unsigned int type)
 		Debug.println("Failed to obtain time");
 	}
 
-	//timeinfo.tm_mday += 1; J+1
+	//timeinfo.tm_mday += 1; // J+1 Change the day in AtmoSud forecast API
 	char date[12];
 	strftime(date, 12, "-%Y-%m-%d", &timeinfo);
 
@@ -3407,10 +3067,7 @@ float getDataAtmoSud(unsigned int type)
 
 	debug_outln_info(F("Call: "), serverPath);
 
-	//return -1.0;
-
 	http.begin(serverPath.c_str());
-	//       // Send HTTP GET request
 
 	int httpResponseCode = http.GET();
 
@@ -3466,7 +3123,6 @@ static void fetchSensorBMX280(String &s)
 	}
 	else
 	{
-		// last_value_BMX280_T = t + readCorrectionOffset(cfg::temp_correction);
 		last_value_BMX280_T = t;
 		last_value_BMX280_P = p;
 		if (bmx280.sensorID() == BME280_SENSOR_ID)
@@ -3673,10 +3329,11 @@ static void fetchSensorNPM(String &s)
 
 			debug_outln_info(F("Concentration NPM..."));
 			NPM_cmd(PmSensorCmd2::Concentration);
-			// while (!serialNPM.available())
-			// {
-			// 	debug_outln("Wait for Serial...", DEBUG_MAX_INFO);
-			// }
+
+		while (!serialNPM.available())
+			{
+				debug_outln("Wait for Serial...", DEBUG_MAX_INFO);
+			}
 
 			while (serialNPM.available() >= NPM_waiting_for_16)
 			{
@@ -3852,7 +3509,7 @@ static void fetchSensorNPM(String &s)
 /*****************************************************************
  * display values                                                *
  *****************************************************************/
-static void display_values_oled()
+static void display_values_oled()  //COMPLETER LES ECRANS
 {
 	float t_value = -128.0;
 	float h_value = -1.0;
@@ -3868,12 +3525,6 @@ static void display_values_oled()
 	float nc025_value = -1.0;
 	float nc100_value = -1.0;
 
-	// float indiceAtmo = -1.0;
-	// float no2Atmo = -1.0;
-	// float o3Atmo = -1.0;
-	// float pm10Atmo = -1.0;
-	// float pm25Atmo = -1.0;
-
 	double lat_value = -200.0;
 	double lon_value = -200.0;
 	double alt_value = -1000.0;
@@ -3883,21 +3534,6 @@ static void display_values_oled()
 	uint8_t screens[8];
 	int line_count = 0;
 	debug_outln_info(F("output values to display..."));
-
-	// 	  "display_measure": false,
-	//   "display_forecast": false,
-
-	// Capteurs CO2
-	// Sonde MH-Z16
-	// Sonde MH-Z19
-
-	// Capteurs COV
-	// Sonde SGP40
-
-	// Position
-	// Latitude:
-	// Longitude:
-	// Altitude (m):
 
 	if (cfg::npm_read)
 	{
@@ -4071,12 +3707,6 @@ static void display_values_matrix()
 	float nc025_value = -1.0;
 	float nc100_value = -1.0;
 
-	// float indiceAtmo = -1.0;
-	// float no2Atmo = -1.0;
-	// float o3Atmo = -1.0;
-	// float pm10Atmo = -1.0;
-	// float pm25Atmo = -1.0;
-
 	double lat_value = -200.0;
 	double lon_value = -200.0;
 	double alt_value = -1000.0;
@@ -4085,22 +3715,7 @@ static void display_values_matrix()
 	uint8_t screen_count = 0;
 	uint8_t screens[23];
 	int line_count = 0;
-	//debug_outln_info(F("output values to display..."));
-
-	// 	  "display_measure": false,
-	//   "display_forecast": false,
-
-	// Capteurs CO2
-	// Sonde MH-Z16
-	// Sonde MH-Z19
-
-	// Capteurs COV
-	// Sonde SGP40
-
-	// Position
-	// Latitude:
-	// Longitude:
-	// Altitude (m):
+	debug_outln_info(F("output values to matrix..."));
 
 	if (cfg::npm_read)
 	{
@@ -4134,8 +3749,6 @@ static void display_values_matrix()
 			h_value = last_value_BME280_H;
 		}
 	}
-
-	// virtual void, drawRect (int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color).
 
 		if ((cfg::sds_read || cfg::npm_read || cfg::bmx280_read || cfg::mhz16_read || cfg::mhz19_read || cfg::sgp40_read) && cfg::display_measure)
 		{
@@ -4217,19 +3830,13 @@ static void display_values_matrix()
 			display.setCursor(0, 0);
 			display.setTextSize(1);
 			display.print("PM10");
-			// display.write(229);
-			// display.print("g/m");
-			// display.write(252);
 			display.setFont(&Font4x7Fixed);
 			display.setCursor(display.getCursorX()+2, 7);
 			display.write(181);
 			display.print("g/m");
 			display.write(179);
-			// display.setFont(&Font4x5Fixed);
-			// display.setCursor(display.getCursorX(), display.getCursorY() -2);
-			// display.print("3");
 			drawImage(55, 0, 8, 9, maison);
-			displayColor = interpolate(pm10_value, 20, 40, 50, 100, 150);
+			displayColor = interpolate(pm10_value, 20, 40, 50, 100, 150, true);
 			myCUSTOM = display.color565(displayColor.R, displayColor.G, displayColor.B);
 			//myCUSTOM = display.color565(displayColor.R, displayColor.G, displayColor.B,true); //AVEC GAMMA CORRECTION
 			display.fillRect(50, 9, 14, 14, myCUSTOM);
@@ -4237,10 +3844,7 @@ static void display_values_matrix()
 			display.setCursor(0, 9);
 			display.setTextSize(2);
 			display.print(String(pm10_value, 0));
-			display.setCursor(0, 25);
-			display.setTextSize(1);
-			message = messager(pm10_value, 20, 40, 50, 100, 150, 1);
-			display.print(message);
+			messager(pm10_value, 20, 40, 50, 100, 150, 1);
 			break;
 		case 2:
 			display.setTextColor(myCYAN);
@@ -4248,29 +3852,20 @@ static void display_values_matrix()
 			display.setCursor(0, 0);
 			display.setTextSize(1);
 			display.print("PM2.5");
-			// display.write(229);
-			// display.print("g/m");
-			// display.write(252);
 			display.setFont(&Font4x7Fixed);
 			display.setCursor(display.getCursorX()+2, 7);
 			display.write(181);
 			display.print("g/m");
 			display.write(179);
-			// display.setFont(&Font4x5Fixed);
-			// display.setCursor(display.getCursorX(), display.getCursorY() -2);
-			// display.print("3");
 			drawImage(55, 0, 8, 9, maison);
-			displayColor = interpolate(pm25_value, 10, 20, 25, 50, 75);
+			displayColor = interpolate(pm25_value, 10, 20, 25, 50, 75, true);
 			myCUSTOM = display.color565(displayColor.R, displayColor.G, displayColor.B);
 			display.fillRect(50, 9, 14, 14, myCUSTOM);
 			display.setFont(NULL);
 			display.setCursor(0, 9);
 			display.setTextSize(2);
-			display.print(String(pm10_value, 0));
-			display.setCursor(0, 25);
-			display.setTextSize(1);
-			message = messager(pm25_value, 10, 20, 25, 50, 75, 2);
-			display.print(message);
+			display.print(String(pm25_value, 0));
+            messager(pm25_value, 10, 20, 25, 50, 75, 2);
 			break;
 		case 3:
 			act_milli += 5000;
@@ -4377,16 +3972,12 @@ static void display_values_matrix()
 			display.setCursor(0, 0);
 			display.setTextSize(1);
 			display.print("Ind. Atmo");
-			displayColor = interpolate(atmoSud.multi, 20, 40, 50, 100, 150);
+			displayColor = interpolate(atmoSud.multi, 20, 40, 50, 100, 150 true);
 			myCUSTOM = display.color565(displayColor.R, displayColor.G, displayColor.B);
 			display.fillRect(50, 9, 14, 14, myCUSTOM);
 			display.setCursor(0, 9);
 			display.setTextSize(2);
 			display.print(String(atmoSud.multi, 0));
-			// display.setCursor(0, 25);
-			//display.setTextSize(1);
-			// message = messager(atmoSud.multi, 20, 40, 50, 100, 150, 1);
-			// display.print(message);
 			//drawgradient(0, 25, atmoSud.no2, 20, 40, 50, 100, 150);
 			drawImage(0, 25, 7, 64, gradient_20_150);
 			display.setTextColor(myWHITE);
@@ -4394,7 +3985,6 @@ static void display_values_matrix()
 			display.setTextSize(1);
 			display.setCursor((uint8_t)((63*atmoSud.multi)/150)-2, 25-2); //2 pixels de offset
 			display.write(31);
-			//delay(10000);
 			}
 			else{
 			act_milli += 5000;  
@@ -4407,7 +3997,7 @@ static void display_values_matrix()
 			display.setCursor(0, 0);
 			display.setTextSize(1);
 			display.print("NO2 Atmo");
-			displayColor = interpolate(atmoSud.no2, 40, 90, 120, 230, 340);
+			displayColor = interpolate(atmoSud.no2, 40, 90, 120, 230, 340, true);
 			myCUSTOM = display.color565(displayColor.R, displayColor.G, displayColor.B);
 			display.fillRect(50, 9, 14, 14, myCUSTOM);
 			display.setCursor(0, 9);
@@ -4432,7 +4022,7 @@ static void display_values_matrix()
 			display.setCursor(0, 0);
 			display.setTextSize(1);
 			display.print("O3 Atmo");
-			displayColor = interpolate(atmoSud.o3, 50, 100, 130, 240, 380);
+			displayColor = interpolate(atmoSud.o3, 50, 100, 130, 240, 380, true);
 			myCUSTOM = display.color565(displayColor.R, displayColor.G, displayColor.B);
 			display.fillRect(50, 9, 14, 14, myCUSTOM);
 			display.setCursor(0, 9);
@@ -4457,7 +4047,7 @@ static void display_values_matrix()
 			display.setCursor(0, 0);
 			display.setTextSize(1);
 			display.print("PM10 Atmo");
-			displayColor = interpolate(atmoSud.pm10, 20, 40, 50, 100, 150);
+			displayColor = interpolate(atmoSud.pm10, 20, 40, 50, 100, 150, true);
 			myCUSTOM = display.color565(displayColor.R, displayColor.G, displayColor.B);
 			display.fillRect(50, 9, 14, 14, myCUSTOM);
 			display.setCursor(0, 9);
@@ -4482,7 +4072,7 @@ static void display_values_matrix()
 			display.setCursor(0, 0);
 			display.setTextSize(1);
 			display.print("PM2.5 Atmo");
-			displayColor = interpolate(atmoSud.pm2_5, 10, 20, 25, 50, 75);
+			displayColor = interpolate(atmoSud.pm2_5, 10, 20, 25, 50, 75, true);
 			myCUSTOM = display.color565(displayColor.R, displayColor.G, displayColor.B);
 			display.fillRect(50, 9, 14, 14, myCUSTOM);
 			display.setCursor(0, 9);
@@ -4560,58 +4150,6 @@ static void display_values_matrix()
 			break;
 		}
 
-	// void scroll_text()
-	// {
-	//     display.setTextWrap(false);  // we don't wrap text so it scrolls nicely
-	//     display.setTextSize(1);
-	//     display.setRotation(0);
-
-	//     for (int xpos=64; xpos>-140; xpos--)
-	//     {
-	//       display.setTextColor(myWHITE);
-	//       display.clearDisplay();
-	//       display.setCursor(xpos,0);
-	//       display.println("Welcome to PxMatrix!");
-	//       start_time = millis();
-	//       while((millis()-start_time)<15)
-	//            display.display(5);
-	//     }
-	// }
-
-	// void scroll_text(uint8_t ypos, unsigned long scroll_delay, String text, uint8_t colorR, uint8_t colorG, uint8_t colorB)
-	// {
-	//     uint16_t text_length = text.length();
-	//     display.setTextWrap(false);  // we don't wrap text so it scrolls nicely
-	//     display.setTextSize(1);
-	//     display.setRotation(0);
-	//     display.setTextColor(display.color565(colorR,colorG,colorB));
-
-	//     // Asuming 5 pixel average character width
-	//     for (int xpos=matrix_width; xpos>-(matrix_width+text_length*5); xpos--)
-	//     {
-	//       display.setTextColor(display.color565(colorR,colorG,colorB));
-	//       display.clearDisplay();
-	//       display.setCursor(xpos,ypos);
-	//       display.println(text);
-	//       delay(scroll_delay);
-	//       yield();
-
-	//       // This might smooth the transition a bit if we go slow
-	//       // display.setTextColor(display.color565(colorR/4,colorG/4,colorB/4));
-	//       // display.setCursor(xpos-1,ypos);
-	//       // display.println(text);
-
-	//       delay(scroll_delay/5);
-	//       yield();
-
-	//     }
-	// }
-
-	// ----5----0----5----0
-	// PM10/2.5: 1999/999
-	// T/H: -10.0°C/100.0%
-	// T/P: -10.0°C/1000hPa
-
 	yield();
 	next_display_count++;
 }
@@ -4624,11 +4162,9 @@ static void init_matrix()
 {
 	display.begin(16);
 	display.setDriverChip(SHIFT);
-
-	//display.clearDisplay();
 	display_update_enable(true);
 	display.setFont(NULL); //Default font
-	display.fillScreen(myBLACK);
+	display.fillScreen(myBLACK); 	//display.clearDisplay(); produces a flash
 	drawImage(0, 0, 32, 64, logo_aircarto);
 	delay(5000);
 	display.fillScreen(myBLACK);
@@ -4637,8 +4173,6 @@ static void init_matrix()
 	display.fillScreen(myBLACK);
 	drawImage(0, 0, 32, 64, logo_region);
  	delay(5000);
-	//display.clearDisplay();
-	//display_update_enable(false);
 }
 
 /*****************************************************************
@@ -4928,36 +4462,24 @@ void os_getDevKey(u1_t *buf) { memcpy_P(buf, appkey_hex, 16); }
 uint8_t datalora[31] = {0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x80, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff};
 
 // 0x00, config
-// 0xff, 0xff, sds
-// 0xff, 0xff, sds
-// 0xff, 0xff, npm
-// 0xff, 0xff, npm
-// 0xff, 0xff, npm
-// 0xff, 0xff, co2
-// 0xff, 0xff, co2
-// 0xff, 0xff, cov
-// 0x80, temp
-// 0xff, rh
-// 0xff, 0xff, p
-// 0x00, 0x00, 0x00, 0x00, lat
-// 0x00, 0x00, 0x00, 0x00, lon
-// 0xff sel
+// 0xff, 0xff, sds -1
+// 0xff, 0xff, sds -1
+// 0xff, 0xff, npm -1
+// 0xff, 0xff, npm -1
+// 0xff, 0xff, npm -1
+// 0xff, 0xff, co2 -1 
+// 0xff, 0xff, co2 -1
+// 0xff, 0xff, cov -1
+// 0x80, temp -128
+// 0xff, rh -1
+// 0xff, 0xff, p -1
+// 0x00, 0x00, 0x00, 0x00, lat 0.0 float
+// 0x00, 0x00, 0x00, 0x00, lon 0.0 float
+// 0xff sel -1 
 
 const unsigned TX_INTERVAL = (cfg::sending_intervall_ms) / 1000;
 
 static osjob_t sendjob;
-
-//Mettre en explicit
-
-//changer le NSS pour éciter conflit car le ss de la matrix n'est pas modifiable.
-
-//Ou bien: display.begin() explicit avec les SPI pins et SS modifié
-
-//display.begin(16, SPI_BUS_CLK, SPI_BUS_MOSI, SPI_BUS_MISO, D4); Mais conflit car redef globale
-
-//Essayer spi.setCS(PIN) à chaque fois avant lancer fonction LMIC ou Matrix...
-
-//La PXmatrix ne digitalwrite jamais le pin _SPI_SS => pas de problème ?
 
 #if defined(ARDUINO_ESP32_DEV) and defined(KIT_C)
 const lmic_pinmap lmic_pins = {
@@ -4966,12 +4488,7 @@ const lmic_pinmap lmic_pins = {
 	.rst = D0, //14 origine ou d12
 	.dio = {D26, D35, D34},
 };
-
-//CHANGER LE D5 et activer SPI une seule fois.
-//DESACTIVER LE SPI DANS LA PXMATRIC
 #endif
-
-//VERIFIER POUR DEVKIT V1
 
 #if defined(ARDUINO_ESP32_DEV) and defined(KIT_V1)
 const lmic_pinmap lmic_pins = {
@@ -5021,8 +4538,8 @@ void ToByteArray()
 
 	for (unsigned int i = 0; i < appeui_str.length(); i += 2)
 	{
-		String byteString = appeui_str.substring(i, i + 2); // ICI? 1
-															// Debug.println(byteString);
+		String byteString = appeui_str.substring(i, i + 2); 
+		// Debug.println(byteString);
 		byte byte = (char)strtol(byteString.c_str(), NULL, 16);
 		// Debug.println(byte,HEX);
 		appeui_hex[(appeui_str.length() / 2) - j] = byte; // reverse
@@ -5065,15 +4582,10 @@ void do_send(osjob_t *j)
 	if (LMIC.opmode & OP_TXRXPEND)
 	{
 		Debug.println(F("OP_TXRXPEND, not sending"));
-		//doit être normal => recall de dosend lors de la preparation du paquet
+		//Should appear sometimes because reloop while sending programmed
 	}
 	else
 	{
-		// Prepare upstream data transmission at the next possible time.
-		//LMIC_setTxData2(1, mydata, sizeof(mydata) - 1, 0);
-
-		// LMIC_setTxData2(1, datalora, sizeof(datalora) - 1, 0);
-
 		Debug.print("Size of Data:");
 		Debug.println(sizeof(datalora));
 
@@ -5183,7 +4695,7 @@ void onEvent(ev_t ev)
 		// Schedule next transmission
 		os_setTimedCallback(&sendjob, os_getTime() + sec2osticks(TX_INTERVAL), do_send);
 		Debug.println(F("Next transmission scheduled"));
-		//Booleen ici pour autoriser le wifi.
+		//maybe boolean here to prevent problem if wifi transmission starts...
 		break;
 	case EV_LOST_TSYNC:
 		Debug.println(F("EV_LOST_TSYNC"));
@@ -5232,13 +4744,13 @@ void onEvent(ev_t ev)
 static void prepareTxFrame()
 {
 
-	//VERIFIER L'ENDIANESS DU BYTE ARRAY!!
+	//Take care of the endianess in the byte array!
 
 	// 00 00 00 c3
-	// C3 00 00 00 = -128.0 en Little Endian
+	// C3 00 00 00 = -128.0 in Little Endian
 
 	// 00 00 80 bf
-	// bf 80 00 00 = -1.0 en Little Endian
+	// bf 80 00 00 = -1.0 in Little Endian
 
 	union int16_2_byte
 	{
@@ -5258,7 +4770,10 @@ static void prepareTxFrame()
 		byte temp_byte[4];
 	} u3;
 
-	//datalora[0] already defined
+
+	//Take care of the signed/unsigned!
+
+	//datalora[0] is already defined and is 1 byte
 
 	u1.temp_int = (int16_t)last_value_SDS_P1;
 
@@ -5517,28 +5032,21 @@ void setup()
 			}
 		}
 
-		//AJOUTER UN TEST SINON BUG
-
 		// LMIC init
 		os_init();
 		// Reset the MAC state. Session and pending data transfers will be discarded.
 		LMIC_reset();
 
 		// Start job (sending automatically starts OTAA too)
-		do_send(&sendjob); // ATTENTION AU FISRT SEND => FILTRER DANS LE DECODEUR? //Valeurs -1, -128 etc.
+		do_send(&sendjob); // values are -1, -128 etc. they can be easily filtered
 	}
-
-	//   //display_update_enable(false)
-
-	// LE PROBLEME VIENT DES INTERRUPT???
 
 	if (cfg::display_forecast)
 	{
-
-		forecast_selector = 0; //initialisation après envoie 1 lora
+		forecast_selector = 0; //initialisation after firs LoRaWAN payload
 	}
 
-	// Prepare the configuration summary for the following messgaes (the first is 00000000)
+	// Prepare the configuration summary for the following messages (the first is 00000000)
 
 	configlorawan[0] = cfg::sds_read;
 	configlorawan[1] = cfg::npm_read;
@@ -5551,22 +5059,14 @@ void setup()
 
 	Debug.print("Configuration:");
 	Debug.println(booltobyte(configlorawan));
-
-	// payloadsize = payloadsizer(configlorawan) + 1;
-	// Debug.print("Payload size:");
-	// Debug.println(payloadsize);
-
 	datalora[0] = booltobyte(configlorawan);
 
-	Debug.printf("END OF SETUP!!!\n");
+	Debug.printf("End of void setup()\n");
 }
-
-//IL FAUT RECUPERER LA DATE PAR LE LORA!!!!
 
 void loop()
 {
 	String result_SDS, result_NPM;
-	// String result_GPS;
 
 	unsigned sum_send_time = 0;
 
@@ -5621,10 +5121,8 @@ void loop()
 
 	if ((msSince(last_display_millis_matrix) > DISPLAY_UPDATE_INTERVAL_MS) && (cfg::has_matrix))
 	{
-		//display.clearDisplay();
-		//essayer avec fillscreen(myblack)
 
-		display.fillScreen(myBLACK); //to avoid blink?
+		display.fillScreen(myBLACK); //to avoid blink with display.clearDisplay();
 		display.clearDisplay();// to reinit
 		display_values_matrix();
 		last_display_millis_matrix = act_milli;
@@ -5641,7 +5139,6 @@ void loop()
 
 		if (cfg::has_wifi)
 		{
-
 			last_signal_strength = WiFi.RSSI();
 			RESERVE_STRING(data, LARGE_STR);
 			data = FPSTR(data_first_part);
@@ -5664,7 +5161,6 @@ void loop()
 
 			if (cfg::bmx280_read && (!bmx280_init_failed))
 			{
-				// getting temperature, humidity and pressure (optional)
 				fetchSensorBMX280(result);
 				data += result;
 				if (bmx280.sensorID() == BME280_SENSOR_ID)
@@ -5681,7 +5177,6 @@ void loop()
 
 			if (cfg::mhz16_read)
 			{
-				
 				fetchSensorMHZ16(result);
 				data += result;
 				result = emptyString;
@@ -5722,7 +5217,21 @@ void loop()
 
 			//json example for WiFi transmission
 
-			//{"software_version" : "ModuleAirV2-V1-122021", "sensordatavalues" : [ {"value_type" : "NPM_P0", "value" : "1.84"}, {"value_type" : "NPM_P1", "value" : "2.80"}, {"value_type" : "NPM_P2", "value" : "2.06"}, {"value_type" : "NPM_N1", "value" : "27.25"}, {"value_type" : "NPM_N10", "value" : "27.75"}, {"value_type" : "NPM_N25", "value" : "27.50"}, {"value_type" : "BME280_temperature", "value" : "20.84"}, {"value_type" : "BME280_pressure", "value" : "99220.03"}, {"value_type" : "BME280_humidity", "value" : "61.66"}, {"value_type" : "samples", "value" : "138555"}, {"value_type" : "min_micro", "value" : "933"}, {"value_type" : "max_micro", "value" : "351024"}, {"value_type" : "interval", "value" : "145000"}, {"value_type" : "signal", "value" : "-71"} ]}
+			//{"software_version" : "ModuleAirV2-V1-122021", "sensordatavalues" : 
+			//[ {"value_type" : "NPM_P0", "value" : "1.84"}, 
+			//{"value_type" : "NPM_P1", "value" : "2.80"}, 
+			//{"value_type" : "NPM_P2", "value" : "2.06"}, 
+			//{"value_type" : "NPM_N1", "value" : "27.25"}, 
+			//{"value_type" : "NPM_N10", "value" : "27.75"}, 
+			//{"value_type" : "NPM_N25", "value" : "27.50"}, 
+			//{"value_type" : "BME280_temperature", "value" : "20.84"}, 
+			//{"value_type" : "BME280_pressure", "value" : "99220.03"}, 
+			//{"value_type" : "BME280_humidity", "value" : "61.66"}, 
+			//{"value_type" : "samples", "value" : "138555"}, 
+			//{"value_type" : "min_micro", "value" : "933"}, 
+			//{"value_type" : "max_micro", "value" : "351024"}, 
+			//{"value_type" : "interval", "value" : "145000"}, 
+			//{"value_type" : "signal", "value" : "-71"} ]}
 
 			// https://en.wikipedia.org/wiki/Moving_average#Cumulative_moving_average
 			sending_time = (3 * sending_time + sum_send_time) / 4;
@@ -5754,9 +5263,6 @@ void loop()
 			max_micro = 0;
 			sum_send_time = 0;
 
-			// starttime = millis(); // store the start time
-			// count_sends++;
-
 			if (cfg::display_forecast)
 			{
 				switch (forecast_selector)
@@ -5783,21 +5289,16 @@ void loop()
 		if (cfg::has_lora && lorachip)
 		{
 			prepareTxFrame();
-
-			// Refresh data to send after measurement
 			do_send(&sendjob);
 
-			// starttime = millis(); // store the start time
-			// count_sends++;
-
-			//METTRE LE os_run_loop_once ici ?
-			//le cas échánt booleen dans le EV_TX_COMPLete pour lancer wifi ensuite.
+			//os_run_loop_once here ?
+			//boolean in EV_TX_COMPLETE to allaw WiFi after?
 		}
 
-		//De manière globale.
 		starttime = millis(); // store the start time
 		count_sends++;
 
+		// Update Forecast selector
 		if (cfg::display_forecast)
 		{
 			if (forecast_selector < 4)
@@ -5809,43 +5310,6 @@ void loop()
 				forecast_selector = 0;
 			}
 		}
-
-		// if (cfg::display_forecast)
-		// {
-		// switch (forecast_selector)
-		// 			{
-		// 			case 0:
-		// 			if (cfg::has_wifi){
-		// 			atmoSud.multi = getDataAtmoSud(forecast_selector);
-		// 			}
-		// 			forecast_selector++;
-		// 				break;
-		// 			case 1:
-		// 			if (cfg::has_wifi){
-		// 			atmoSud.no2 = getDataAtmoSud(forecast_selector);
-		// 			}
-		// 			forecast_selector++;
-		// 				break;
-		// 			case 2:
-		// 			if (cfg::has_wifi){
-		// 			atmoSud.o3 = getDataAtmoSud(forecast_selector);
-		// 			}
-		// 			forecast_selector++;
-		// 				break;
-		// 			case 3:
-		// 			if (cfg::has_wifi){
-		// 			atmoSud.pm10 = getDataAtmoSud(forecast_selector);
-		// 			}
-		// 			forecast_selector++;
-		// 				break;
-		// 			case 4:
-		// 			if (cfg::has_wifi){
-		// 			atmoSud.pm2_5 = getDataAtmoSud(forecast_selector);
-		// 			}
-		// 			forecast_selector = 0;
-		// 				break;
-		// 		}
-		// 	}
 	}
 
 	if (sample_count % 500 == 0)
@@ -5856,12 +5320,24 @@ void loop()
 	if (cfg::has_lora && lorachip)
 	{
 		os_runloop_once();
-		//deplacer dans le send now
+		//place in the send now ?
 	}
 }
 
-//   color565 REMPLACE PAR color565
-
-//https://geoservices.atmosud.org/geoserver/azurjour/wms?&INFO_FORMAT=application/json&REQUEST=GetFeatureInfo&SERVICE=WMS%20&VERSION=1.1.1&WIDTH=1%20&HEIGHT=1&X=1&Y=1&BBOX=5.38658,43.29855,5.38659,43.29856&LAYERS=azurjour:paca-pm2_5-2022-05-23&QUERY_LAYERS=azurjour:paca-pm2_5-2022-05-23&TYPENAME=azurjour:paca-pm10-2022-05-23&srs=EPSG:4326
-
-//https://geoservices.atmosud.org/geoserver/azurjour/wms?&INFO_FORMAT=application/json&REQUEST=GetFeatureInfo&SERVICE=WMS &VERSION=1.1.1&WIDTH=1 &HEIGHT=1&X=1&Y=1&BBOX=5.38658,43.29855,5.38659,43.29856&LAYERS=azurjour:paca-pm2_5-2022-05-23&QUERY_LAYERS=azurjour:paca-pm2_5-2022-05-23&TYPENAME=azurjour:paca-pm2_5-2022-05-23&srs=EPSG:4326
+const uint8_t PROGMEM gamma8[] = {
+    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  1,  1,  1,
+    1,  1,  1,  1,  1,  1,  1,  1,  1,  2,  2,  2,  2,  2,  2,  2,
+    2,  3,  3,  3,  3,  3,  3,  3,  4,  4,  4,  4,  4,  5,  5,  5,
+    5,  6,  6,  6,  6,  7,  7,  7,  7,  8,  8,  8,  9,  9,  9, 10,
+   10, 10, 11, 11, 11, 12, 12, 13, 13, 13, 14, 14, 15, 15, 16, 16,
+   17, 17, 18, 18, 19, 19, 20, 20, 21, 21, 22, 22, 23, 24, 24, 25,
+   25, 26, 27, 27, 28, 29, 29, 30, 31, 32, 32, 33, 34, 35, 35, 36,
+   37, 38, 39, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 50,
+   51, 52, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 66, 67, 68,
+   69, 70, 72, 73, 74, 75, 77, 78, 79, 81, 82, 83, 85, 86, 87, 89,
+   90, 92, 93, 95, 96, 98, 99,101,102,104,105,107,109,110,112,114,
+  115,117,119,120,122,124,126,127,129,131,133,135,137,138,140,142,
+  144,146,148,150,152,154,156,158,160,162,164,167,169,171,173,175,
+  177,180,182,184,186,189,191,193,196,198,200,203,205,208,210,213,
+  215,218,220,223,225,228,231,233,236,239,241,244,247,249,252,255 };

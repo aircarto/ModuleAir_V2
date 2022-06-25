@@ -1,5 +1,4 @@
 //logo html
-
 constexpr const unsigned int AIRCARTO_INFO_LOGO_PNG_SIZE = 3272;
 
 const char AIRCARTO_INFO_LOGO_PNG[] PROGMEM = {
