@@ -3715,7 +3715,7 @@ static void display_values_matrix()
 	uint8_t screen_count = 0;
 	uint8_t screens[23];
 	int line_count = 0;
-	debug_outln_info(F("output values to matrix..."));
+	//debug_outln_info(F("output values to matrix..."));
 
 	if (cfg::npm_read)
 	{
@@ -4771,58 +4771,60 @@ static void prepareTxFrame()
 	} u3;
 
 
-	//Take care of the signed/unsigned!
+	//Take care of the signed/unsigned and endianess
+
+	//Inverser ordre pour les int16_t !
 
 	//datalora[0] is already defined and is 1 byte
 
-	u1.temp_int = (int16_t)last_value_SDS_P1;
+	u1.temp_int = (int16_t)round(last_value_SDS_P1);
 
-	datalora[1] = u1.temp_byte[0];
-	datalora[2] = u1.temp_byte[1];
+	datalora[1] = u1.temp_byte[1];
+	datalora[2] = u1.temp_byte[0];
 
-	u1.temp_int = (int16_t)last_value_SDS_P2;
+	u1.temp_int = (int16_t)round(last_value_SDS_P2);
 
-	datalora[3] = u1.temp_byte[0];
-	datalora[4] = u1.temp_byte[1];
+	datalora[3] = u1.temp_byte[1];
+	datalora[4] = u1.temp_byte[0];
 
-	u1.temp_int = (int16_t)last_value_NPM_P0;
+	u1.temp_int = (int16_t)round(last_value_NPM_P0);
 
-	datalora[5] = u1.temp_byte[0];
-	datalora[6] = u1.temp_byte[1];
+	datalora[5] = u1.temp_byte[1];
+	datalora[6] = u1.temp_byte[0];
 
-	u1.temp_int = (int16_t)last_value_NPM_P1;
+	u1.temp_int = (int16_t)round(last_value_NPM_P1);
 
-	datalora[7] = u1.temp_byte[0];
-	datalora[8] = u1.temp_byte[1];
+	datalora[7] = u1.temp_byte[1];
+	datalora[8] = u1.temp_byte[0];
 
-	u1.temp_int = (int16_t)last_value_NPM_P2;
+	u1.temp_int = (int16_t)round(last_value_NPM_P2);
 
-	datalora[9] = u1.temp_byte[0];
-	datalora[10] = u1.temp_byte[1];
+	datalora[9] = u1.temp_byte[1];
+	datalora[10] = u1.temp_byte[0];
 
-	u1.temp_int = (int16_t)last_value_MHZ16;
+	u1.temp_int = (int16_t)round(last_value_MHZ16);
 
-	datalora[11] = u1.temp_byte[0];
-	datalora[12] = u1.temp_byte[1];
+	datalora[11] = u1.temp_byte[1];
+	datalora[12] = u1.temp_byte[0];
 
-	u1.temp_int = (int16_t)last_value_MHZ19;
+	u1.temp_int = (int16_t)round(last_value_MHZ19);
 
-	datalora[13] = u1.temp_byte[0];
-	datalora[14] = u1.temp_byte[1];
+	datalora[13] = u1.temp_byte[1];
+	datalora[14] = u1.temp_byte[0];
 
-	u1.temp_int = (int16_t)last_value_SGP40;
+	u1.temp_int = (int16_t)round(last_value_SGP40);
 
-	datalora[15] = u1.temp_byte[0];
-	datalora[16] = u1.temp_byte[1];
+	datalora[15] = u1.temp_byte[1];
+	datalora[16] = u1.temp_byte[0];
 
-	datalora[17] = (int8_t)last_value_BMX280_T;
+	datalora[17] = (int8_t)round(last_value_BMX280_T);
 
-	datalora[18] = (int8_t)last_value_BME280_H;
+	datalora[18] = (int8_t)round(last_value_BME280_H);
 
-	u1.temp_int = (int16_t)last_value_BMX280_P;
+	u1.temp_int = (int16_t)round(last_value_BMX280_P);
 
-	datalora[19] = u1.temp_byte[0];
-	datalora[20] = u1.temp_byte[1];
+	datalora[19] = u1.temp_byte[1];
+	datalora[20] = u1.temp_byte[0];
 
 	u3.temp_float = atof(cfg::latitude);
 
