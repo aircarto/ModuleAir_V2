@@ -3710,6 +3710,12 @@ static void display_values_matrix()
 	float nc025_value = -1.0;
 	float nc100_value = -1.0;
 
+
+	String co2_sensor;
+	String cov_sensor;
+	float co2_value = -1.0;
+	float cov_value = -1.0;
+
 	double lat_value = -200.0;
 	double lon_value = -200.0;
 	double alt_value = -1000.0;
@@ -3751,6 +3757,21 @@ static void display_values_matrix()
 			h_sensor = t_sensor = FPSTR(SENSORS_BME280);
 			h_value = last_value_BME280_H;
 		}
+	}
+
+		if (cfg::mhz16_read)
+	{
+
+	}
+
+			if (cfg::mhz19_read)
+	{
+
+	}
+
+			if (cfg::sgp40_read)
+	{
+
 	}
 
 		if ((cfg::sds_read || cfg::npm_read || cfg::bmx280_read || cfg::mhz16_read || cfg::mhz19_read || cfg::sgp40_read) && cfg::display_measure)
@@ -3820,6 +3841,7 @@ static void display_values_matrix()
 		switch (screens[next_display_count % screen_count])
 		{
 		case 0:
+		if(pm10_value != -1.0 || pm25_value != -1.0 || pm01_value != -1.0 || t_value != -128.0 || h_value != -1.0 || p_value != -1.0){
 		drawImage(0, 0, 32, 64, interieur);
 		display.setTextColor(myWHITE);
 		display.setFont(&Font4x7Fixed);
@@ -3829,8 +3851,11 @@ static void display_values_matrix()
 		display.print("int");
 		display.write(233);
 		display.print("rieur");
+		}else{
+			act_milli += 5000;	
+		}
 			break;
-		case 1:
+		case 1:   //SDS
 		if(pm10_value != -1.0){
 			display.setTextColor(myWHITE);
 			display.setFont(NULL);
@@ -3885,11 +3910,60 @@ static void display_values_matrix()
 			act_milli += 5000;	
 			}
 			break;
-		case 3:
-			act_milli += 5000;
+		case 3:   //NPM
+			if(pm10_value != -1.0){
+			display.setTextColor(myWHITE);
+			display.setFont(NULL);
+			display.setCursor(0, 0);
+			display.setTextSize(1);
+			display.print("PM10");
+			display.setFont(&Font4x7Fixed);
+			display.setCursor(display.getCursorX()+2, 7);
+			display.write(181);
+			display.print("g/m");
+			display.write(179);
+			drawImage(55, 0, 8, 9, maison);
+			displayColor = interpolate(pm10_value, 20, 40, 50, 100, 150, gamma_correction);
+			myCUSTOM = display.color565(displayColor.R, displayColor.G, displayColor.B);
+			//myCUSTOM = display.color565(displayColor.R, displayColor.G, displayColor.B,true); //AVEC GAMMA CORRECTION
+			display.fillRect(50, 9, 14, 14, myCUSTOM);
+			display.setFont(NULL);
+			display.setCursor(0, 9);
+			display.setTextSize(2);
+			display.print(String(pm10_value, 0));
+			messager(pm10_value, 20, 40, 50, 100, 150, 1);
+			}
+			else
+			{
+				act_milli += 5000;	
+			}
 			break;
 		case 4:
-		act_milli += 5000;
+		if(pm25_value != -1.0){
+			display.setTextColor(myCYAN);
+			display.setFont(NULL);
+			display.setCursor(0, 0);
+			display.setTextSize(1);
+			display.print("PM2.5");
+			display.setFont(&Font4x7Fixed);
+			display.setCursor(display.getCursorX()+2, 7);
+			display.write(181);
+			display.print("g/m");
+			display.write(179);
+			drawImage(55, 0, 8, 9, maison);
+			displayColor = interpolate(pm25_value, 10, 20, 25, 50, 75, gamma_correction);
+			myCUSTOM = display.color565(displayColor.R, displayColor.G, displayColor.B);
+			display.fillRect(50, 9, 14, 14, myCUSTOM);
+			display.setFont(NULL);
+			display.setCursor(0, 9);
+			display.setTextSize(2);
+			display.print(String(pm25_value, 0));
+            messager(pm25_value, 10, 20, 25, 50, 75, 2);
+			}
+			else
+			{
+			act_milli += 5000;	
+			}
 			break;
 		case 5:
 		act_milli += 5000;
