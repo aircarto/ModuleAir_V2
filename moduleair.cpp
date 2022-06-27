@@ -332,7 +332,9 @@ void drawImage(int x, int y, int h, int w, uint16_t image[])
 	}
 }
 
-struct RGB interpolate(float valueSensor, int step1, int step2, int step3, int step4, int step5, bool gamma)
+bool gamma_correction = true; //Gamma correction
+
+struct RGB interpolate(float valueSensor, int step1, int step2, int step3, int step4, int step5, bool correction)
 {
 
 	byte endColorValueR;
@@ -463,7 +465,7 @@ struct RGB interpolate(float valueSensor, int step1, int step2, int step3, int s
 
 //Gamma Correction
 
-if (gamma == true){
+if (correction == true){
 result.R = pgm_read_byte(&gamma8[result.R]);
 result.G = pgm_read_byte(&gamma8[result.G]);
 result.B = pgm_read_byte(&gamma8[result.B]);
@@ -471,9 +473,8 @@ result.B = pgm_read_byte(&gamma8[result.B]);
 
 rgb565 = ((result.R & 0b11111000) << 8) | ((result.G & 0b11111100) << 3) | (result.B >> 3);
 Debug.println(rgb565); // to get list of color if drawGradient is acitvated
-	return result;
+return result;
 }
-
 
 //You can use drawGradient once in order to get the list of colors and then create an image which is much faster to display
 
@@ -563,6 +564,8 @@ display.setTextSize(1);
 		display.print("Erreur");
 	}
 }
+
+
 
 /*****************************************************************
  * Forecast Atmosud                                              *
@@ -3713,7 +3716,7 @@ static void display_values_matrix()
 	String display_header;
 	String display_lines[3] = {"", "", ""};
 	uint8_t screen_count = 0;
-	uint8_t screens[23];
+	uint8_t screens[24];
 	int line_count = 0;
 	//debug_outln_info(F("output values to matrix..."));
 
@@ -3811,6 +3814,9 @@ static void display_values_matrix()
 			screens[screen_count++] = 22; // Lora info
 		}
 
+		screens[screen_count++] = 23; // Logo ModuleAir
+
+
 		switch (screens[next_display_count % screen_count])
 		{
 		case 0:
@@ -3825,6 +3831,7 @@ static void display_values_matrix()
 		display.print("rieur");
 			break;
 		case 1:
+		if(pm10_value != -1.0){
 			display.setTextColor(myWHITE);
 			display.setFont(NULL);
 			display.setCursor(0, 0);
@@ -3836,7 +3843,7 @@ static void display_values_matrix()
 			display.print("g/m");
 			display.write(179);
 			drawImage(55, 0, 8, 9, maison);
-			displayColor = interpolate(pm10_value, 20, 40, 50, 100, 150, true);
+			displayColor = interpolate(pm10_value, 20, 40, 50, 100, 150, gamma_correction);
 			myCUSTOM = display.color565(displayColor.R, displayColor.G, displayColor.B);
 			//myCUSTOM = display.color565(displayColor.R, displayColor.G, displayColor.B,true); //AVEC GAMMA CORRECTION
 			display.fillRect(50, 9, 14, 14, myCUSTOM);
@@ -3845,8 +3852,14 @@ static void display_values_matrix()
 			display.setTextSize(2);
 			display.print(String(pm10_value, 0));
 			messager(pm10_value, 20, 40, 50, 100, 150, 1);
+			}
+			else
+			{
+				act_milli += 5000;	
+			}
 			break;
 		case 2:
+		if(pm25_value != -1.0){
 			display.setTextColor(myCYAN);
 			display.setFont(NULL);
 			display.setCursor(0, 0);
@@ -3858,7 +3871,7 @@ static void display_values_matrix()
 			display.print("g/m");
 			display.write(179);
 			drawImage(55, 0, 8, 9, maison);
-			displayColor = interpolate(pm25_value, 10, 20, 25, 50, 75, true);
+			displayColor = interpolate(pm25_value, 10, 20, 25, 50, 75, gamma_correction);
 			myCUSTOM = display.color565(displayColor.R, displayColor.G, displayColor.B);
 			display.fillRect(50, 9, 14, 14, myCUSTOM);
 			display.setFont(NULL);
@@ -3866,6 +3879,11 @@ static void display_values_matrix()
 			display.setTextSize(2);
 			display.print(String(pm25_value, 0));
             messager(pm25_value, 10, 20, 25, 50, 75, 2);
+			}
+			else
+			{
+			act_milli += 5000;	
+			}
 			break;
 		case 3:
 			act_milli += 5000;
@@ -3972,14 +3990,14 @@ static void display_values_matrix()
 			display.setCursor(0, 0);
 			display.setTextSize(1);
 			display.print("Ind. Atmo");
-			displayColor = interpolate(atmoSud.multi, 20, 40, 50, 100, 150, true);
+			displayColor = interpolate(atmoSud.multi, 20, 40, 50, 100, 150, gamma_correction);
 			myCUSTOM = display.color565(displayColor.R, displayColor.G, displayColor.B);
 			display.fillRect(50, 9, 14, 14, myCUSTOM);
 			display.setCursor(0, 9);
 			display.setTextSize(2);
 			display.print(String(atmoSud.multi, 0));
 			//drawgradient(0, 25, atmoSud.no2, 20, 40, 50, 100, 150);
-			drawImage(0, 25, 7, 64, gradient_20_150);
+			if(gamma_correction){drawImage(0, 25, 7, 64, gradient_20_150_gamma);}else{drawImage(0, 25, 7, 64, gradient_20_150);}
 			display.setTextColor(myWHITE);
 			display.setFont(NULL);
 			display.setTextSize(1);
@@ -3997,14 +4015,14 @@ static void display_values_matrix()
 			display.setCursor(0, 0);
 			display.setTextSize(1);
 			display.print("NO2 Atmo");
-			displayColor = interpolate(atmoSud.no2, 40, 90, 120, 230, 340, true);
+			displayColor = interpolate(atmoSud.no2, 40, 90, 120, 230, 340, gamma_correction);
 			myCUSTOM = display.color565(displayColor.R, displayColor.G, displayColor.B);
 			display.fillRect(50, 9, 14, 14, myCUSTOM);
 			display.setCursor(0, 9);
 			display.setTextSize(2);
 			display.print(String(atmoSud.no2, 0));
 			//drawgradient(0, 25, atmoSud.no2, 40, 90, 120, 230, 340);
-			drawImage(0, 25, 7, 64, gradient_40_340);
+			if(gamma_correction){drawImage(0, 25, 7, 64, gradient_40_340_gamma);}else{drawImage(0, 25, 7, 64, gradient_40_340);}
 			display.setTextColor(myWHITE);
 			display.setFont(NULL);
 			display.setTextSize(1);
@@ -4022,14 +4040,14 @@ static void display_values_matrix()
 			display.setCursor(0, 0);
 			display.setTextSize(1);
 			display.print("O3 Atmo");
-			displayColor = interpolate(atmoSud.o3, 50, 100, 130, 240, 380, true);
+			displayColor = interpolate(atmoSud.o3, 50, 100, 130, 240, 380, gamma_correction);
 			myCUSTOM = display.color565(displayColor.R, displayColor.G, displayColor.B);
 			display.fillRect(50, 9, 14, 14, myCUSTOM);
 			display.setCursor(0, 9);
 			display.setTextSize(2);
 			display.print(String(atmoSud.o3, 0));
 			//drawgradient(0, 25, atmoSud.o3, 50, 100, 130, 240, 380);
-			drawImage(0, 25, 7, 64, gradient_50_380);
+			if(gamma_correction){drawImage(0, 25, 7, 64, gradient_50_380_gamma);}else{drawImage(0, 25, 7, 64, gradient_50_380);}
 			display.setTextColor(myWHITE);
 			display.setFont(NULL);
 			display.setTextSize(1);
@@ -4047,14 +4065,14 @@ static void display_values_matrix()
 			display.setCursor(0, 0);
 			display.setTextSize(1);
 			display.print("PM10 Atmo");
-			displayColor = interpolate(atmoSud.pm10, 20, 40, 50, 100, 150, true);
+			displayColor = interpolate(atmoSud.pm10, 20, 40, 50, 100, 150, gamma_correction);
 			myCUSTOM = display.color565(displayColor.R, displayColor.G, displayColor.B);
 			display.fillRect(50, 9, 14, 14, myCUSTOM);
 			display.setCursor(0, 9);
 			display.setTextSize(2);
 			display.print(String(atmoSud.pm10, 0));
 			//drawgradient(0, 25, atmoSud.pm10, 20, 40, 50, 100, 150);
-			drawImage(0, 25, 7, 64, gradient_20_150);
+			if(gamma_correction){drawImage(0, 25, 7, 64, gradient_20_150_gamma);}else{drawImage(0, 25, 7, 64, gradient_20_150);}
 			display.setTextColor(myWHITE);
 			display.setFont(NULL);
 			display.setTextSize(1);
@@ -4072,14 +4090,14 @@ static void display_values_matrix()
 			display.setCursor(0, 0);
 			display.setTextSize(1);
 			display.print("PM2.5 Atmo");
-			displayColor = interpolate(atmoSud.pm2_5, 10, 20, 25, 50, 75, true);
+			displayColor = interpolate(atmoSud.pm2_5, 10, 20, 25, 50, 75, gamma_correction);
 			myCUSTOM = display.color565(displayColor.R, displayColor.G, displayColor.B);
 			display.fillRect(50, 9, 14, 14, myCUSTOM);
 			display.setCursor(0, 9);
 			display.setTextSize(2);
 			display.print(String(atmoSud.pm2_5, 0));
 			//drawgradient(0, 25, atmoSud.pm2_5, 10, 20, 25, 50, 75);
-			drawImage(0, 25, 7, 64, gradient_10_75);
+			if(gamma_correction){drawImage(0, 25, 7, 64, gradient_10_75_gamma);}else{drawImage(0, 25, 7, 64, gradient_10_75);}
 			display.setTextColor(myWHITE);
 			display.setFont(NULL);
 			display.setTextSize(1);
@@ -4148,6 +4166,14 @@ static void display_values_matrix()
 			display.setCursor(0, 22);
 			display.print(cfg::appkey);
 			break;
+		case 23:
+		if(atmoSud.multi == -1.0 && atmoSud.no2 == -1.0 && atmoSud.o3 == -1.0 && atmoSud.pm10 == -1.0 && atmoSud.pm2_5 == -1.0)
+		{
+			drawImage(0, 0, 32, 64, logo_moduleair);
+		}else{
+			act_milli += 5000;
+		}
+		break;
 		}
 
 	yield();
@@ -4164,6 +4190,9 @@ static void init_matrix()
 	display.setDriverChip(SHIFT);
 	display_update_enable(true);
 	display.setFont(NULL); //Default font
+	display.fillScreen(myBLACK); 	//display.clearDisplay(); produces a flash
+	drawImage(0, 0, 32, 64, logo_moduleair);
+	delay(5000);
 	display.fillScreen(myBLACK); 	//display.clearDisplay(); produces a flash
 	drawImage(0, 0, 32, 64, logo_aircarto);
 	delay(5000);

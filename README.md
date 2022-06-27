@@ -15,10 +15,10 @@ Mpre information on Aircarto.fr
 * OLED SSD1306
 
 ## Features
-* Gets measurement from a full range of sensors
+* Gets measurements from a full range of sensors
 * Transmits data with WiFi or LoRaWAN to different databases
 * Gets AQ forecasts from the AtmoSud API, the official Institute for Air Quality in SW France
-* Displays the measurement and the forecasts on the matrix
+* Displays the measurements and the forecasts on the matrix
 * Fully configurable through a web interface
 
 ## Libraries
