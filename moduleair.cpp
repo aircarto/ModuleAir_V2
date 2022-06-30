@@ -57,8 +57,6 @@ String SOFTWARE_VERSION_SHORT(SOFTWARE_VERSION_STR_SHORT);
 #include <MHZ16_uart.h> // CO2
 #include <MHZ19.h>
 
-#include <SensirionI2CSgp40.h>
-
 // includes ESP32 libraries
 #define FORMAT_SPIFFS_IF_FAILED true
 #include <FS.h>
@@ -86,6 +84,7 @@ String SOFTWARE_VERSION_SHORT(SOFTWARE_VERSION_STR_SHORT);
 #include <DNSServer.h>
 #include <StreamString.h>
 #include "./bmx280_i2c.h"
+#include "./SensirionI2CSgp40.h"
 
 // includes files
 #include "./intl.h"
@@ -135,7 +134,6 @@ namespace cfg
 	bool mhz16_read = MHZ16_READ;
 	bool mhz19_read = MHZ19_READ;
 	bool sgp40_read = SGP40_READ;
-	// bool gps_read = GPS_READ;
 
 	// Location
 
@@ -244,7 +242,7 @@ LoggerConfig loggerConfigs[LoggerCount];
 // test variables
 long int sample_count = 0;
 bool bmx280_init_failed = false;
-bool gps_init_failed = false;
+bool sgp40_init_failed = false;
 bool moduleair_selftest_failed = false;
 
 WebServer server(80);
@@ -774,7 +772,7 @@ MHZ19 mhz19;
 /*****************************************************************
  * SGP40 declaration                                        *
  *****************************************************************/
-// BMX280 bmx280;
+SensirionI2CSgp40 sgp40;
 
 /*****************************************************************
  * Time                                       *
@@ -2267,6 +2265,11 @@ static void webserver_values()
 		add_table_row_from_value(page_content, sensor, param, check_display_value(value, -1, 1, 0).substring(0,check_display_value(value, -1, 1, 0).indexOf(".")), "ppm"); //remove after .
 	};
 
+	auto add_table_voc_value = [&page_content](const __FlashStringHelper *sensor, const __FlashStringHelper *param, const float &value)
+	{
+		add_table_row_from_value(page_content, sensor, param, check_display_value(value, -1, 1, 0).substring(0,check_display_value(value, -1, 1, 0).indexOf(".")), "ppm"); //remove after .
+	};
+
 	auto add_table_value = [&page_content](const __FlashStringHelper *sensor, const __FlashStringHelper *param, const String &value, const String &unit)
 	{
 		add_table_row_from_value(page_content, sensor, param, value, unit);
@@ -2320,6 +2323,13 @@ static void webserver_values()
 	{
 		const char *const sensor_name = SENSORS_MHZ19;
 		add_table_co2_value(FPSTR(sensor_name), FPSTR(INTL_CO2), last_value_MHZ19);
+		page_content += FPSTR(EMPTY_ROW);
+	}
+
+			if (cfg::sgp40_read)
+	{
+		const char *const sensor_name = SENSORS_SGP40;
+		add_table_voc_value(FPSTR(sensor_name), FPSTR(INTL_VOC), last_value_SGP40);
 		page_content += FPSTR(EMPTY_ROW);
 	}
 
@@ -3364,24 +3374,30 @@ static void fetchSensorMHZ19(String &s)
  *****************************************************************/
 static void fetchSensorSGP40(String &s)
 {
-	const char *const sensor_name = SENSORS_MHZ19;
+	const char *const sensor_name = SENSORS_SGP40;
 	debug_outln_verbose(FPSTR(DBG_TXT_START_READING), FPSTR(sensor_name));
 
-	int value; 
+	uint16_t error;
+    char errorMessage[256];
+    uint16_t defaultRh = 0x8000;
+    uint16_t defaultT = 0x6666;
+    uint16_t srawVoc = 0;
 
-    value = mhz19.getCO2();
-
-	if (isnan(value))
+    error = sgp40.measureRawSignal(defaultRh, defaultT, srawVoc);
+    if (error) {
+        Debug.print("Error trying to execute measureRawSignal(): ");
+        errorToString(error, errorMessage, 256);
+        Debug.println(errorMessage);
+    } else {
+	if (isnan(srawVoc))
 	{
-		last_value_MHZ19 = -1.0;
-		debug_outln_error(F("MHZ19 read failed"));
+		last_value_SGP40 = -1.0;
+		debug_outln_error(F("SGP40 read failed"));
+	}else{
+		last_value_SGP40 = (float)srawVoc;
+		add_Value2Json(s, F("SGP40_VOC"), FPSTR(DBG_TXT_VOCPPM), last_value_SGP40);
 	}
-	else
-	{
-		last_value_MHZ19 = (float)value;
-		add_Value2Json(s, F("MHZ19_CO2"), FPSTR(DBG_TXT_CO2PPM), last_value_MHZ19);
-	}
-
+    }
 	debug_outln_info(FPSTR(DBG_TXT_SEP));
 	debug_outln_verbose(FPSTR(DBG_TXT_END_READING), FPSTR(sensor_name));
 }
@@ -4392,6 +4408,7 @@ static void display_values_matrix()
 			display.setCursor(display.getCursorX()+2, 7);
 			display.print("ppm");
 			drawImage(55, 0, 8, 9, maison);
+			display.setFont(NULL);
 			display.setCursor(0, 9);
 			display.setTextSize(2);
 			display.setTextColor(myWHITE);
@@ -4746,6 +4763,36 @@ static bool initBMX280(char addr)
 }
 
 /*****************************************************************
+ * Init SGP40                                            *
+ *****************************************************************/
+static bool initSGP40()
+{
+    uint16_t error;
+    char errorMessage[256];
+
+	debug_out(String(F("Trying SGP40 sensor: ")), DEBUG_MIN_INFO);
+
+	sgp40.begin(Wire);
+    
+	uint16_t testResult;
+    error = sgp40.executeSelfTest(testResult);
+    if (error) {
+		debug_out(String(F("Error trying to execute executeSelfTest(): ")), DEBUG_MIN_INFO);
+        errorToString(error, errorMessage, 256);
+		debug_out(String(errorMessage), DEBUG_MIN_INFO);
+		return false;
+    } else if (testResult != 0xD400) {
+		debug_out(String(F("executeSelfTest failed with error: ")), DEBUG_MIN_INFO);
+		debug_out(String(testResult), DEBUG_MIN_INFO);
+		return false;
+    }else{
+		debug_out(String(F("SGP40 selftest OK")), DEBUG_MIN_INFO);
+		Debug.printf("\n");
+		return true;
+	}
+}
+
+/*****************************************************************
    Functions
  *****************************************************************/
 
@@ -4854,6 +4901,16 @@ static void powerOnTestSensors()
 		{
 			debug_outln_error(F("Check BMx280 wiring"));
 			bmx280_init_failed = true;
+		}
+	}
+
+	if (cfg::sgp40_read)
+	{
+		debug_outln_info(F("Read SGP40..."));
+		if (!initSGP40())
+		{
+			debug_outln_error(F("Check SGP40 wiring"));
+			sgp40_init_failed = true;
 		}
 	}
 }
@@ -5699,13 +5756,13 @@ void loop()
 				Debug.println(data);
 			}
 
-			// if (cfg::sgp40_read)
-			// {
-			// 	fetchSensorSGP40(result);
-			// 	data += result;
-			// 	result = emptyString;
-			// 	Debug.println(data);
-			// }
+			if (cfg::sgp40_read && (!sgp40_init_failed))
+			{
+				fetchSensorSGP40(result);
+				data += result;
+				result = emptyString;
+				Debug.println(data);
+			}
 
 			add_Value2Json(data, F("samples"), String(sample_count));
 			add_Value2Json(data, F("min_micro"), String(min_micro));
