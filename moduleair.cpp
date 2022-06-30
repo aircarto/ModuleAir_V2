@@ -476,6 +476,125 @@ Debug.println(rgb565); // to get list of color if drawGradient is acitvated
 return result;
 }
 
+struct RGB interpolate2(float valueSensor, int step1, int step2, int step3, bool correction)
+{
+
+	byte endColorValueR;
+	byte startColorValueR;
+	byte endColorValueG;
+	byte startColorValueG;
+	byte endColorValueB;
+	byte startColorValueB;
+
+	int valueLimitHigh;
+	int valueLimitLow;
+	struct RGB result;
+	uint16_t rgb565;
+
+	if (valueSensor == 0)
+	{
+
+		result.R = 0;
+		result.G = 0;   //blue
+		result.B = 255;
+	}
+	else if (valueSensor > 0 && valueSensor <= step3)
+	{
+		if (valueSensor <= step1)
+		{
+			valueLimitHigh = step1;
+			valueLimitLow = 0;
+			endColorValueR = 0;
+			startColorValueR = 0;  //blue to green
+			endColorValueG = 255;
+			startColorValueG = 0; 
+			endColorValueB = 0;
+			startColorValueB = 255;
+		}
+		else if (valueSensor > step1 && valueSensor <= step2)
+		{
+			valueLimitHigh = step2;
+			valueLimitLow = step1;
+			endColorValueR = 255;
+			startColorValueR = 0;
+			endColorValueG = 255; //green to yellow
+			startColorValueG = 255;
+			endColorValueB = 0;
+			startColorValueB = 0;
+		}
+		else if (valueSensor > step2 && valueSensor <= step3)
+		{
+			valueLimitHigh = step3;
+			valueLimitLow = step2;
+			endColorValueR = 255;
+			startColorValueR = 255;
+			endColorValueG = 0;		//yellow to red
+			startColorValueG = 255; 
+			endColorValueB = 0;
+			startColorValueB = 0;
+		}
+
+		result.R = (byte)(((endColorValueR - startColorValueR) * ((valueSensor - valueLimitLow) / (valueLimitHigh - valueLimitLow))) + startColorValueR);
+		result.G = (byte)(((endColorValueG - startColorValueG) * ((valueSensor - valueLimitLow) / (valueLimitHigh - valueLimitLow))) + startColorValueG);
+		result.B = (byte)(((endColorValueB - startColorValueB) * ((valueSensor - valueLimitLow) / (valueLimitHigh - valueLimitLow))) + startColorValueB);
+	}
+	else if (valueSensor > step3)
+	{
+		result.R = 255;
+		result.G = 0;  //red
+		result.B = 0;
+	}
+	else
+	{
+		result.R = 0;
+		result.G = 0;
+		result.B = 0;
+	}
+
+	// Debug.println(result.R);
+	// Debug.println(result.G);
+	// Debug.println(result.B);
+
+// Debug.println("Value in");
+// Debug.println(valueSensor);
+
+// Debug.println("Color in low RGB:");
+// Debug.print(startColorValueR);
+// Debug.print(" ");
+// Debug.print(startColorValueG);
+// Debug.print(" ");
+// Debug.print(startColorValueB);
+// Debug.printf("\n");
+
+// Debug.println("Color in high RGB:");
+// Debug.print(endColorValueR);
+// Debug.print(" ");
+// Debug.print(endColorValueG);
+// Debug.print(" ");
+// Debug.print(endColorValueB);
+// Debug.printf("\n");
+
+// Debug.println("Color out RGB:");
+// Debug.print(result.R);
+// Debug.print(" ");
+// Debug.print(result.G);
+// Debug.print(" ");
+// Debug.print(result.B);
+// Debug.printf("\n");
+
+//Gamma Correction
+
+if (correction == true){
+result.R = pgm_read_byte(&gamma8[result.R]);
+result.G = pgm_read_byte(&gamma8[result.G]);
+result.B = pgm_read_byte(&gamma8[result.B]);
+}
+
+rgb565 = ((result.R & 0b11111000) << 8) | ((result.G & 0b11111100) << 3) | (result.B >> 3);
+Debug.println(rgb565); // to get list of color if drawGradient is acitvated
+return result;
+}
+
 //You can use drawGradient once in order to get the list of colors and then create an image which is much faster to display
 
 void drawgradient(int x, int y, float valueSensor, int step1, int step2, int step3, int step4, int step5)
@@ -512,15 +631,15 @@ for (uint8_t k = 0; k < gradientHeight; k++){
 }
 }
 
-
 //REVOIR POUR LE TRAITEMENT DES CARACTERES SPECIAUX
 
-void messager(float valueSensor, int step1, int step2, int step3, int step4, int step5, int type)
+void messager1(float valueSensor, int step1, int step2, int step3, int step4, int step5)
 {
 
 display.setFont(NULL);
 display.setCursor(0, 25); //voir les position?
 display.setTextSize(1);
+
 
 	//   if (valueSensor >= 0 && valueSensor <= step1)
 	if (valueSensor >= -1 && valueSensor <= step1)
@@ -539,6 +658,7 @@ display.setTextSize(1);
 		display.print("D");
 		display.write(130);
 		display.print("grad");
+		display.write(130);
 		}
 		else if (valueSensor > step3 && valueSensor <= step4)
 		{
@@ -553,9 +673,9 @@ display.setTextSize(1);
 	}
 	else if (valueSensor > step5)
 	{
-		display.print("Extr");
-		display.write(136);
-		display.print("mement mauvais");
+		display.print("Ext. mauvais");
+		// display.write(136);
+		//display.print("mement mauvais");
 	}
 	else
 	{
@@ -563,9 +683,50 @@ display.setTextSize(1);
 		display.setTextSize(1);
 		display.print("Erreur");
 	}
+
 }
 
+void messager2(float valueSensor, int step1, int step2, int step3)
+{
 
+display.setFont(NULL);
+display.setCursor(0, 25); //voir les position?
+display.setTextSize(1);
+
+
+	//   if (valueSensor >= 0 && valueSensor <= step1)
+	if (valueSensor >= -1 && valueSensor <= step1)
+	{
+
+		display.print("Bien");
+	}
+	else if (valueSensor > step1 && valueSensor <= step3)
+	{
+		if (valueSensor <= step2)
+		{
+		display.print("Bien");
+		}
+		else if (valueSensor > step2 && valueSensor <= step3)
+		{
+		display.print("A");
+		display.write(130);
+		display.print("rer SVP");
+		}
+	}
+	else if (valueSensor > step3)
+	{
+		display.print("A");
+		display.write(130);
+		display.print("rer vite");
+	}
+	else
+	{
+		display.setCursor(0, 25);
+		display.setTextSize(1);
+		display.print("Erreur");
+	}
+
+}
 
 /*****************************************************************
  * Forecast Atmosud                                              *
@@ -1377,7 +1538,7 @@ static float dew_point(const float temperature, const float humidity)
 }
 
 /*****************************************************************
- * dew point helper function                                     *
+ * Pressure at sea level function                                     *
  *****************************************************************/
 static float pressure_at_sealevel(const float temperature, const float pressure)
 {
@@ -3198,6 +3359,32 @@ static void fetchSensorMHZ19(String &s)
 	debug_outln_verbose(FPSTR(DBG_TXT_END_READING), FPSTR(sensor_name));
 }
 
+/*****************************************************************
+ * read SGP40 sensor values                              *
+ *****************************************************************/
+static void fetchSensorSGP40(String &s)
+{
+	const char *const sensor_name = SENSORS_MHZ19;
+	debug_outln_verbose(FPSTR(DBG_TXT_START_READING), FPSTR(sensor_name));
+
+	int value; 
+
+    value = mhz19.getCO2();
+
+	if (isnan(value))
+	{
+		last_value_MHZ19 = -1.0;
+		debug_outln_error(F("MHZ19 read failed"));
+	}
+	else
+	{
+		last_value_MHZ19 = (float)value;
+		add_Value2Json(s, F("MHZ19_CO2"), FPSTR(DBG_TXT_CO2PPM), last_value_MHZ19);
+	}
+
+	debug_outln_info(FPSTR(DBG_TXT_SEP));
+	debug_outln_verbose(FPSTR(DBG_TXT_END_READING), FPSTR(sensor_name));
+}
 
 
 /*****************************************************************
@@ -3528,13 +3715,19 @@ static void display_values_oled()  //COMPLETER LES ECRANS
 	float nc025_value = -1.0;
 	float nc100_value = -1.0;
 
+	String co2_sensor;
+	String cov_sensor;
+
+	float co2_value = -1.0;
+	float cov_value = -1.0;
+
 	double lat_value = -200.0;
 	double lon_value = -200.0;
 	double alt_value = -1000.0;
 	String display_header;
 	String display_lines[3] = {"", "", ""};
 	uint8_t screen_count = 0;
-	uint8_t screens[8];
+	uint8_t screens[12];
 	int line_count = 0;
 	debug_outln_info(F("output values to display..."));
 
@@ -3571,53 +3764,87 @@ static void display_values_oled()  //COMPLETER LES ECRANS
 		}
 	}
 
+		if (cfg::mhz16_read)
+	{
+		co2_value = last_value_MHZ16;
+		co2_sensor = FPSTR(SENSORS_MHZ16);
+
+	}
+
+			if (cfg::mhz19_read)
+	{
+		co2_value = last_value_MHZ19;
+		co2_sensor = FPSTR(SENSORS_MHZ19);
+	}
+
+			if (cfg::sgp40_read)
+	{
+		cov_value = last_value_SGP40;
+		cov_sensor = FPSTR(SENSORS_SGP40);
+	}
 
 		if (cfg::sds_read && cfg::display_measure)
 		{
-			screens[screen_count++] = 1;
+			screens[screen_count++] = 0;
 		}
 		if (cfg::npm_read && cfg::display_measure)
 		{
-			screens[screen_count++] = 2;
-			screens[screen_count++] = 8;
+			screens[screen_count++] = 1;
 		}
 		if (cfg::bmx280_read && cfg::display_measure)
 		{
-			screens[screen_count++] = 3;
+			screens[screen_count++] = 2;
+		}
+
+		if (cfg::mhz16_read  && cfg::display_measure)
+        {
+            screens[screen_count++] = 3;
+        }
+        if (cfg::mhz19_read && cfg::display_measure)
+        {
+            screens[screen_count++] = 4;
+        }
+        if (cfg::sgp40_read && cfg::display_measure)
+        {
+            screens[screen_count++] = 5;
+        }
+		if (cfg::display_forecast)
+		{
+			screens[screen_count++] = 6; // Atmo Sud forecast
 		}
 		if (cfg::display_wifi_info && cfg::has_wifi)
 		{
-			screens[screen_count++] = 5; // Wifi info
+			screens[screen_count++] = 7; // Wifi info
 		}
 		if (cfg::display_device_info)
 		{
-			screens[screen_count++] = 6; // chipID, firmware and count of measurements
+			screens[screen_count++] = 8; // chipID, firmware and count of measurements
+			screens[screen_count++] = 9; // Coordinates
+			if (cfg::npm_read && cfg::npm_fulltime && cfg::display_measure)
+			{	
+				screens[screen_count++] = 10; // info NPM
+			}
 		}
 		if (cfg::display_lora_info && cfg::has_lora)
 		{
-			screens[screen_count++] = 7; // Lora info
-		}
-
-		if (cfg::display_forecast)
-		{
-			screens[screen_count++] = 9; // Atmo Sud forecast
+			screens[screen_count++] = 11; // Lora info
 		}
 
 		switch (screens[next_display_count % screen_count])
 		{
-		case 1:
+		case 0:
 			display_header = FPSTR(SENSORS_SDS011);
 			display_lines[0] = std::move(tmpl(F("PM2.5: {v} µg/m³"), check_display_value(pm25_value, -1, 1, 6)));
 			display_lines[1] = std::move(tmpl(F("PM10: {v} µg/m³"), check_display_value(pm10_value, -1, 1, 6)));
 			display_lines[2] = emptyString;
 			break;
-		case 2:
+		case 1:
 			display_header = FPSTR(SENSORS_NPM);
 			display_lines[0] = std::move(tmpl(F("PM1: {v} µg/m³"), check_display_value(pm01_value, -1, 1, 6)));
 			display_lines[1] = std::move(tmpl(F("PM2.5: {v} µg/m³"), check_display_value(pm25_value, -1, 1, 6)));
 			display_lines[2] = std::move(tmpl(F("PM10: {v} µg/m³"), check_display_value(pm10_value, -1, 1, 6)));
 			break;
-		case 3:
+		case 2:
 			display_header = t_sensor;
 			if (t_sensor != "")
 			{
@@ -3642,7 +3869,22 @@ static void display_values_oled()  //COMPLETER LES ECRANS
 				display_lines[line_count++] = emptyString;
 			}
 			break;
+		case 3:
+			display_header = FPSTR(SENSORS_MHZ16);
+			display_lines[0] = std::move(tmpl(F("CO2: {v} ppm"), check_display_value(co2_value, -1, 1, 6)));
+			break;
+		case 4:
+			display_header = FPSTR(SENSORS_MHZ19);
+			display_lines[0] = std::move(tmpl(F("CO2: {v} ppm"), check_display_value(co2_value, -1, 1, 6)));
+			break;
 		case 5:
+			display_header = FPSTR(SENSORS_SGP40);
+			display_lines[0] = std::move(tmpl(F("COV: {v} ppm"), check_display_value(cov_value, -1, 1, 6)));
+			break;
+		case 6:
+			display_header = F("Forecast AtmoSud");
+			break;
+		case 7:
 			display_header = F("Wifi info");
 			display_lines[0] = "IP: ";
 			display_lines[0] += WiFi.localIP().toString();
@@ -3650,7 +3892,7 @@ static void display_values_oled()  //COMPLETER LES ECRANS
 			display_lines[1] += WiFi.SSID();
 			display_lines[2] = std::move(tmpl(F("Signal: {v} %"), String(calcWiFiSignalQuality(last_signal_strength))));
 			break;
-		case 6:
+		case 8:
 			display_header = F("Device Info");
 			display_lines[0] = "ID: ";
 			display_lines[0] += esp_chipid;
@@ -3659,7 +3901,22 @@ static void display_values_oled()  //COMPLETER LES ECRANS
 			display_lines[2] = F("Measurements: ");
 			display_lines[2] += String(count_sends);
 			break;
-		case 7:
+		case 9:
+			display_header = F("Coordinates");
+			display_lines[0] = "ID: ";
+			display_lines[0] += esp_chipid;
+			display_lines[1] = "FW: ";
+			display_lines[1] += SOFTWARE_VERSION;
+			display_lines[2] = F("Measurements: ");
+			display_lines[2] += String(count_sends);
+			break;
+		case 10:
+			display_header = FPSTR(SENSORS_NPM);
+			display_lines[0] = current_state_npm;
+			display_lines[1] = F("T_NPM / RH_NPM");
+			display_lines[2] = current_th_npm;
+			break;
+		case 11:
 			display_header = F("LoRaWAN Info");
 			display_lines[0] = "APPEUI: ";
 			display_lines[0] += cfg::appeui;
@@ -3667,12 +3924,6 @@ static void display_values_oled()  //COMPLETER LES ECRANS
 			display_lines[1] += cfg::deveui;
 			display_lines[2] = "APPKEY: ";
 			display_lines[2] += cfg::appkey;
-			break;
-		case 8:
-			display_header = FPSTR(SENSORS_NPM);
-			display_lines[0] = current_state_npm;
-			display_lines[1] = F("T_NPM / RH_NPM");
-			display_lines[2] = current_th_npm;
 			break;
 		}
 
@@ -3710,17 +3961,15 @@ static void display_values_matrix()
 	float nc025_value = -1.0;
 	float nc100_value = -1.0;
 
-
 	String co2_sensor;
 	String cov_sensor;
+
 	float co2_value = -1.0;
 	float cov_value = -1.0;
 
 	double lat_value = -200.0;
 	double lon_value = -200.0;
 	double alt_value = -1000.0;
-	String display_header;
-	String display_lines[3] = {"", "", ""};
 	uint8_t screen_count = 0;
 	uint8_t screens[24];
 	int line_count = 0;
@@ -3759,19 +4008,23 @@ static void display_values_matrix()
 		}
 	}
 
-		if (cfg::mhz16_read)
+	if (cfg::mhz16_read)
 	{
+		co2_value = last_value_MHZ16;
+		co2_sensor = FPSTR(SENSORS_MHZ16);
 
 	}
 
 			if (cfg::mhz19_read)
 	{
-
+		co2_value = last_value_MHZ19;
+		co2_sensor = FPSTR(SENSORS_MHZ19);
 	}
 
 			if (cfg::sgp40_read)
 	{
-
+		cov_value = last_value_SGP40;
+		cov_sensor = FPSTR(SENSORS_SGP40);
 	}
 
 		if ((cfg::sds_read || cfg::npm_read || cfg::bmx280_read || cfg::mhz16_read || cfg::mhz19_read || cfg::sgp40_read) && cfg::display_measure)
@@ -3789,46 +4042,49 @@ static void display_values_matrix()
 			screens[screen_count++] = 3; //PM10
 			screens[screen_count++] = 4; //PM2.5
 			screens[screen_count++] = 5; //PM1
-			screens[screen_count++] = 6; // info NPM
 		}
 		if (cfg::bmx280_read && cfg::display_measure)
 		{
-			screens[screen_count++] = 7; //T
-			screens[screen_count++] = 8; //H
-			screens[screen_count++] = 9; //P
+			screens[screen_count++] = 6; //T
+			screens[screen_count++] = 7; //H
+			screens[screen_count++] = 8; //P
 		}
 
 		if (cfg::mhz16_read  && cfg::display_measure)
 		{
-			screens[screen_count++] = 10;
+			screens[screen_count++] = 9;
 		}
 		if (cfg::mhz19_read && cfg::display_measure)
 		{
-			screens[screen_count++] = 11;
+			screens[screen_count++] = 10;
 		}
 		if (cfg::sgp40_read && cfg::display_measure)
 		{
-			screens[screen_count++] = 12;
+			screens[screen_count++] = 11;
 		}
 
 		if (cfg::display_forecast)
 		{
-			screens[screen_count++] = 13; // Air exterieur
-			screens[screen_count++] = 14; // Atmo Sud forecast Indice
-			screens[screen_count++] = 15; // Atmo Sud forecast NO2
-			screens[screen_count++] = 16; // Atmo Sud forecast O3
-			screens[screen_count++] = 17; // Atmo Sud forecast PM10
-			screens[screen_count++] = 18; // Atmo Sud forecast PM2.5
+			screens[screen_count++] = 12; // Air exterieur
+			screens[screen_count++] = 13; // Atmo Sud forecast Indice
+			screens[screen_count++] = 14; // Atmo Sud forecast NO2
+			screens[screen_count++] = 15; // Atmo Sud forecast O3
+			screens[screen_count++] = 16; // Atmo Sud forecast PM10
+			screens[screen_count++] = 17; // Atmo Sud forecast PM2.5
 		}
 
 		if (cfg::display_wifi_info && cfg::has_wifi)
 		{
-			screens[screen_count++] = 19; // Wifi info
+			screens[screen_count++] = 18; // Wifi info
 		}
 		if (cfg::display_device_info)
 		{
-			screens[screen_count++] = 20; // chipID, firmware and count of measurements
-			screens[screen_count++] = 21; // Latitude, longitude, altitude
+			screens[screen_count++] = 19; // chipID, firmware and count of measurements
+			screens[screen_count++] = 20; // Latitude, longitude, altitude
+			if (cfg::npm_read && cfg::npm_fulltime && cfg::display_measure)
+			{	
+				screens[screen_count++] = 21; // info NPM
+			}
 		}
 		if (cfg::display_lora_info && cfg::has_lora)
 		{
@@ -3841,7 +4097,7 @@ static void display_values_matrix()
 		switch (screens[next_display_count % screen_count])
 		{
 		case 0:
-		if(pm10_value != -1.0 || pm25_value != -1.0 || pm01_value != -1.0 || t_value != -128.0 || h_value != -1.0 || p_value != -1.0){
+		if(pm10_value != -1.0 || pm25_value != -1.0 || pm01_value != -1.0 || t_value != -128.0 || h_value != -1.0 || p_value != -1.0 || co2_value != -1.0 || cov_value != -1.0){
 		drawImage(0, 0, 32, 64, interieur);
 		display.setTextColor(myWHITE);
 		display.setFont(&Font4x7Fixed);
@@ -3857,7 +4113,7 @@ static void display_values_matrix()
 			break;
 		case 1:   //SDS
 		if(pm10_value != -1.0){
-			display.setTextColor(myWHITE);
+			display.setTextColor(myCYAN);
 			display.setFont(NULL);
 			display.setCursor(0, 0);
 			display.setTextSize(1);
@@ -3870,13 +4126,14 @@ static void display_values_matrix()
 			drawImage(55, 0, 8, 9, maison);
 			displayColor = interpolate(pm10_value, 20, 40, 50, 100, 150, gamma_correction);
 			myCUSTOM = display.color565(displayColor.R, displayColor.G, displayColor.B);
-			//myCUSTOM = display.color565(displayColor.R, displayColor.G, displayColor.B,true); //AVEC GAMMA CORRECTION
 			display.fillRect(50, 9, 14, 14, myCUSTOM);
 			display.setFont(NULL);
 			display.setCursor(0, 9);
 			display.setTextSize(2);
+			display.setTextColor(myWHITE);
 			display.print(String(pm10_value, 0));
-			messager(pm10_value, 20, 40, 50, 100, 150, 1);
+			display.setTextColor(myCUSTOM);
+			messager1(pm10_value, 20, 40, 50, 100, 150);
 			}
 			else
 			{
@@ -3902,8 +4159,10 @@ static void display_values_matrix()
 			display.setFont(NULL);
 			display.setCursor(0, 9);
 			display.setTextSize(2);
+			display.setTextColor(myWHITE);
 			display.print(String(pm25_value, 0));
-            messager(pm25_value, 10, 20, 25, 50, 75, 2);
+			display.setTextColor(myCUSTOM);
+            messager1(pm25_value, 10, 20, 25, 50, 75);
 			}
 			else
 			{
@@ -3912,7 +4171,7 @@ static void display_values_matrix()
 			break;
 		case 3:   //NPM
 			if(pm10_value != -1.0){
-			display.setTextColor(myWHITE);
+			display.setTextColor(myCYAN);
 			display.setFont(NULL);
 			display.setCursor(0, 0);
 			display.setTextSize(1);
@@ -3930,8 +4189,10 @@ static void display_values_matrix()
 			display.setFont(NULL);
 			display.setCursor(0, 9);
 			display.setTextSize(2);
+			display.setTextColor(myWHITE);
 			display.print(String(pm10_value, 0));
-			messager(pm10_value, 20, 40, 50, 100, 150, 1);
+			display.setTextColor(myCUSTOM);
+			messager1(pm10_value, 20, 40, 50, 100, 150);
 			}
 			else
 			{
@@ -3957,8 +4218,10 @@ static void display_values_matrix()
 			display.setFont(NULL);
 			display.setCursor(0, 9);
 			display.setTextSize(2);
+			display.setTextColor(myWHITE);
 			display.print(String(pm25_value, 0));
-            messager(pm25_value, 10, 20, 25, 50, 75, 2);
+			display.setTextColor(myCUSTOM);
+            messager1(pm25_value, 10, 20, 25, 50, 75);
 			}
 			else
 			{
@@ -3966,72 +4229,161 @@ static void display_values_matrix()
 			}
 			break;
 		case 5:
-		act_milli += 5000;
+		if(pm01_value != -1.0){
+			display.setTextColor(myCYAN);
+			display.setFont(NULL);
+			display.setCursor(0, 0);
+			display.setTextSize(1);
+			display.print("PM1");
+			display.setFont(&Font4x7Fixed);
+			display.setCursor(display.getCursorX()+2, 7);
+			display.write(181);
+			display.print("g/m");
+			display.write(179);
+			drawImage(55, 0, 8, 9, maison);
+			displayColor = interpolate(pm01_value, 10, 20, 25, 50, 75, gamma_correction);
+			myCUSTOM = display.color565(displayColor.R, displayColor.G, displayColor.B);
+			display.fillRect(50, 9, 14, 14, myCUSTOM);
+			display.setFont(NULL);
+			display.setCursor(0, 9);
+			display.setTextSize(2);
+			display.setTextColor(myWHITE);
+			display.print(String(pm01_value, 0));
+			display.setTextColor(myCUSTOM);
+            messager1(pm25_value, 10, 20, 25, 50, 75);
+			}
+			else
+			{
+			act_milli += 5000;	
+			}
 			break;
 		case 6:
-		if(cfg::npm_fulltime){
-
-		}else{
-		act_milli += 5000;	
-		}
-			break;
-		case 7:
-			display.setTextColor(myWHITE);
+		if(t_value != -128.0){
+			display.setTextColor(myCYAN);
 			display.setFont(NULL);
 			display.setCursor(0, 0);
 			display.setTextSize(1);
 			display.print("Temp.");
-			display.write(251);
 			display.setFont(&Font4x7Fixed);
 			display.setCursor(display.getCursorX()+2, 7);
 			display.write(176);
 			display.print("C");
-			break;
-		case 8:
+			drawImage(55, 0, 8, 9, maison);
+			display.setFont(NULL);
+			display.setCursor(0, 9);
+			display.setTextSize(2);
 			display.setTextColor(myWHITE);
+			display.print(String(t_value, 0));
+			}
+			else
+			{
+			act_milli += 5000;	
+			}
+			break;
+		case 7:
+		if(h_value != -1.0){
+			display.setTextColor(myCYAN);
 			display.setFont(NULL);
 			display.setCursor(0, 0);
 			display.setTextSize(1);
-			display.print("Humi.");
-			display.write(251);
+			display.print("Humidit");
+			display.write(130);
 			display.setFont(&Font4x7Fixed);
 			display.setCursor(display.getCursorX()+2, 7);
 			display.write(37);
-			break;
-		case 9:
+			drawImage(55, 0, 8, 9, maison);
+			display.setFont(NULL);
+			display.setCursor(0, 9);
+			display.setTextSize(2);
 			display.setTextColor(myWHITE);
+			display.print(String(h_value, 0));
+			}
+			else
+			{
+			act_milli += 5000;	
+			}
+			break;
+		case 8:
+		if(p_value != -1.0){
+			display.setTextColor(myCYAN);
 			display.setFont(NULL);
 			display.setCursor(0, 0);
 			display.setTextSize(1);
 			display.print("Press.");
-			display.write(251);
 			display.setFont(&Font4x7Fixed);
 			display.setCursor(display.getCursorX()+2, 7);
 			display.print("hPa");
+			drawImage(55, 0, 8, 9, maison);
+			display.setFont(NULL);
+			display.setCursor(0, 9);
+			display.setTextSize(2);
+			display.setTextColor(myWHITE);
+			display.print(String(pressure_at_sealevel(t_value, p_value)/100, 0));
+			}
+			else
+			{
+			act_milli += 5000;	
+			}
+			break;
+		case 9:
+		if(co2_value != -1.0){
+			display.setTextColor(myCYAN);
+			display.setFont(NULL);
+			display.setCursor(0, 0);
+			display.setTextSize(1);
+			display.print("C0");
+			display.write(250);
+			display.setFont(&Font4x7Fixed);
+			display.setCursor(display.getCursorX()+2, 7);
+			display.print("ppm");
+			drawImage(55, 0, 8, 9, maison);
+			displayColor = interpolate2(co2_value, 440, 800, 1700, gamma_correction);
+			myCUSTOM = display.color565(displayColor.R, displayColor.G, displayColor.B);
+			display.fillRect(50, 9, 14, 14, myCUSTOM);
+			display.setFont(NULL);
+			display.setCursor(0, 9);
+			display.setTextSize(2);
+			display.setTextColor(myWHITE);
+			display.print(String(co2_value, 0));
+			display.setTextColor(myCUSTOM);
+			messager2(co2_value, 440, 800, 1700);
+			}
+			else
+			{
+			act_milli += 5000;	
+			}
 			break;
 		case 10:
-			display.setTextColor(myWHITE);
+		if(co2_value != -1.0){
+			display.setTextColor(myCYAN);
 			display.setFont(NULL);
 			display.setCursor(0, 0);
 			display.setTextSize(1);
 			display.print("C0");
-			display.write(251);
+			display.write(250);
 			display.setFont(&Font4x7Fixed);
 			display.setCursor(display.getCursorX()+2, 7);
 			display.print("ppm");
+			drawImage(55, 0, 8, 9, maison);
+			displayColor = interpolate2(co2_value, 440, 800, 1700, gamma_correction);
+			myCUSTOM = display.color565(displayColor.R, displayColor.G, displayColor.B);
+			display.fillRect(50, 9, 14, 14, myCUSTOM);
+			display.setFont(NULL);
+			display.setCursor(0, 9);
+			display.setTextSize(2);
+			display.setTextColor(myWHITE);
+			display.print(String(co2_value, 0));
+			display.setTextColor(myCUSTOM);
+			messager2(co2_value, 440, 800, 1700);
+			}
+			else
+			{
+			act_milli += 5000;	
+			}
 			break;
 		case 11:
-			display.setTextColor(myWHITE);
-			display.setFont(NULL);
-			display.setCursor(0, 0);
-			display.setTextSize(1);
-			display.print("C0");
-			display.setFont(&Font4x7Fixed);
-			display.setCursor(display.getCursorX()+2, 7);
-			display.print("ppm");
-			break;
-		case 12:
-			display.setTextColor(myWHITE);
+		if(cov_value != -1.0){
+			display.setTextColor(myCYAN);
 			display.setFont(NULL);
 			display.setCursor(0, 0);
 			display.setTextSize(1);
@@ -4039,8 +4391,18 @@ static void display_values_matrix()
 			display.setFont(&Font4x7Fixed);
 			display.setCursor(display.getCursorX()+2, 7);
 			display.print("ppm");
+			drawImage(55, 0, 8, 9, maison);
+			display.setCursor(0, 9);
+			display.setTextSize(2);
+			display.setTextColor(myWHITE);
+			display.print(String(cov_value, 0));
+			}
+			else
+			{
+			act_milli += 5000;	
+			}
 			break;
-		case 13:
+		case 12:
 		if(atmoSud.multi != -1.0 || atmoSud.no2 != -1.0 || atmoSud.o3 != -1.0 || atmoSud.pm10 != -1.0 || atmoSud.pm2_5 != -1.0){
 		drawImage(0, 0, 32, 64, exterieur);
 		display.setTextColor(myWHITE);
@@ -4053,27 +4415,28 @@ static void display_values_matrix()
 		display.write(233);
 		display.print("rieur");
 		}
-		else{
-			act_milli += 5000;  
-			}
-			break;
-		case 14:
+		else
+		{
+		act_milli += 5000;  
+		}
+		break;
+		case 13:
 			if(atmoSud.multi != -1.0){
-			display.setTextColor(myCYAN);
+			display.setTextColor(myWHITE);
 			display.setFont(NULL);
 			display.setCursor(0, 0);
 			display.setTextSize(1);
-			display.print("Ind. Atmo");
+			display.print("Indice");
 			displayColor = interpolate(atmoSud.multi, 20, 40, 50, 100, 150, gamma_correction);
 			myCUSTOM = display.color565(displayColor.R, displayColor.G, displayColor.B);
 			display.fillRect(50, 9, 14, 14, myCUSTOM);
+			display.setFont(NULL);
+			display.setTextColor(myWHITE);
 			display.setCursor(0, 9);
 			display.setTextSize(2);
 			display.print(String(atmoSud.multi, 0));
 			//drawgradient(0, 25, atmoSud.no2, 20, 40, 50, 100, 150);
 			if(gamma_correction){drawImage(0, 25, 7, 64, gradient_20_150_gamma);}else{drawImage(0, 25, 7, 64, gradient_20_150);}
-			display.setTextColor(myWHITE);
-			display.setFont(NULL);
 			display.setTextSize(1);
 			display.setCursor((uint8_t)((63*atmoSud.multi)/150)-2, 25-2); //2 pixels de offset
 			display.write(31);
@@ -4082,23 +4445,29 @@ static void display_values_matrix()
 			act_milli += 5000;  
 			}
 			break;
-		case 15:
+		case 14:
 			if(atmoSud.no2 != -1.0){
-			display.setTextColor(myCYAN);
+			display.setTextColor(myWHITE);
 			display.setFont(NULL);
 			display.setCursor(0, 0);
 			display.setTextSize(1);
-			display.print("NO2 Atmo");
+			display.print("NO");
+			display.write(250);
+			display.setFont(&Font4x7Fixed);
+			display.setCursor(display.getCursorX()+2, 7);
+			display.write(181);
+			display.print("g/m");
+			display.write(179);
 			displayColor = interpolate(atmoSud.no2, 40, 90, 120, 230, 340, gamma_correction);
 			myCUSTOM = display.color565(displayColor.R, displayColor.G, displayColor.B);
 			display.fillRect(50, 9, 14, 14, myCUSTOM);
+			display.setFont(NULL);
+			display.setTextColor(myWHITE);
 			display.setCursor(0, 9);
 			display.setTextSize(2);
 			display.print(String(atmoSud.no2, 0));
 			//drawgradient(0, 25, atmoSud.no2, 40, 90, 120, 230, 340);
 			if(gamma_correction){drawImage(0, 25, 7, 64, gradient_40_340_gamma);}else{drawImage(0, 25, 7, 64, gradient_40_340);}
-			display.setTextColor(myWHITE);
-			display.setFont(NULL);
 			display.setTextSize(1);
 			display.setCursor((uint8_t)((63*atmoSud.no2)/340)-2, 25-2); //2 pixels de offset
 			display.write(31);
@@ -4107,23 +4476,29 @@ static void display_values_matrix()
 			act_milli += 5000;
 			}
 			break;
-		case 16:
+		case 15:
 			if(atmoSud.o3 != -1.0){
-			display.setTextColor(myCYAN);
+			display.setTextColor(myWHITE);
 			display.setFont(NULL);
 			display.setCursor(0, 0);
 			display.setTextSize(1);
-			display.print("O3 Atmo");
+			display.print("O");
+			display.write(253);
+			display.setFont(&Font4x7Fixed);
+			display.setCursor(display.getCursorX()+2, 7);
+			display.write(181);
+			display.print("g/m");
+			display.write(179);
 			displayColor = interpolate(atmoSud.o3, 50, 100, 130, 240, 380, gamma_correction);
 			myCUSTOM = display.color565(displayColor.R, displayColor.G, displayColor.B);
 			display.fillRect(50, 9, 14, 14, myCUSTOM);
+			display.setFont(NULL);
+			display.setTextColor(myWHITE);
 			display.setCursor(0, 9);
 			display.setTextSize(2);
 			display.print(String(atmoSud.o3, 0));
 			//drawgradient(0, 25, atmoSud.o3, 50, 100, 130, 240, 380);
 			if(gamma_correction){drawImage(0, 25, 7, 64, gradient_50_380_gamma);}else{drawImage(0, 25, 7, 64, gradient_50_380);}
-			display.setTextColor(myWHITE);
-			display.setFont(NULL);
 			display.setTextSize(1);
 			display.setCursor((uint8_t)((63*atmoSud.o3)/380)-2, 25-2); //2 pixels de offset
 			display.write(31);
@@ -4132,23 +4507,28 @@ static void display_values_matrix()
 			act_milli += 5000;
 			}
 			break;
-		case 17:
+		case 16:
 			if(atmoSud.pm10 != -1.0){
-			display.setTextColor(myCYAN);
+			display.setTextColor(myWHITE);
 			display.setFont(NULL);
 			display.setCursor(0, 0);
 			display.setTextSize(1);
-			display.print("PM10 Atmo");
+			display.print("PM10");
+			display.setFont(&Font4x7Fixed);
+			display.setCursor(display.getCursorX()+2, 7);
+			display.write(181);
+			display.print("g/m");
+			display.write(179);
 			displayColor = interpolate(atmoSud.pm10, 20, 40, 50, 100, 150, gamma_correction);
 			myCUSTOM = display.color565(displayColor.R, displayColor.G, displayColor.B);
 			display.fillRect(50, 9, 14, 14, myCUSTOM);
+			display.setFont(NULL);
+			display.setTextColor(myWHITE);
 			display.setCursor(0, 9);
 			display.setTextSize(2);
 			display.print(String(atmoSud.pm10, 0));
 			//drawgradient(0, 25, atmoSud.pm10, 20, 40, 50, 100, 150);
 			if(gamma_correction){drawImage(0, 25, 7, 64, gradient_20_150_gamma);}else{drawImage(0, 25, 7, 64, gradient_20_150);}
-			display.setTextColor(myWHITE);
-			display.setFont(NULL);
 			display.setTextSize(1);
 			display.setCursor((uint8_t)((63*atmoSud.pm10)/150)-2, 25-2); //2 pixels de offset
 			display.write(31);
@@ -4157,23 +4537,28 @@ static void display_values_matrix()
 			act_milli += 5000;
 			}
 			break;
-		case 18:
+		case 17:
 			 if(atmoSud.pm2_5 != -1.0){
-			display.setTextColor(myCYAN);
+			display.setTextColor(myWHITE);
 			display.setFont(NULL);
 			display.setCursor(0, 0);
 			display.setTextSize(1);
-			display.print("PM2.5 Atmo");
+			display.print("PM2.5");
+			display.setFont(&Font4x7Fixed);
+			display.setCursor(display.getCursorX()+2, 7);
+			display.write(181);
+			display.print("g/m");
+			display.write(179);
 			displayColor = interpolate(atmoSud.pm2_5, 10, 20, 25, 50, 75, gamma_correction);
 			myCUSTOM = display.color565(displayColor.R, displayColor.G, displayColor.B);
 			display.fillRect(50, 9, 14, 14, myCUSTOM);
+			display.setFont(NULL);
+			display.setTextColor(myWHITE);
 			display.setCursor(0, 9);
 			display.setTextSize(2);
 			display.print(String(atmoSud.pm2_5, 0));
 			//drawgradient(0, 25, atmoSud.pm2_5, 10, 20, 25, 50, 75);
 			if(gamma_correction){drawImage(0, 25, 7, 64, gradient_10_75_gamma);}else{drawImage(0, 25, 7, 64, gradient_10_75);}
-			display.setTextColor(myWHITE);
-			display.setFont(NULL);
 			display.setTextSize(1);
 			display.setCursor((uint8_t)((63*atmoSud.pm2_5)/75)-2, 25-2); //2 pixels de offset
 			display.write(31);
@@ -4182,8 +4567,8 @@ static void display_values_matrix()
 			act_milli += 5000;
 			}
 			break;
-		case 19:
-			display.setTextColor(myCYAN);
+		case 18:
+			display.setTextColor(myWHITE);
 			display.setFont(&Font4x5Fixed);
 			display.setTextSize(1); // ICI???
 			display.setCursor(0, 4);
@@ -4198,8 +4583,8 @@ static void display_values_matrix()
 			display.print("Signal:");
 			display.print(String(calcWiFiSignalQuality(last_signal_strength)));
 			break;
-		case 20:
-			display.setTextColor(myCYAN);
+		case 19:
+			display.setTextColor(myWHITE);
 			display.setFont(&Font4x5Fixed);
 			display.setCursor(0, 4);
 			display.print("Device Info");
@@ -4213,8 +4598,8 @@ static void display_values_matrix()
 			display.print("Meas.:");
 			display.print(String(count_sends));
 			break;
-		case 21:
-			display.setTextColor(myCYAN);
+		case 20:
+			display.setTextColor(myWHITE);
 			display.setFont(&Font4x5Fixed);
 			display.setCursor(0, 4);
 			display.print("GPS");
@@ -4228,8 +4613,22 @@ static void display_values_matrix()
 			display.print("Altitude:");
 			display.print(cfg::height_above_sealevel);
 			break;
+		case 21:
+			if(cfg::npm_fulltime && (pm10_value != -1.0 || pm25_value != -1.0 || pm01_value != -1.0)){
+			display.setTextColor(myWHITE);
+			display.setFont(&Font4x7Fixed);
+			display.setCursor(0, 6);
+			display.print("Next PM permanent");
+			display.setCursor(0, 14);
+			display.print("T_NPM / RH_NPM");
+			display.setCursor(0, 22);
+			display.print(current_th_npm);
+			}else{
+			act_milli += 5000;	
+			}
+			break;
 		case 22:
-			display.setTextColor(myCYAN);
+			display.setTextColor(myWHITE);
 			display.setFont(&Font4x5Fixed);
 			display.setCursor(0, 4);
 			display.print("LoRaWAN Info");
@@ -4241,7 +4640,7 @@ static void display_values_matrix()
 			display.print(cfg::appkey);
 			break;
 		case 23:
-		if(atmoSud.multi == -1.0 && atmoSud.no2 == -1.0 && atmoSud.o3 == -1.0 && atmoSud.pm10 == -1.0 && atmoSud.pm2_5 == -1.0)
+		if(pm10_value == -1.0 && pm25_value == -1.0 && pm01_value == -1.0 && co2_value == -1.0 && cov_value == -1.0  && t_value == -128.0 && h_value == -1.0 && p_value == -1.0 && atmoSud.multi == -1.0 && atmoSud.no2 == -1.0 && atmoSud.o3 == -1.0 && atmoSud.pm10 == -1.0 && atmoSud.pm2_5 == -1.0)
 		{
 			drawImage(0, 0, 32, 64, logo_moduleair);
 		}else{
@@ -4276,6 +4675,9 @@ static void init_matrix()
 	display.fillScreen(myBLACK);
 	drawImage(0, 0, 32, 64, logo_region);
  	delay(5000);
+	display.fillScreen(myBLACK); 	//display.clearDisplay(); produces a flash
+	drawImage(0, 0, 32, 64, logo_moduleair);
+	delay(5000);
 }
 
 /*****************************************************************
@@ -4974,6 +5376,7 @@ bool loratest(int lora_dio0)
 void *StackPtrAtStart;
 void *StackPtrEnd;
 UBaseType_t watermarkStart;
+
 
 /*****************************************************************
  * The Setup                                                     *
