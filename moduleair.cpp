@@ -2088,10 +2088,18 @@ static void webserver_config()
 {
 
 	// For any work with SPIFFS or server, the interrupts must be deactivated. The matrix is turned off.
+	//But here it make a bug in the config server
 
-	if (cfg::has_matrix){
+	if(WiFi.getMode() == WIFI_MODE_STA)
+	{
+		debug_outln_info(F("STA"));
+		if (cfg::has_matrix)
+		{
 		display_update_enable(false);
+		}
 	}
+	
+	if(WiFi.getMode() == WIFI_MODE_AP){debug_outln_info(F("AP"));}
 
 	if (!webserver_request_auth())
 	{
@@ -2706,12 +2714,16 @@ static void webserver_favicon()
  *****************************************************************/
 static void webserver_not_found()
 {
+
 	last_page_load = millis();
 	debug_outln_info(F("ws: not found ..."));
+
 	if (WiFi.status() != WL_CONNECTED)
 	{
 		if ((server.uri().indexOf(F("success.html")) != -1) || (server.uri().indexOf(F("detect.html")) != -1))
 		{
+			Debug.print("cfg::has_matrix:");
+			Debug.println(cfg::has_matrix);
 			server.send(200, FPSTR(TXT_CONTENT_TYPE_TEXT_HTML), FPSTR(WEB_IOS_REDIRECT));
 		}
 		else
@@ -2769,6 +2781,7 @@ static void setup_webserver()
 	server.onNotFound(webserver_not_found);
 	debug_outln_info(F("Starting Webserver... "));
 	server.begin();
+	//ESP_ERROR_CHECK_WITHOUT_ABORT();
 }
 
 static int selectChannelForAp()
@@ -2925,7 +2938,7 @@ static void waitForWifiToConnect(int maxRetries)
  * WiFi auto connecting script                                   *
  *****************************************************************/
 
-// static WiFiEventHandler disconnectEventHandler;
+//static WiFiEventHandler disconnectEventHandler;
 
 static void connectWifi()
 {
@@ -5558,7 +5571,6 @@ void setup()
 
 	if (cfg::has_matrix)
 	{
-
 		init_matrix();
 	}
 
