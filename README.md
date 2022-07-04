@@ -1,6 +1,6 @@
 # ModuleAir V2
 
-Mpre information on Aircarto.fr
+More information on Aircarto.fr
 
 ## Supported sensors
 * Nova PM SDS011
@@ -17,8 +17,8 @@ Mpre information on Aircarto.fr
 ## Features
 * Gets measurements from a full range of sensors
 * Transmits data with WiFi or LoRaWAN to different databases
-* Gets AQ forecasts from the AtmoSud API, the official Institute for Air Quality in SW France
-* Displays the measurements and the forecasts on the matrix
+* Gets AQ forecasts from the AtmoSud API, the official Institute for Air Quality in SE France
+* Displays the measurements and the forecasts (French AQI, NO2, O3, PM10, PM2.5) on the matrix
 * Fully configurable through a web interface
 
 ## Libraries
@@ -28,7 +28,7 @@ Mpre information on Aircarto.fr
 * adafruit/Adafruit BusIO@^1.9.8
 * https://github.com/IntarBV/MHZ16_uart
 * https://github.com/WifWaf/MH-Z19.git
-* sensirion/Sensirion I2C SGP40@^0.1.0
+* sensirion/Sensirion Core@^0.6.0
 * mcci-catena/MCCI LoRaWAN LMIC library@^4.1.1
 * ThingPulse/ESP8266 and ESP32 OLED driver for SSD1306 displays @ ^4.2.1
 
@@ -51,8 +51,71 @@ The code is developped on a ESP32 DevC but other boards should be supported:
 * Heltec Wifi Lora 32 V2
 * TTGO Lora 32 V2.1 Paxcounter
 
+##Flashing
+
+Please use Platformio to flash the board.
+The .ini file should be able to get all the needed boards, platforms and libraries from the internet
+
+##Library changes
+
+To force the use of both the SPIs on the ESP32, the SPI library and the PXMatrix librar has to be corrected a bit.
+
+SPI.cpp
+
+Modify as this:
+`#if CONFIG_IDF_TARGET_ESP32
+SPIClass SPI(VSPI);
+SPIClass SPI_H(HSPI);
+#else
+SPIClass SPI(FSPI);
+#endif`
+
+SPI.h
+
+Add this line at the bottom:
+`extern SPIClass SPI_H;`
+
+PxMatrix.h
+
+Replace all `SPI` with `SPI_H`.
+
+Verify that those pins are defined:
+
+`// HW SPI PINS
+#define SPI_BUS_CLK 14
+#define SPI_BUS_MOSI 13
+#define SPI_BUS_MISO 12
+#define SPI_BUS_SS 4`
+
+##Font changes
+
+The default glcdfont.c of the Adafruit GFX library was modified to add new characters.
+Copy the content of the glcdfont_mod.c file in the Fonts folder and paste it in the glcdfont.c file in the Adafruit GFX library in the folder of the choosed board in the .pio folder.
+
+##Pin mapping
+
+You can find the main pin mapping for each board in the ext_def.h file.
+THe pin mapping for the LoRaWAN module is in the file moduleair.cpp under the Helium/TTN LoRaWAN comment.
+
+##Configuration
+
+The process is the same as for the Sensor.Community firmware.
+On the first start, the sation won't find any known network and it will go in AP mode producing a moduleair-XXXXXXX network. Connect to it from a PC or a smartphone and open the address http://192.168.4.1.
+If needed, the password is moduleaircfg.
+
+For the WiFi connection: type your credentials
+For the LoRaWAN connection : type the APPEUI, DEVEUI and APPKEY as created in the Helium or TTN console.
+
+Choose the sensors, the displays and the API in the different tabs. For coding reason, it was not possible to use radios for the PM sensors and the CO2 sensors. Please don't check both sensors of the same type to avoid problems…
+
+Please don't decrease the measuring interval to spare connection time.
+
+If the checkbox "WiFi transmission" is not checked, the station will stay in AP mode for 10 minutes and then the LoRaWAN transmission will start. During those 10 minutes or after a restart, you can change the configuration.
+
+If the checkbox "WiFi transmission" is checked, the sensor will be always accessible through your router with an IP addess : 192.168.<0 or more>.<100, 101, 102…>. In that case the data streams will use WiFi and not LoRaWAN (even if it is checked).
+
 ## LoRaWAN payload
-The payload consists in a 31 bytes array.
+The payload consists in a 30 bytes (declared as a 31 according to the LMIC library) array.
 
 The value are initialised for the first uplink at the end of the void setup() which is send according to the LMIC library examples.
 
