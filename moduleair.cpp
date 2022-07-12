@@ -85,6 +85,7 @@ String SOFTWARE_VERSION_SHORT(SOFTWARE_VERSION_STR_SHORT);
 #include <StreamString.h>
 #include "./bmx280_i2c.h"
 #include "./SensirionI2CSgp40.h"
+#include "./configuration.h"
 
 // includes files
 #include "./intl.h"
@@ -263,7 +264,11 @@ portMUX_TYPE timerMux = portMUX_INITIALIZER_UNLOCKED;
 #define matrix_height 32
 uint8_t display_draw_time = 30; //10-50 is usually fine
 PxMATRIX display(64, 32, P_LAT, P_OE, P_A, P_B, P_C, P_D, P_E);
-// Some standard colors
+
+
+uint8_t logos[6] = {0,0,0,0,0,0};
+uint8_t logo_index = -1;
+bool has_logo;
 
 extern const uint8_t gamma8[]; //for gamma correction
 
@@ -634,6 +639,8 @@ for (uint8_t k = 0; k < gradientHeight; k++){
 void messager1(float valueSensor, int step1, int step2, int step3, int step4, int step5)
 {
 
+//MESSAGES FIXES => CENTRER à la main
+
 display.setFont(NULL);
 display.setCursor(0, 25); //voir les position?
 display.setTextSize(1);
@@ -686,6 +693,9 @@ display.setTextSize(1);
 
 void messager2(float valueSensor, int step1, int step2, int step3)
 {
+
+//MESSAGES FIXES => CENTRER à la main
+
 
 display.setFont(NULL);
 display.setCursor(0, 25); //voir les position?
@@ -815,6 +825,8 @@ enum
  *****************************************************************/
 
 bool is_NPM_running = false;
+bool nextpmconnected; //important to test nextpm and avoid endless loops
+
 
 // To read NPM responses
 enum
@@ -1016,17 +1028,31 @@ static String SDS_version_date()
  * NPM functions     *
  *****************************************************************/
 
-static uint8_t NPM_get_state()
+static int8_t NPM_get_state()
 {
-	uint8_t result;
+	int8_t result = -1;
 	NPM_waiting_for_4 = NPM_REPLY_HEADER_4;
 	debug_outln_info(F("State NPM..."));
 	NPM_cmd(PmSensorCmd2::State);
 
+	unsigned long timeout = millis();
+
+	do {
+		debug_outln("Wait for Serial...", DEBUG_MAX_INFO);
+		}
+		while (!serialNPM.available() && millis()-timeout < 3000 );
+
+
 	while (!serialNPM.available())
 	{
 		debug_outln("Wait for Serial...", DEBUG_MAX_INFO);
+
 	}
+
+	// // if(millis()-timeout>3000)
+	// // 	{
+	// // 		break;
+	// // 	}
 
 	while (serialNPM.available() >= NPM_waiting_for_4)
 	{
@@ -1071,10 +1097,13 @@ static bool NPM_start_stop()
 	debug_outln_info(F("Switch start/stop NPM..."));
 	NPM_cmd(PmSensorCmd2::Change);
 
-	while (!serialNPM.available())
-	{
+	 unsigned long timeout = millis();
+
+	do {
 		debug_outln("Wait for Serial...", DEBUG_MAX_INFO);
-	}
+		}
+		while (!serialNPM.available() && millis()-timeout < 3000 );
+
 
 	while (serialNPM.available() >= NPM_waiting_for_4)
 	{
@@ -1135,10 +1164,13 @@ static String NPM_version_date()
 	debug_outln_info(F("Version NPM..."));
 	NPM_cmd(PmSensorCmd2::Version);
 
-	while (!serialNPM.available())
-	{
+	 unsigned long timeout = millis();
+
+	do {
 		debug_outln("Wait for Serial...", DEBUG_MAX_INFO);
-	}
+		}
+		while (!serialNPM.available() && millis()-timeout < 3000 );
+
 
 	while (serialNPM.available() >= NPM_waiting_for_6)
 	{
@@ -1195,10 +1227,13 @@ static void NPM_fan_speed()
 	debug_outln_info(F("Set fan speed to 50 %..."));
 	NPM_cmd(PmSensorCmd2::Speed);
 
-	while (!serialNPM.available())
-	{
+	 unsigned long timeout = millis();
+
+	do {
 		debug_outln("Wait for Serial...", DEBUG_MAX_INFO);
-	}
+		}
+		while (!serialNPM.available() && millis()-timeout < 3000 );
+
 
 	while (serialNPM.available() >= NPM_waiting_for_5)
 	{
@@ -1250,11 +1285,14 @@ static String NPM_temp_humi()
 	NPM_waiting_for_8 = NPM_REPLY_HEADER_8;
 	debug_outln_info(F("Temperature/Humidity in Next PM..."));
 	NPM_cmd(PmSensorCmd2::Temphumi);
+
+	 unsigned long timeout = millis();
 	
-	while (!serialNPM.available())
-	{
+	do {
 		debug_outln("Wait for Serial...", DEBUG_MAX_INFO);
-	}
+		}
+		while (!serialNPM.available() && millis()-timeout < 3000 );
+
 
 	while (serialNPM.available() >= NPM_waiting_for_8)
 	{
@@ -1787,6 +1825,7 @@ static void webserver_config_send_body_get(String &page_content)
 					  "<input class='radio' id='r3' name='group' type='radio'>"
 					  "<input class='radio' id='r4' name='group' type='radio'>"
 					  "<input class='radio' id='r5' name='group' type='radio'>"
+					//   "<input class='radio' id='r6' name='group' type='radio'>"
 					  "<div class='tabs'>"
 					  "<label class='tab' id='tab1' for='r1'>" INTL_WIFI_SETTINGS "</label>"
 					  "<label class='tab' id='tab2' for='r2'>");
@@ -1799,8 +1838,11 @@ static void webserver_config_send_body_get(String &page_content)
 	page_content += FPSTR(INTL_SENSORS);
 	page_content += F(
 		"</label>"
-		"<label class='tab' id='tab5' for='r5'>APIs"
-		"</label></div><div class='panels'>"
+		"<label class='tab' id='tab5' for='r5'>APIs");
+	// page_content += F("</label>"
+	// 				  "<label class='tab' id='tab6' for='r6'>");
+	// page_content += FPSTR(INTL_SCREENS);
+	page_content += F("</label></div><div class='panels'>"
 		"<div class='panel' id='panel1'>");
 
 	if (wificonfig_loop)
@@ -1883,6 +1925,12 @@ static void webserver_config_send_body_get(String &page_content)
 	add_form_checkbox(Config_display_device_info, FPSTR(INTL_DISPLAY_DEVICE_INFO));
 
 	server.sendContent(page_content);
+
+	// page_content = FPSTR(WEB_BR_LF_B);
+	// page_content += F(INTL_ONLINE_CONFIG "</b>&nbsp;");
+	// add_form_checkbox(Config_online_config, FPSTR(INTL_ALLOW));
+	// server.sendContent(page_content);
+
 	page_content = FPSTR(WEB_BR_LF_B);
 	page_content += F(INTL_FIRMWARE "</b>&nbsp;");
 
@@ -1897,6 +1945,8 @@ static void webserver_config_send_body_get(String &page_content)
 	page_content += FPSTR(TABLE_TAG_CLOSE_BR);
 
 	server.sendContent(page_content);
+
+//ICI
 
 	page_content = tmpl(FPSTR(WEB_DIV_PANEL), String(4));
 
@@ -1940,10 +1990,12 @@ static void webserver_config_send_body_get(String &page_content)
 
 	// Paginate page after ~ 1500 Bytes
 	server.sendContent(page_content);
+	//page_content = emptyString;
 
 	page_content = tmpl(FPSTR(WEB_DIV_PANEL), String(5));
 
-	page_content += tmpl(FPSTR(INTL_SEND_TO), F("APIs"));
+	//page_content += tmpl(FPSTR(INTL_SEND_TO), F("APIs"));
+	page_content += tmpl(FPSTR(INTL_SEND_TO), F(""));
 	page_content += FPSTR(BR_TAG);
 	page_content += form_checkbox(Config_send2dusti, FPSTR(WEB_SENSORCOMMUNITY), false);
 
@@ -1996,6 +2048,13 @@ static void webserver_config_send_body_get(String &page_content)
 	add_form_input(page_content, Config_user_custom2, FPSTR(INTL_USER2), LEN_USER_CUSTOM2 - 1);
 	add_form_input(page_content, Config_pwd_custom2, FPSTR(INTL_PASSWORD2), LEN_CFG_PASSWORD2 - 1);
 	page_content += FPSTR(TABLE_TAG_CLOSE_BR);
+
+	server.sendContent(page_content);
+	// page_content = tmpl(FPSTR(WEB_DIV_PANEL), String(6));
+	// page_content += FPSTR("<b>");
+	// page_content += FPSTR(INTL_LOGOS);
+	// page_content += FPSTR(WEB_B_BR);
+
 	page_content += F("</div></div>");
 	page_content += form_submit(FPSTR(INTL_SAVE_AND_RESTART));
 	page_content += FPSTR(BR_TAG);
@@ -2722,8 +2781,6 @@ static void webserver_not_found()
 	{
 		if ((server.uri().indexOf(F("success.html")) != -1) || (server.uri().indexOf(F("detect.html")) != -1))
 		{
-			Debug.print("cfg::has_matrix:");
-			Debug.println(cfg::has_matrix);
 			server.send(200, FPSTR(TXT_CONTENT_TYPE_TEXT_HTML), FPSTR(WEB_IOS_REDIRECT));
 		}
 		else
@@ -2781,7 +2838,6 @@ static void setup_webserver()
 	server.onNotFound(webserver_not_found);
 	debug_outln_info(F("Starting Webserver... "));
 	server.begin();
-	//ESP_ERROR_CHECK_WITHOUT_ABORT();
 }
 
 static int selectChannelForAp()
@@ -3523,7 +3579,7 @@ static void fetchSensorNPM(String &s)
 {
 	if (cfg::sending_intervall_ms > (WARMUPTIME_NPM_MS + READINGTIME_NPM_MS) && msSince(starttime) < (cfg::sending_intervall_ms - (WARMUPTIME_NPM_MS + READINGTIME_NPM_MS)))
 	{
-		if (is_NPM_running && !cfg::npm_fulltime)
+		if (is_NPM_running && !cfg::npm_fulltime && nextpmconnected)
 		{
 			debug_outln_info(F("Change NPM to stop..."));
 			is_NPM_running = NPM_start_stop();
@@ -3531,28 +3587,30 @@ static void fetchSensorNPM(String &s)
 	}
 	else
 	{
-		if (!is_NPM_running && !cfg::npm_fulltime)
+		if (!is_NPM_running && !cfg::npm_fulltime && nextpmconnected)
 		{
 			debug_outln_info(F("Change NPM to start..."));
 			is_NPM_running = NPM_start_stop();
 			NPM_waiting_for_16 = NPM_REPLY_HEADER_16;
 		}
 
-		if (is_NPM_running && cfg::npm_fulltime)
+		if (is_NPM_running && cfg::npm_fulltime && nextpmconnected)
 		{
 			NPM_waiting_for_16 = NPM_REPLY_HEADER_16;
 		}
 
-		if (msSince(starttime) > (cfg::sending_intervall_ms - READINGTIME_NPM_MS))
+		if ((msSince(starttime) > (cfg::sending_intervall_ms - READINGTIME_NPM_MS)) && nextpmconnected)
 		{ // DIMINUER LE READING TIME
 
 			debug_outln_info(F("Concentration NPM..."));
 			NPM_cmd(PmSensorCmd2::Concentration);
 
-		while (!serialNPM.available())
-			{
-				debug_outln("Wait for Serial...", DEBUG_MAX_INFO);
-			}
+		unsigned long timeout = millis();
+
+		do {
+		debug_outln("Wait for Serial...", DEBUG_MAX_INFO);
+		}
+		while (!serialNPM.available() && millis()-timeout < 3000 );
 
 			while (serialNPM.available() >= NPM_waiting_for_16)
 			{
@@ -3712,11 +3770,11 @@ static void fetchSensorNPM(String &s)
 		npm_pm25_max_pcs = 0;
 		npm_pm25_min_pcs = 60000;
 
-		if (cfg::sending_intervall_ms > (WARMUPTIME_NPM_MS + READINGTIME_NPM_MS))
+		if ((cfg::sending_intervall_ms > (WARMUPTIME_NPM_MS + READINGTIME_NPM_MS))&& nextpmconnected)
 		{
 			debug_outln_info(F("Temperature and humidity in NPM after measure..."));
 			current_th_npm = NPM_temp_humi();
-			if (is_NPM_running && !cfg::npm_fulltime)
+			if (is_NPM_running && !cfg::npm_fulltime && nextpmconnected)
 			{
 				debug_outln_info(F("Change NPM to stop after measure..."));
 				is_NPM_running = NPM_start_stop();
@@ -4063,43 +4121,44 @@ static void display_values_matrix()
 
 		if (cfg::sds_read && cfg::display_measure)
 		{
-			screens[screen_count++] = 1; //PM10
-			screens[screen_count++] = 2; //PM2.5
+
+			if (cfg_screen_pm10) screens[screen_count++] = 1; //PM10
+			if (cfg_screen_pm25) screens[screen_count++] = 2; //PM2.5
 		}
 		if (cfg::npm_read && cfg::display_measure)
 		{
-			screens[screen_count++] = 3; //PM10
-			screens[screen_count++] = 4; //PM2.5
-			screens[screen_count++] = 5; //PM1
+			if(cfg_screen_pm10)screens[screen_count++] = 3; //PM10
+			if(cfg_screen_pm25)screens[screen_count++] = 4; //PM2.5
+			if(cfg_screen_pm01)screens[screen_count++] = 5; //PM1
 		}
 		if (cfg::bmx280_read && cfg::display_measure)
 		{
-			screens[screen_count++] = 6; //T
-			screens[screen_count++] = 7; //H
-			screens[screen_count++] = 8; //P
+			if(cfg_screen_temp)screens[screen_count++] = 6; //T
+			if(cfg_screen_humi)screens[screen_count++] = 7; //H
+			if(cfg_screen_press)screens[screen_count++] = 8; //P
 		}
 
 		if (cfg::mhz16_read  && cfg::display_measure)
 		{
-			screens[screen_count++] = 9;
+			if(cfg_screen_co2)screens[screen_count++] = 9;
 		}
 		if (cfg::mhz19_read && cfg::display_measure)
 		{
-			screens[screen_count++] = 10;
+			if(cfg_screen_co2)screens[screen_count++] = 10;
 		}
 		if (cfg::sgp40_read && cfg::display_measure)
 		{
-			screens[screen_count++] = 11;
+			if(cfg_screen_cov)screens[screen_count++] = 11;
 		}
 
 		if (cfg::display_forecast)
 		{
 			screens[screen_count++] = 12; // Air exterieur
-			screens[screen_count++] = 13; // Atmo Sud forecast Indice
-			screens[screen_count++] = 14; // Atmo Sud forecast NO2
-			screens[screen_count++] = 15; // Atmo Sud forecast O3
-			screens[screen_count++] = 16; // Atmo Sud forecast PM10
-			screens[screen_count++] = 17; // Atmo Sud forecast PM2.5
+			if(cfg_screen_atmo_index)screens[screen_count++] = 13; // Atmo Sud forecast Indice
+			if(cfg_screen_atmo_no2)screens[screen_count++] = 14; // Atmo Sud forecast NO2
+			if(cfg_screen_atmo_o3)screens[screen_count++] = 15; // Atmo Sud forecast O3
+			if(cfg_screen_atmo_pm10)screens[screen_count++] = 16; // Atmo Sud forecast PM10
+			if(cfg_screen_atmo_pm25)screens[screen_count++] = 17; // Atmo Sud forecast PM2.5
 		}
 
 		if (cfg::display_wifi_info && cfg::has_wifi)
@@ -4120,7 +4179,17 @@ static void display_values_matrix()
 			screens[screen_count++] = 22; // Lora info
 		}
 
-		screens[screen_count++] = 23; // Logo ModuleAir
+		screens[screen_count++] = 23; // Logos
+
+
+// void drawCentreString(const String &buf, int x, int y)
+// {
+//     int16_t x1, y1;
+//     uint16_t w, h;
+//     display.getTextBounds(buf, x, y, &x1, &y1, &w, &h); //calc width of new string
+//     display.setCursor(x - w / 2, y);
+//     display.print(buf);
+// }
 
 
 		switch (screens[next_display_count % screen_count])
@@ -4148,7 +4217,7 @@ static void display_values_matrix()
 			display.setTextSize(1);
 			display.print("PM10");
 			display.setFont(&Font4x7Fixed);
-			display.setCursor(display.getCursorX()+2, 7);
+			display.setCursor(display.getCursorX()+2, 7); //Decaler vers le bas?
 			display.write(181);
 			display.print("g/m");
 			display.write(179);
@@ -4160,7 +4229,7 @@ static void display_values_matrix()
 			display.setCursor(0, 9);
 			display.setTextSize(2);
 			display.setTextColor(myWHITE);
-			display.print(String(pm10_value, 0));
+			display.print(String(pm10_value, 1));
 			display.setTextColor(myCUSTOM);
 			messager1(pm10_value, 20, 40, 50, 100, 150);
 			}
@@ -4189,7 +4258,7 @@ static void display_values_matrix()
 			display.setCursor(0, 9);
 			display.setTextSize(2);
 			display.setTextColor(myWHITE);
-			display.print(String(pm25_value, 0));
+			display.print(String(pm25_value, 1));
 			display.setTextColor(myCUSTOM);
             messager1(pm25_value, 10, 20, 25, 50, 75);
 			}
@@ -4213,13 +4282,12 @@ static void display_values_matrix()
 			drawImage(55, 0, 8, 9, maison);
 			displayColor = interpolate(pm10_value, 20, 40, 50, 100, 150, gamma_correction);
 			myCUSTOM = display.color565(displayColor.R, displayColor.G, displayColor.B);
-			//myCUSTOM = display.color565(displayColor.R, displayColor.G, displayColor.B,true); //AVEC GAMMA CORRECTION
 			display.fillRect(50, 9, 14, 14, myCUSTOM);
 			display.setFont(NULL);
 			display.setCursor(0, 9);
 			display.setTextSize(2);
 			display.setTextColor(myWHITE);
-			display.print(String(pm10_value, 0));
+			display.print(String(pm10_value, 1));
 			display.setTextColor(myCUSTOM);
 			messager1(pm10_value, 20, 40, 50, 100, 150);
 			}
@@ -4248,7 +4316,7 @@ static void display_values_matrix()
 			display.setCursor(0, 9);
 			display.setTextSize(2);
 			display.setTextColor(myWHITE);
-			display.print(String(pm25_value, 0));
+			display.print(String(pm25_value, 1));
 			display.setTextColor(myCUSTOM);
             messager1(pm25_value, 10, 20, 25, 50, 75);
 			}
@@ -4277,7 +4345,7 @@ static void display_values_matrix()
 			display.setCursor(0, 9);
 			display.setTextSize(2);
 			display.setTextColor(myWHITE);
-			display.print(String(pm01_value, 0));
+			display.print(String(pm01_value, 1));
 			display.setTextColor(myCUSTOM);
             messager1(pm25_value, 10, 20, 25, 50, 75);
 			}
@@ -4302,7 +4370,7 @@ static void display_values_matrix()
 			display.setCursor(0, 9);
 			display.setTextSize(2);
 			display.setTextColor(myWHITE);
-			display.print(String(t_value, 0));
+			display.print(String(t_value, 1));
 			}
 			else
 			{
@@ -4466,7 +4534,8 @@ static void display_values_matrix()
 			display.setTextSize(2);
 			display.print(String(atmoSud.multi, 0));
 			//drawgradient(0, 25, atmoSud.no2, 20, 40, 50, 100, 150);
-			if(gamma_correction){drawImage(0, 25, 7, 64, gradient_20_150_gamma);}else{drawImage(0, 25, 7, 64, gradient_20_150);}
+			// if(gamma_correction){drawImage(0, 25, 7, 64, gradient_20_150_gamma);}else{drawImage(0, 25, 7, 64, gradient_20_150);}
+			if(gamma_correction){drawImage(0, 28, 4, 64, gradient_20_150_gamma);}else{drawImage(0, 28, 4, 64, gradient_20_150);}
 			display.setTextSize(1);
 			display.setCursor((uint8_t)((63*atmoSud.multi)/150)-2, 25-2); //2 pixels de offset
 			display.write(31);
@@ -4497,7 +4566,8 @@ static void display_values_matrix()
 			display.setTextSize(2);
 			display.print(String(atmoSud.no2, 0));
 			//drawgradient(0, 25, atmoSud.no2, 40, 90, 120, 230, 340);
-			if(gamma_correction){drawImage(0, 25, 7, 64, gradient_40_340_gamma);}else{drawImage(0, 25, 7, 64, gradient_40_340);}
+			// if(gamma_correction){drawImage(0, 25, 7, 64, gradient_40_340_gamma);}else{drawImage(0, 25, 7, 64, gradient_40_340);}
+			if(gamma_correction){drawImage(0, 28, 4, 64, gradient_40_340_gamma);}else{drawImage(0, 28, 4, 64, gradient_40_340);}
 			display.setTextSize(1);
 			display.setCursor((uint8_t)((63*atmoSud.no2)/340)-2, 25-2); //2 pixels de offset
 			display.write(31);
@@ -4528,7 +4598,8 @@ static void display_values_matrix()
 			display.setTextSize(2);
 			display.print(String(atmoSud.o3, 0));
 			//drawgradient(0, 25, atmoSud.o3, 50, 100, 130, 240, 380);
-			if(gamma_correction){drawImage(0, 25, 7, 64, gradient_50_380_gamma);}else{drawImage(0, 25, 7, 64, gradient_50_380);}
+			// if(gamma_correction){drawImage(0, 25, 7, 64, gradient_50_380_gamma);}else{drawImage(0, 25, 7, 64, gradient_50_380);}
+			if(gamma_correction){drawImage(0, 28, 4, 64, gradient_50_380_gamma);}else{drawImage(0, 28, 4, 64, gradient_50_380);}
 			display.setTextSize(1);
 			display.setCursor((uint8_t)((63*atmoSud.o3)/380)-2, 25-2); //2 pixels de offset
 			display.write(31);
@@ -4558,7 +4629,8 @@ static void display_values_matrix()
 			display.setTextSize(2);
 			display.print(String(atmoSud.pm10, 0));
 			//drawgradient(0, 25, atmoSud.pm10, 20, 40, 50, 100, 150);
-			if(gamma_correction){drawImage(0, 25, 7, 64, gradient_20_150_gamma);}else{drawImage(0, 25, 7, 64, gradient_20_150);}
+			// if(gamma_correction){drawImage(0, 25, 7, 64, gradient_20_150_gamma);}else{drawImage(0, 25, 7, 64, gradient_20_150);}
+			if(gamma_correction){drawImage(0, 28, 4, 64, gradient_20_150_gamma);}else{drawImage(0, 28, 4, 64, gradient_20_150);}
 			display.setTextSize(1);
 			display.setCursor((uint8_t)((63*atmoSud.pm10)/150)-2, 25-2); //2 pixels de offset
 			display.write(31);
@@ -4588,7 +4660,8 @@ static void display_values_matrix()
 			display.setTextSize(2);
 			display.print(String(atmoSud.pm2_5, 0));
 			//drawgradient(0, 25, atmoSud.pm2_5, 10, 20, 25, 50, 75);
-			if(gamma_correction){drawImage(0, 25, 7, 64, gradient_10_75_gamma);}else{drawImage(0, 25, 7, 64, gradient_10_75);}
+			// if(gamma_correction){drawImage(0, 25, 7, 64, gradient_10_75_gamma);}else{drawImage(0, 25, 7, 64, gradient_10_75);}
+			if(gamma_correction){drawImage(0, 28, 4, 64, gradient_10_75_gamma);}else{drawImage(0, 28, 4, 64, gradient_10_75);}
 			display.setTextSize(1);
 			display.setCursor((uint8_t)((63*atmoSud.pm2_5)/75)-2, 25-2); //2 pixels de offset
 			display.write(31);
@@ -4600,7 +4673,7 @@ static void display_values_matrix()
 		case 18:
 			display.setTextColor(myWHITE);
 			display.setFont(&Font4x5Fixed);
-			display.setTextSize(1); // ICI???
+			display.setTextSize(1); 
 			display.setCursor(0, 4);
 			display.print("Wifi Info");
 			display.setCursor(0, 10);
@@ -4670,12 +4743,37 @@ static void display_values_matrix()
 			display.print(cfg::appkey);
 			break;
 		case 23:
-		if(pm10_value == -1.0 && pm25_value == -1.0 && pm01_value == -1.0 && co2_value == -1.0 && cov_value == -1.0  && t_value == -128.0 && h_value == -1.0 && p_value == -1.0 && atmoSud.multi == -1.0 && atmoSud.no2 == -1.0 && atmoSud.o3 == -1.0 && atmoSud.pm10 == -1.0 && atmoSud.pm2_5 == -1.0)
+		// if(pm10_value == -1.0 && pm25_value == -1.0 && pm01_value == -1.0 && co2_value == -1.0 && cov_value == -1.0  && t_value == -128.0 && h_value == -1.0 && p_value == -1.0 && atmoSud.multi == -1.0 && atmoSud.no2 == -1.0 && atmoSud.o3 == -1.0 && atmoSud.pm10 == -1.0 && atmoSud.pm2_5 == -1.0)
+		// {
+		// 	drawImage(0, 0, 32, 64, logo_moduleair);
+		// }else{
+		// 	act_milli += 5000;
+		// }
+		if (has_logo && (logos[logo_index + 1] != 0 && logo_index != 5))
 		{
-			drawImage(0, 0, 32, 64, logo_moduleair);
-		}else{
-			act_milli += 5000;
+
+		if (logos[logo_index++] == cfg_logo_moduleair) drawImage(0, 0, 32, 64, logo_moduleair);
+		if (logos[logo_index++] == cfg_logo_aircarto) drawImage(0, 0, 32, 64, logo_aircarto);
+		if (logos[logo_index++] == cfg_logo_atmo) drawImage(0, 0, 32, 64, logo_atmo);
+		if (logos[logo_index++] == cfg_logo_region) drawImage(0, 0, 32, 64, logo_region);
+		if (logos[logo_index++] == cfg_logo_custom1) drawImage(0, 0, 32, 64, logo_custom1);
+		if (logos[logo_index++] == cfg_logo_custom2) drawImage(0, 0, 32, 64, logo_custom2);
+
+		}else if (has_logo && (logos[logo_index + 1] == 0) || logo_index == 5)
+		{
+
+			logo_index = 0;
+		if (logos[0] == cfg_logo_moduleair) drawImage(0, 0, 32, 64, logo_moduleair);
+		if (logos[0] == cfg_logo_aircarto) drawImage(0, 0, 32, 64, logo_aircarto);
+		if (logos[0] == cfg_logo_atmo) drawImage(0, 0, 32, 64, logo_atmo);
+		if (logos[0] == cfg_logo_region) drawImage(0, 0, 32, 64, logo_region);
+		if (logos[0] == cfg_logo_custom1) drawImage(0, 0, 32, 64, logo_custom1);
+		if (logos[0] == cfg_logo_custom2) drawImage(0, 0, 32, 64, logo_custom2);
+
+
 		}
+
+
 		break;
 		}
 
@@ -4693,21 +4791,78 @@ static void init_matrix()
 	display.setDriverChip(SHIFT);
 	display_update_enable(true);
 	display.setFont(NULL); //Default font
-	display.fillScreen(myBLACK); 	//display.clearDisplay(); produces a flash
-	drawImage(0, 0, 32, 64, logo_moduleair);
-	delay(5000);
-	display.fillScreen(myBLACK); 	//display.clearDisplay(); produces a flash
-	drawImage(0, 0, 32, 64, logo_aircarto);
-	delay(5000);
-	display.fillScreen(myBLACK);
-	drawImage(0, 0, 32, 64, logo_atmo);
-	delay(5000);
-	display.fillScreen(myBLACK);
-	drawImage(0, 0, 32, 64, logo_region);
- 	delay(5000);
-	display.fillScreen(myBLACK); 	//display.clearDisplay(); produces a flash
-	drawImage(0, 0, 32, 64, logo_moduleair);
-	delay(5000);
+
+	for (int i = 1; i < 6; i++) {
+
+
+		if (i == cfg_logo_moduleair)
+		{
+				display.fillScreen(myBLACK); 	//display.clearDisplay(); produces a flash
+				drawImage(0, 0, 32, 64, logo_moduleair);
+				logos[logo_index++] = i;
+				delay(5000);
+
+		}
+		if (i == cfg_logo_aircarto)
+		{
+				display.fillScreen(myBLACK); 	//display.clearDisplay(); produces a flash
+				drawImage(0, 0, 32, 64, logo_aircarto);
+				logos[logo_index++] = i;
+				delay(5000);
+		}
+		if (i == cfg_logo_atmo) 
+		{
+				display.fillScreen(myBLACK); 	//display.clearDisplay(); produces a flash
+				drawImage(0, 0, 32, 64, logo_atmo);
+				logos[logo_index++] = i;
+				delay(5000);	
+		}
+		if (i == cfg_logo_region) 
+		{
+				display.fillScreen(myBLACK); 	//display.clearDisplay(); produces a flash
+				drawImage(0, 0, 32, 64, logo_region);
+				logos[logo_index++] = i;
+				delay(5000);	
+		}
+		if (i == cfg_logo_custom1) 
+		{
+				display.fillScreen(myBLACK); 	//display.clearDisplay(); produces a flash
+				drawImage(0, 0, 32, 64, logo_custom1);
+				logos[logo_index++] = i;
+				delay(5000);	
+		}
+		if (i == cfg_logo_custom2) 
+		{
+				display.fillScreen(myBLACK); 	//display.clearDisplay(); produces a flash
+				drawImage(0, 0, 32, 64, logo_custom2);
+				logos[logo_index++] = i;
+				delay(5000);	
+		}
+	}
+
+	if (logo_index != -1)
+	{
+		has_logo = true;
+		logo_index =-1;
+	}else{
+		has_logo = false;
+	}
+
+	// display.fillScreen(myBLACK); 	//display.clearDisplay(); produces a flash
+	// drawImage(0, 0, 32, 64, logo_moduleair);
+	// delay(5000);
+	// display.fillScreen(myBLACK); 	//display.clearDisplay(); produces a flash
+	// drawImage(0, 0, 32, 64, logo_aircarto);
+	// delay(5000);
+	// display.fillScreen(myBLACK);
+	// drawImage(0, 0, 32, 64, logo_atmo);
+	// delay(5000);
+	// display.fillScreen(myBLACK);
+	// drawImage(0, 0, 32, 64, logo_region);
+ 	// delay(5000);
+	// display.fillScreen(myBLACK); 	//display.clearDisplay(); produces a flash
+	// drawImage(0, 0, 32, 64, logo_moduleair);
+	// delay(5000);
 }
 
 /*****************************************************************
@@ -4823,12 +4978,20 @@ static void powerOnTestSensors()
 
 	if (cfg::npm_read)
 	{
-		uint8_t test_state;
+		int8_t test_state;
 		delay(15000); // wait a bit to be sure Next PM is ready to receive instructions.
 		test_state = NPM_get_state();
+		if (test_state == -1)
+		{
+			debug_outln_info(F("NPM not connected"));
+			nextpmconnected = false;
+		}
+		else {
+		nextpmconnected = true;
 		if (test_state == 0x00)
 		{
 			debug_outln_info(F("NPM already started..."));
+			nextpmconnected = true;
 		}
 		else if (test_state == 0x01)
 		{
@@ -4889,7 +5052,9 @@ static void powerOnTestSensors()
 				//}
 			}
 		}
+	}
 
+if (nextpmconnected){
 		delay(15000);
 		NPM_version_date();
 		delay(3000);
@@ -4905,7 +5070,8 @@ static void powerOnTestSensors()
 		{
 			is_NPM_running = true;
 		}
-	}
+   }	
+}
 
 	if (cfg::bmx280_read)
 	{
@@ -5034,7 +5200,11 @@ void os_getDevKey(u1_t *buf) { memcpy_P(buf, appkey_hex, 16); }
 
 //Initialiser avec les valeurs -1.0,-128.0 = valeurs par défaut qui doivent être filtrées
 
-uint8_t datalora[31] = {0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x80, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff};
+//uint8_t datalora[31] = {0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x80, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff};
+
+uint8_t datalora[37] = {0x00, 0xff, 0xff, 0xff, 0xff,0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x80, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff};
+			//			conf       sds		 sds         npm 		 npm		npm		    npm			npm			npm			co2			co2			 cov     temp  humi	   press   
+
 
 // 0x00, config
 // 0xff, 0xff, sds -1
@@ -5042,6 +5212,9 @@ uint8_t datalora[31] = {0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x
 // 0xff, 0xff, npm -1
 // 0xff, 0xff, npm -1
 // 0xff, 0xff, npm -1
+// 0xff, 0xff, npm_nc -1
+// 0xff, 0xff, npm_nc -1
+// 0xff, 0xff, npm_nc -1
 // 0xff, 0xff, co2 -1 
 // 0xff, 0xff, co2 -1
 // 0xff, 0xff, cov -1
@@ -5352,76 +5525,101 @@ static void prepareTxFrame()
 
 	//datalora[0] is already defined and is 1 byte
 
-	u1.temp_int = (int16_t)round(last_value_SDS_P1);
+	//x10 to get 1 decimal for PM
 
+	if (last_value_SDS_P1 != -1.0) u1.temp_int = (int16_t)round(last_value_SDS_P1 * 10);
+	else u1.temp_int = (int16_t)round(last_value_SDS_P1);
+	
 	datalora[1] = u1.temp_byte[1];
 	datalora[2] = u1.temp_byte[0];
 
-	u1.temp_int = (int16_t)round(last_value_SDS_P2);
+	if (last_value_SDS_P2 != -1.0) u1.temp_int = (int16_t)round(last_value_SDS_P2 * 10);
+	else u1.temp_int = (int16_t)round(last_value_SDS_P2);
 
 	datalora[3] = u1.temp_byte[1];
 	datalora[4] = u1.temp_byte[0];
 
-	u1.temp_int = (int16_t)round(last_value_NPM_P0);
+	if (last_value_NPM_P0 != -1.0) u1.temp_int = (int16_t)round(last_value_NPM_P0 * 10);
+	else u1.temp_int = (int16_t)round(last_value_NPM_P0);
 
 	datalora[5] = u1.temp_byte[1];
 	datalora[6] = u1.temp_byte[0];
 
-	u1.temp_int = (int16_t)round(last_value_NPM_P1);
+	if (last_value_NPM_P1 != -1.0) u1.temp_int = (int16_t)round(last_value_NPM_P1 * 10);
+	else u1.temp_int = (int16_t)round(last_value_NPM_P1);
 
 	datalora[7] = u1.temp_byte[1];
 	datalora[8] = u1.temp_byte[0];
 
-	u1.temp_int = (int16_t)round(last_value_NPM_P2);
+	if (last_value_NPM_P2 != -1.0) u1.temp_int = (int16_t)round(last_value_NPM_P2 * 10);
+	else u1.temp_int = (int16_t)round(last_value_NPM_P2);
 
 	datalora[9] = u1.temp_byte[1];
 	datalora[10] = u1.temp_byte[0];
 
-	u1.temp_int = (int16_t)round(last_value_MHZ16);
+	if (last_value_NPM_N1 != -1.0) u1.temp_int = (int16_t)round(last_value_NPM_N1 * 1000);
+	else u1.temp_int = (int16_t)round(last_value_NPM_N1);
 
 	datalora[11] = u1.temp_byte[1];
 	datalora[12] = u1.temp_byte[0];
 
-	u1.temp_int = (int16_t)round(last_value_MHZ19);
+	if (last_value_NPM_N10 != -1.0) u1.temp_int = (int16_t)round(last_value_NPM_N10 * 1000);
+	else u1.temp_int = (int16_t)round(last_value_NPM_N10);
 
 	datalora[13] = u1.temp_byte[1];
 	datalora[14] = u1.temp_byte[0];
 
-	u1.temp_int = (int16_t)round(last_value_SGP40);
-
+	if (last_value_NPM_N25 != -1.0) u1.temp_int = (int16_t)round(last_value_NPM_N25 * 1000);
+	else u1.temp_int = (int16_t)round(last_value_NPM_N25);
+	
 	datalora[15] = u1.temp_byte[1];
 	datalora[16] = u1.temp_byte[0];
 
-	datalora[17] = (int8_t)round(last_value_BMX280_T);
+	u1.temp_int = (int16_t)round(last_value_MHZ16);
 
-	datalora[18] = (int8_t)round(last_value_BME280_H);
+	datalora[17] = u1.temp_byte[1];
+	datalora[18] = u1.temp_byte[0];
 
-	u1.temp_int = (int16_t)round(last_value_BMX280_P);
+	u1.temp_int = (int16_t)round(last_value_MHZ19);
 
 	datalora[19] = u1.temp_byte[1];
 	datalora[20] = u1.temp_byte[0];
 
+	u1.temp_int = (int16_t)round(last_value_SGP40);
+
+	datalora[21] = u1.temp_byte[1];
+	datalora[22] = u1.temp_byte[0];
+
+	datalora[23] = (int8_t)round(last_value_BMX280_T);
+
+	datalora[24] = (int8_t)round(last_value_BME280_H);
+
+	u1.temp_int = (int16_t)round(last_value_BMX280_P);
+
+	datalora[25] = u1.temp_byte[1];
+	datalora[26] = u1.temp_byte[0];
+
 	u3.temp_float = atof(cfg::latitude);
 
-	datalora[21] = u3.temp_byte[0];
-	datalora[22] = u3.temp_byte[1];
-	datalora[23] = u3.temp_byte[2];
-	datalora[24] = u3.temp_byte[3];
+	datalora[27] = u3.temp_byte[0];
+	datalora[28] = u3.temp_byte[1];
+	datalora[29] = u3.temp_byte[2];
+	datalora[30] = u3.temp_byte[3];
 
 	u3.temp_float = atof(cfg::longitude);
 
-	datalora[25] = u3.temp_byte[0];
-	datalora[26] = u3.temp_byte[1];
-	datalora[27] = u3.temp_byte[2];
-	datalora[28] = u3.temp_byte[3];
+	datalora[31] = u3.temp_byte[0];
+	datalora[32] = u3.temp_byte[1];
+	datalora[33] = u3.temp_byte[2];
+	datalora[34] = u3.temp_byte[3];
 
-	datalora[29] = forecast_selector;
+	datalora[35] = forecast_selector;
 
 	Debug.printf("HEX values:\n");
-	for (int i = 0; i < 30; i++)
+	for (int i = 0; i < 36; i++)
 	{
 		Debug.printf(" %02x", datalora[i]);
-		if (i == 29)
+		if (i == 35)
 		{
 			Debug.printf("\n");
 		}
@@ -5893,6 +6091,11 @@ void loop()
 	{
 		//		Serial.println(ESP.getFreeHeap(),DEC);
 	}
+
+
+
+
+	
 
 	if (cfg::has_lora && lorachip)
 	{

@@ -61,8 +61,8 @@ input[type=submit]:hover{background:#d44}\
 .panels{min-height:200px;overflow:hidden;padding:20px;border:2px solid #438DBF;margin-bottom:1em;}\
 .radio{display:none}.panel{display:none}\
 .canvas{min-height:118px;background:#438DBF;margin-bottom:20px;}\
-#r5:checked~.panels>#panel5,#r4:checked~.panels>#panel4,#r1:checked~.panels>#panel1,#r3:checked~.panels>#panel3,#r2:checked~.panels>#panel2{display:block}\
-#r5:checked~.tabs>#tab5,#r4:checked~.tabs>#tab4,#r1:checked~.tabs>#tab1,#r3:checked~.tabs>#tab3,#r2:checked~.tabs>#tab2{background:#438DBF;color:#fff}";
+#r6:checked~.panels>#panel6,#r5:checked~.panels>#panel5,#r4:checked~.panels>#panel4,#r1:checked~.panels>#panel1,#r3:checked~.panels>#panel3,#r2:checked~.panels>#panel2{display:block}\
+#r6:checked~.tabs>#tab6,#r5:checked~.tabs>#tab5,#r4:checked~.tabs>#tab4,#r1:checked~.tabs>#tab1,#r3:checked~.tabs>#tab3,#r2:checked~.tabs>#tab2{background:#438DBF;color:#fff}";
 
 #define STATIC_PREFIX "/" INTL_LANG "_s1"
 

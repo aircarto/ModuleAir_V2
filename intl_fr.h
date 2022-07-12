@@ -14,6 +14,7 @@ const char INTL_THP_SENSORS[] PROGMEM = "Thermomètres, hygromètres, baromètre
 const char INTL_CO2_SENSORS[] PROGMEM = "Capteurs CO2";
 const char INTL_VOC_SENSORS[] PROGMEM = "Capteurs COV";
 const char INTL_MORE_SENSORS[] PROGMEM = "Autres capteurs";
+const char INTL_LOGOS[] PROGMEM = "Logos";
 const char INTL_SDS011[] PROGMEM = "SDS011";
 const char INTL_NPM[] PROGMEM = "Tera Sensor Next PM";
 const char INTL_NPM_FULLTIME[] PROGMEM = "Next PM permanent";
@@ -30,6 +31,7 @@ const char INTL_FS_WIFI_DESCRIPTION[] PROGMEM = "Nom du capteur wifi en mode de 
 const char INTL_FS_WIFI_NAME[] PROGMEM = "Nom";
 const char INTL_LORA_SETTINGS[] PROGMEM = "Paramètres LoRa";
 const char INTL_MORE_SETTINGS[] PROGMEM = "Autres paramètres";
+const char INTL_SCREENS[] PROGMEM = "Écrans";
 const char INTL_SSD1306[] PROGMEM = "OLED SSD1306";
 const char INTL_MATRIX[] PROGMEM = "Matrice RGB 64x32";
 const char INTL_DISPLAY_MEASURES[] PROGMEM = "Afficher les mesures des capteurs";
@@ -72,6 +74,8 @@ const char INTL_DEVICE_STATUS[] PROGMEM = "Etat de l'appareil";
 #define INTL_REALLY_RESTART_SENSOR "Voulez-vous vraiment redémarrer le capteur?"
 #define INTL_RESTART "Redémarrer"
 const char INTL_SAVE_AND_RESTART[] PROGMEM = "Sauvegarder et redémarrer";
+#define INTL_ONLINE_CONFIG "Configuration en ligne"
+const char INTL_ALLOW[] PROGMEM = "Autoriser";
 #define INTL_FIRMWARE "Firmware"
 #define INTL_DISPLAY "Affichage"
 #define INTL_LOCATION "Position"
@@ -111,3 +115,4 @@ const char INTL_LORA_ACTIVATION[] = "Activer la communication LoRaWAN";
 const char INTL_WIFI_ACTIVATION[] = "Activer la communication WiFi";
 
 #include "./aircarto-logo-common.h"
+#include "./logos-custom.h"

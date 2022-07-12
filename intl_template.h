@@ -14,6 +14,7 @@ const char INTL_THP_SENSORS[] PROGMEM = "";
 const char INTL_CO2_SENSORS[] PROGMEM = "";
 const char INTL_VOC_SENSORS[] PROGMEM = "";
 const char INTL_MORE_SENSORS[] PROGMEM = "";
+const char INTL_LOGOS[] PROGMEM = "";
 const char INTL_SDS011[] PROGMEM = "";
 const char INTL_NPM[] PROGMEM = "";
 const char INTL_NPM_FULLTIME[] PROGMEM = "";
@@ -30,6 +31,7 @@ const char INTL_FS_WIFI_DESCRIPTION[] PROGMEM = "";
 const char INTL_FS_WIFI_NAME[] PROGMEM = "";
 const char INTL_LORA_SETTINGS[] PROGMEM = "";
 const char INTL_MORE_SETTINGS[] PROGMEM = "";
+const char INTL_SCREENS[] PROGMEM = "";
 const char INTL_SSD1306[] PROGMEM = "";
 const char INTL_MATRIX[] PROGMEM = "";
 const char INTL_DISPLAY_MEASURES[] PROGMEM = "";
@@ -72,6 +74,8 @@ const char INTL_DEVICE_STATUS[] PROGMEM = "";
 #define INTL_REALLY_RESTART_SENSOR ""
 #define INTL_RESTART ""
 const char INTL_SAVE_AND_RESTART[] PROGMEM = "";
+#define INTL_ONLINE_CONFIG ""
+const char INTL_ALLOW[] PROGMEM = "";
 #define INTL_FIRMWARE ""
 #define INTL_DISPLAY ""
 #define INTL_LOCATION ""
@@ -111,3 +115,4 @@ const char INTL_LORA_ACTIVATION[] = "";
 const char INTL_WIFI_ACTIVATION[] = "";
 
 #include "./aircarto-logo-common.h"
+#include "./logos-custom.h"
