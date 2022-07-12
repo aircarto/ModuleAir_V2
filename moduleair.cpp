@@ -4191,6 +4191,7 @@ static void display_values_matrix()
 //     display.print(buf);
 // }
 
+		//display.fillScreen(myBLACK); //to avoid blink with display.clearDisplay();
 
 		switch (screens[next_display_count % screen_count])
 		{
@@ -4211,6 +4212,7 @@ static void display_values_matrix()
 			break;
 		case 1:   //SDS
 		if(pm10_value != -1.0){
+			display.fillScreen(myBLACK);
 			display.setTextColor(myCYAN);
 			display.setFont(NULL);
 			display.setCursor(0, 0);
@@ -4240,6 +4242,7 @@ static void display_values_matrix()
 			break;
 		case 2:
 		if(pm25_value != -1.0){
+			display.fillScreen(myBLACK);
 			display.setTextColor(myCYAN);
 			display.setFont(NULL);
 			display.setCursor(0, 0);
@@ -4269,6 +4272,7 @@ static void display_values_matrix()
 			break;
 		case 3:   //NPM
 			if(pm10_value != -1.0){
+			display.fillScreen(myBLACK);
 			display.setTextColor(myCYAN);
 			display.setFont(NULL);
 			display.setCursor(0, 0);
@@ -4298,6 +4302,7 @@ static void display_values_matrix()
 			break;
 		case 4:
 		if(pm25_value != -1.0){
+			display.fillScreen(myBLACK);
 			display.setTextColor(myCYAN);
 			display.setFont(NULL);
 			display.setCursor(0, 0);
@@ -4327,6 +4332,7 @@ static void display_values_matrix()
 			break;
 		case 5:
 		if(pm01_value != -1.0){
+			display.fillScreen(myBLACK);
 			display.setTextColor(myCYAN);
 			display.setFont(NULL);
 			display.setCursor(0, 0);
@@ -4356,6 +4362,7 @@ static void display_values_matrix()
 			break;
 		case 6:
 		if(t_value != -128.0){
+			display.fillScreen(myBLACK);
 			display.setTextColor(myCYAN);
 			display.setFont(NULL);
 			display.setCursor(0, 0);
@@ -4379,6 +4386,7 @@ static void display_values_matrix()
 			break;
 		case 7:
 		if(h_value != -1.0){
+			display.fillScreen(myBLACK);
 			display.setTextColor(myCYAN);
 			display.setFont(NULL);
 			display.setCursor(0, 0);
@@ -4402,6 +4410,7 @@ static void display_values_matrix()
 			break;
 		case 8:
 		if(p_value != -1.0){
+			display.fillScreen(myBLACK);
 			display.setTextColor(myCYAN);
 			display.setFont(NULL);
 			display.setCursor(0, 0);
@@ -4424,6 +4433,7 @@ static void display_values_matrix()
 			break;
 		case 9:
 		if(co2_value != -1.0){
+			display.fillScreen(myBLACK);
 			display.setTextColor(myCYAN);
 			display.setFont(NULL);
 			display.setCursor(0, 0);
@@ -4452,6 +4462,7 @@ static void display_values_matrix()
 			break;
 		case 10:
 		if(co2_value != -1.0){
+			display.fillScreen(myBLACK);
 			display.setTextColor(myCYAN);
 			display.setFont(NULL);
 			display.setCursor(0, 0);
@@ -4480,6 +4491,7 @@ static void display_values_matrix()
 			break;
 		case 11:
 		if(cov_value != -1.0){
+			display.fillScreen(myBLACK);
 			display.setTextColor(myCYAN);
 			display.setFont(NULL);
 			display.setCursor(0, 0);
@@ -4520,6 +4532,7 @@ static void display_values_matrix()
 		break;
 		case 13:
 			if(atmoSud.multi != -1.0){
+			display.fillScreen(myBLACK);
 			display.setTextColor(myWHITE);
 			display.setFont(NULL);
 			display.setCursor(0, 0);
@@ -4546,6 +4559,7 @@ static void display_values_matrix()
 			break;
 		case 14:
 			if(atmoSud.no2 != -1.0){
+			display.fillScreen(myBLACK);
 			display.setTextColor(myWHITE);
 			display.setFont(NULL);
 			display.setCursor(0, 0);
@@ -4578,6 +4592,7 @@ static void display_values_matrix()
 			break;
 		case 15:
 			if(atmoSud.o3 != -1.0){
+			display.fillScreen(myBLACK);
 			display.setTextColor(myWHITE);
 			display.setFont(NULL);
 			display.setCursor(0, 0);
@@ -4610,6 +4625,7 @@ static void display_values_matrix()
 			break;
 		case 16:
 			if(atmoSud.pm10 != -1.0){
+			display.fillScreen(myBLACK);
 			display.setTextColor(myWHITE);
 			display.setFont(NULL);
 			display.setCursor(0, 0);
@@ -4641,6 +4657,7 @@ static void display_values_matrix()
 			break;
 		case 17:
 			 if(atmoSud.pm2_5 != -1.0){
+			display.fillScreen(myBLACK);
 			display.setTextColor(myWHITE);
 			display.setFont(NULL);
 			display.setCursor(0, 0);
@@ -4671,6 +4688,7 @@ static void display_values_matrix()
 			}
 			break;
 		case 18:
+			display.fillScreen(myBLACK);
 			display.setTextColor(myWHITE);
 			display.setFont(&Font4x5Fixed);
 			display.setTextSize(1); 
@@ -4687,6 +4705,7 @@ static void display_values_matrix()
 			display.print(String(calcWiFiSignalQuality(last_signal_strength)));
 			break;
 		case 19:
+			display.fillScreen(myBLACK);
 			display.setTextColor(myWHITE);
 			display.setFont(&Font4x5Fixed);
 			display.setCursor(0, 4);
@@ -4718,6 +4737,7 @@ static void display_values_matrix()
 			break;
 		case 21:
 			if(cfg::npm_fulltime && (pm10_value != -1.0 || pm25_value != -1.0 || pm01_value != -1.0)){
+			display.fillScreen(myBLACK);
 			display.setTextColor(myWHITE);
 			display.setFont(&Font4x7Fixed);
 			display.setCursor(0, 6);
@@ -4731,6 +4751,7 @@ static void display_values_matrix()
 			}
 			break;
 		case 22:
+			display.fillScreen(myBLACK);
 			display.setTextColor(myWHITE);
 			display.setFont(&Font4x5Fixed);
 			display.setCursor(0, 4);
@@ -4751,28 +4772,18 @@ static void display_values_matrix()
 		// }
 		if (has_logo && (logos[logo_index + 1] != 0 && logo_index != 5))
 		{
-
-		if (logos[logo_index++] == cfg_logo_moduleair) drawImage(0, 0, 32, 64, logo_moduleair);
-		if (logos[logo_index++] == cfg_logo_aircarto) drawImage(0, 0, 32, 64, logo_aircarto);
-		if (logos[logo_index++] == cfg_logo_atmo) drawImage(0, 0, 32, 64, logo_atmo);
-		if (logos[logo_index++] == cfg_logo_region) drawImage(0, 0, 32, 64, logo_region);
-		if (logos[logo_index++] == cfg_logo_custom1) drawImage(0, 0, 32, 64, logo_custom1);
-		if (logos[logo_index++] == cfg_logo_custom2) drawImage(0, 0, 32, 64, logo_custom2);
-
+		logo_index++;
 		}else if (has_logo && (logos[logo_index + 1] == 0) || logo_index == 5)
 		{
-
-			logo_index = 0;
-		if (logos[0] == cfg_logo_moduleair) drawImage(0, 0, 32, 64, logo_moduleair);
-		if (logos[0] == cfg_logo_aircarto) drawImage(0, 0, 32, 64, logo_aircarto);
-		if (logos[0] == cfg_logo_atmo) drawImage(0, 0, 32, 64, logo_atmo);
-		if (logos[0] == cfg_logo_region) drawImage(0, 0, 32, 64, logo_region);
-		if (logos[0] == cfg_logo_custom1) drawImage(0, 0, 32, 64, logo_custom1);
-		if (logos[0] == cfg_logo_custom2) drawImage(0, 0, 32, 64, logo_custom2);
-
-
+		logo_index = 0;
 		}
 
+		if (logos[logo_index] == cfg_logo_moduleair) drawImage(0, 0, 32, 64, logo_moduleair);
+		if (logos[logo_index] == cfg_logo_aircarto) drawImage(0, 0, 32, 64, logo_aircarto);
+		if (logos[logo_index] == cfg_logo_atmo) drawImage(0, 0, 32, 64, logo_atmo);
+		if (logos[logo_index] == cfg_logo_region) drawImage(0, 0, 32, 64, logo_region);
+		if (logos[logo_index] == cfg_logo_custom1) drawImage(0, 0, 32, 64, logo_custom1);
+		if (logos[logo_index] == cfg_logo_custom2) drawImage(0, 0, 32, 64, logo_custom2);
 
 		break;
 		}
@@ -4799,7 +4810,8 @@ static void init_matrix()
 		{
 				display.fillScreen(myBLACK); 	//display.clearDisplay(); produces a flash
 				drawImage(0, 0, 32, 64, logo_moduleair);
-				logos[logo_index++] = i;
+				logo_index++;
+				logos[logo_index] = i;
 				delay(5000);
 
 		}
@@ -4807,35 +4819,40 @@ static void init_matrix()
 		{
 				display.fillScreen(myBLACK); 	//display.clearDisplay(); produces a flash
 				drawImage(0, 0, 32, 64, logo_aircarto);
-				logos[logo_index++] = i;
+				logo_index++;
+				logos[logo_index] = i;
 				delay(5000);
 		}
 		if (i == cfg_logo_atmo) 
 		{
 				display.fillScreen(myBLACK); 	//display.clearDisplay(); produces a flash
 				drawImage(0, 0, 32, 64, logo_atmo);
-				logos[logo_index++] = i;
+				logo_index++;
+				logos[logo_index] = i;
 				delay(5000);	
 		}
 		if (i == cfg_logo_region) 
 		{
 				display.fillScreen(myBLACK); 	//display.clearDisplay(); produces a flash
 				drawImage(0, 0, 32, 64, logo_region);
-				logos[logo_index++] = i;
+				logo_index++;
+				logos[logo_index] = i;
 				delay(5000);	
 		}
 		if (i == cfg_logo_custom1) 
 		{
 				display.fillScreen(myBLACK); 	//display.clearDisplay(); produces a flash
 				drawImage(0, 0, 32, 64, logo_custom1);
-				logos[logo_index++] = i;
+				logo_index++;
+				logos[logo_index] = i;
 				delay(5000);	
 		}
 		if (i == cfg_logo_custom2) 
 		{
 				display.fillScreen(myBLACK); 	//display.clearDisplay(); produces a flash
 				drawImage(0, 0, 32, 64, logo_custom2);
-				logos[logo_index++] = i;
+				logo_index++;
+				logos[logo_index] = i;
 				delay(5000);	
 		}
 	}
@@ -5897,8 +5914,8 @@ void loop()
 	if ((msSince(last_display_millis_matrix) > DISPLAY_UPDATE_INTERVAL_MS) && (cfg::has_matrix))
 	{
 
-		display.fillScreen(myBLACK); //to avoid blink with display.clearDisplay();
-		display.clearDisplay();// to reinit
+		// display.fillScreen(myBLACK); //to avoid blink with display.clearDisplay();
+		//display.clearDisplay();// to reinit
 		display_values_matrix();
 		last_display_millis_matrix = act_milli;
 	}

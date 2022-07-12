@@ -4,10 +4,10 @@ bool online_acces = false;
 
 //Fill with values from 1 to 6 and 0 if no display
 
-const int cfg_logo_moduleair = 1;
-const int cfg_logo_aircarto = 2;
-const int cfg_logo_atmo = 3;
-const int cfg_logo_region = 4;
+const int cfg_logo_moduleair = 4;
+const int cfg_logo_aircarto = 3;
+const int cfg_logo_atmo = 2;
+const int cfg_logo_region = 1;
 const int cfg_logo_custom1 = 0;
 const int cfg_logo_custom2 = 0;
 
