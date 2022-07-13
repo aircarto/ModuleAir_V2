@@ -51,23 +51,23 @@ The code is developped on a ESP32 DevC but other boards should be supported:
 * Heltec Wifi Lora 32 V2
 * TTGO Lora 32 V2.1 Paxcounter
 
-##Flashing
+## Flashing
 
 Please use Platformio to flash the board.
 The .ini file should be able to get all the needed boards, platforms and libraries from the internet
 
-##Library changes
+## Library changes
 
 To force the use of both the SPIs on the ESP32, the SPI library and the PXMatrix librar has to be corrected a bit.
 
 SPI.cpp
 
 Modify as this:
-`#if CONFIG_IDF_TARGET_ESP32
-SPIClass SPI(VSPI);
-SPIClass SPI_H(HSPI);
-#else
-SPIClass SPI(FSPI);
+`#if CONFIG_IDF_TARGET_ESP32\
+SPIClass SPI(VSPI);\
+SPIClass SPI_H(HSPI);\
+#else\
+SPIClass SPI(FSPI);\
 #endif`
 
 SPI.h
@@ -81,23 +81,23 @@ Replace all `SPI` with `SPI_H`.
 
 Verify that those pins are defined:
 
-`// HW SPI PINS
-#define SPI_BUS_CLK 14
-#define SPI_BUS_MOSI 13
-#define SPI_BUS_MISO 12
+`// HW SPI PINS\
+#define SPI_BUS_CLK 14\
+#define SPI_BUS_MOSI 13\
+#define SPI_BUS_MISO 12\
 #define SPI_BUS_SS 4`
 
-##Font changes
+## Font changes
 
 The default glcdfont.c of the Adafruit GFX library was modified to add new characters.
 Copy the content of the glcdfont_mod.c file in the Fonts folder and paste it in the glcdfont.c file in the Adafruit GFX library in the folder of the choosed board in the .pio folder.
 
-##Pin mapping
+## Pin mapping
 
 You can find the main pin mapping for each board in the ext_def.h file.
 THe pin mapping for the LoRaWAN module is in the file moduleair.cpp under the Helium/TTN LoRaWAN comment.
 
-##Configuration
+## Configuration
 
 The process is the same as for the Sensor.Community firmware.
 On the first start, the sation won't find any known network and it will go in AP mode producing a moduleair-XXXXXXX network. Connect to it from a PC or a smartphone and open the address http://192.168.4.1.
@@ -161,3 +161,13 @@ If wifi is activated it is useless to decode the uplinks and transmit some downl
 
 The last byte is a selector which tells the LoRaWAN server which kind of downlink values it should transmit (AQ index, NO2, O3, PM10, PM2.5 from the AtmoSud API). 5 downlinks will be sent each day.
 
+## Picture encoding
+
+Prepare you picture with the format 2:1.
+Execute:
+`convert in.png -coalesce -gamma 0.4 -resize 64x32\! -dispose None -interlace None -ordered-dither o4x4,32,64,32 -layers OptimizeFrame out.png`
+
+Then go to:
+http://www.rinkydinkelectronics.com/t_imageconverter565.php
+
+Finally copy/paste the 2048 HEX-bytes in logos-custom.h.
