@@ -642,14 +642,13 @@ void messager1(float valueSensor, int step1, int step2, int step3, int step4, in
 //MESSAGES FIXES => CENTRER à la main
 
 display.setFont(NULL);
-display.setCursor(0, 25); //voir les position?
+display.setCursor(0, 25); //voir les position car caractères spéciaux
 display.setTextSize(1);
 
 
 	//   if (valueSensor >= 0 && valueSensor <= step1)
 	if (valueSensor >= -1 && valueSensor <= step1)
 	{
-
 		display.print("Bon");
 	}
 	else if (valueSensor > step1 && valueSensor <= step5)
@@ -735,6 +734,16 @@ display.setTextSize(1);
 	}
 
 }
+
+void drawCentreString(const String &buf, int x, int y, int offset)
+{
+    int16_t x1, y1;
+    uint16_t w, h;
+    display.getTextBounds(buf, x, y, &x1, &y1, &w, &h); //calc width of new string
+    display.setCursor(((64-offset)-w)/ 2, y); //si 1 seul chiffre => taille de 2 chiffres !!!
+    display.print(buf);
+}
+
 
 /*****************************************************************
  * Forecast Atmosud                                              *
@@ -4032,6 +4041,7 @@ static void display_values_oled()  //COMPLETER LES ECRANS
 	next_display_count++;
 }
 
+
 static void display_values_matrix()
 {
 	float t_value = -128.0;
@@ -4182,14 +4192,7 @@ static void display_values_matrix()
 		screens[screen_count++] = 23; // Logos
 
 
-// void drawCentreString(const String &buf, int x, int y)
-// {
-//     int16_t x1, y1;
-//     uint16_t w, h;
-//     display.getTextBounds(buf, x, y, &x1, &y1, &w, &h); //calc width of new string
-//     display.setCursor(x - w / 2, y);
-//     display.print(buf);
-// }
+
 
 		//display.fillScreen(myBLACK); //to avoid blink with display.clearDisplay();
 
@@ -4200,9 +4203,9 @@ static void display_values_matrix()
 		drawImage(0, 0, 32, 64, interieur);
 		display.setTextColor(myWHITE);
 		display.setFont(&Font4x7Fixed);
-		display.setCursor(13, 9);
+		display.setCursor(13, 14);
 		display.print("Air");
-		display.setCursor(1, 19);
+		display.setCursor(1, 24);
 		display.print("int");
 		display.write(233);
 		display.print("rieur");
@@ -4228,10 +4231,9 @@ static void display_values_matrix()
 			myCUSTOM = display.color565(displayColor.R, displayColor.G, displayColor.B);
 			display.fillRect(50, 9, 14, 14, myCUSTOM);
 			display.setFont(NULL);
-			display.setCursor(0, 9);
 			display.setTextSize(2);
 			display.setTextColor(myWHITE);
-			display.print(String(pm10_value, 1));
+			drawCentreString(String(pm10_value, 0), 0, 9, 14); 
 			display.setTextColor(myCUSTOM);
 			messager1(pm10_value, 20, 40, 50, 100, 150);
 			}
@@ -4258,10 +4260,9 @@ static void display_values_matrix()
 			myCUSTOM = display.color565(displayColor.R, displayColor.G, displayColor.B);
 			display.fillRect(50, 9, 14, 14, myCUSTOM);
 			display.setFont(NULL);
-			display.setCursor(0, 9);
 			display.setTextSize(2);
 			display.setTextColor(myWHITE);
-			display.print(String(pm25_value, 1));
+			drawCentreString(String(pm25_value, 0), 0, 9, 14); 
 			display.setTextColor(myCUSTOM);
             messager1(pm25_value, 10, 20, 25, 50, 75);
 			}
@@ -4288,10 +4289,9 @@ static void display_values_matrix()
 			myCUSTOM = display.color565(displayColor.R, displayColor.G, displayColor.B);
 			display.fillRect(50, 9, 14, 14, myCUSTOM);
 			display.setFont(NULL);
-			display.setCursor(0, 9);
 			display.setTextSize(2);
 			display.setTextColor(myWHITE);
-			display.print(String(pm10_value, 1));
+			drawCentreString(String(pm10_value, 0), 0, 9, 14); 
 			display.setTextColor(myCUSTOM);
 			messager1(pm10_value, 20, 40, 50, 100, 150);
 			}
@@ -4318,10 +4318,9 @@ static void display_values_matrix()
 			myCUSTOM = display.color565(displayColor.R, displayColor.G, displayColor.B);
 			display.fillRect(50, 9, 14, 14, myCUSTOM);
 			display.setFont(NULL);
-			display.setCursor(0, 9);
 			display.setTextSize(2);
 			display.setTextColor(myWHITE);
-			display.print(String(pm25_value, 1));
+			drawCentreString(String(pm25_value, 0), 0, 9, 14); 
 			display.setTextColor(myCUSTOM);
             messager1(pm25_value, 10, 20, 25, 50, 75);
 			}
@@ -4348,10 +4347,9 @@ static void display_values_matrix()
 			myCUSTOM = display.color565(displayColor.R, displayColor.G, displayColor.B);
 			display.fillRect(50, 9, 14, 14, myCUSTOM);
 			display.setFont(NULL);
-			display.setCursor(0, 9);
 			display.setTextSize(2);
 			display.setTextColor(myWHITE);
-			display.print(String(pm01_value, 1));
+			drawCentreString(String(pm01_value, 0), 0, 9, 14); 
 			display.setTextColor(myCUSTOM);
             messager1(pm25_value, 10, 20, 25, 50, 75);
 			}
@@ -4374,10 +4372,9 @@ static void display_values_matrix()
 			display.print("C");
 			drawImage(55, 0, 8, 9, maison);
 			display.setFont(NULL);
-			display.setCursor(0, 9);
 			display.setTextSize(2);
 			display.setTextColor(myWHITE);
-			display.print(String(t_value, 1));
+			drawCentreString(String(t_value, 1), 0, 9, 0); 
 			}
 			else
 			{
@@ -4398,10 +4395,9 @@ static void display_values_matrix()
 			display.write(37);
 			drawImage(55, 0, 8, 9, maison);
 			display.setFont(NULL);
-			display.setCursor(0, 9);
 			display.setTextSize(2);
 			display.setTextColor(myWHITE);
-			display.print(String(h_value, 0));
+			drawCentreString(String(h_value, 0), 0, 9, 0); 
 			}
 			else
 			{
@@ -4421,10 +4417,9 @@ static void display_values_matrix()
 			display.print("hPa");
 			drawImage(55, 0, 8, 9, maison);
 			display.setFont(NULL);
-			display.setCursor(0, 9);
 			display.setTextSize(2);
 			display.setTextColor(myWHITE);
-			display.print(String(pressure_at_sealevel(t_value, p_value)/100, 0));
+			drawCentreString(String(pressure_at_sealevel(t_value, p_value)/100, 0), 0, 9, 0); 
 			}
 			else
 			{
@@ -4448,10 +4443,9 @@ static void display_values_matrix()
 			myCUSTOM = display.color565(displayColor.R, displayColor.G, displayColor.B);
 			display.fillRect(50, 9, 14, 14, myCUSTOM);
 			display.setFont(NULL);
-			display.setCursor(0, 9);
 			display.setTextSize(2);
 			display.setTextColor(myWHITE);
-			display.print(String(co2_value, 0));
+			drawCentreString(String(co2_value, 0), 0, 9, 14); 
 			display.setTextColor(myCUSTOM);
 			messager2(co2_value, 440, 800, 1700);
 			}
@@ -4477,10 +4471,9 @@ static void display_values_matrix()
 			myCUSTOM = display.color565(displayColor.R, displayColor.G, displayColor.B);
 			display.fillRect(50, 9, 14, 14, myCUSTOM);
 			display.setFont(NULL);
-			display.setCursor(0, 9);
 			display.setTextSize(2);
 			display.setTextColor(myWHITE);
-			display.print(String(co2_value, 0));
+			drawCentreString(String(co2_value, 0), 0, 9, 14); 
 			display.setTextColor(myCUSTOM);
 			messager2(co2_value, 440, 800, 1700);
 			}
@@ -4502,10 +4495,9 @@ static void display_values_matrix()
 			display.print("ppm");
 			drawImage(55, 0, 8, 9, maison);
 			display.setFont(NULL);
-			display.setCursor(0, 9);
 			display.setTextSize(2);
 			display.setTextColor(myWHITE);
-			display.print(String(cov_value, 0));
+			drawCentreString(String(cov_value, 0), 0, 9, 0); 
 			}
 			else
 			{
@@ -4518,9 +4510,9 @@ static void display_values_matrix()
 		display.setTextColor(myWHITE);
 		display.setFont(&Font4x7Fixed);
 		display.setTextSize(1);
-		display.setCursor(13, 9);
+		display.setCursor(13, 14);
 		display.print("Air");
-		display.setCursor(1, 19);
+		display.setCursor(1, 24);
 		display.print("ext");
 		display.write(233);
 		display.print("rieur");
@@ -4543,11 +4535,9 @@ static void display_values_matrix()
 			display.fillRect(50, 9, 14, 14, myCUSTOM);
 			display.setFont(NULL);
 			display.setTextColor(myWHITE);
-			display.setCursor(0, 9);
 			display.setTextSize(2);
-			display.print(String(atmoSud.multi, 0));
+			drawCentreString(String(atmoSud.multi, 0), 0, 9, 14); 
 			//drawgradient(0, 25, atmoSud.no2, 20, 40, 50, 100, 150);
-			// if(gamma_correction){drawImage(0, 25, 7, 64, gradient_20_150_gamma);}else{drawImage(0, 25, 7, 64, gradient_20_150);}
 			if(gamma_correction){drawImage(0, 28, 4, 64, gradient_20_150_gamma);}else{drawImage(0, 28, 4, 64, gradient_20_150);}
 			display.setTextSize(1);
 			display.setCursor((uint8_t)((63*atmoSud.multi)/150)-2, 25-2); //2 pixels de offset
@@ -4576,11 +4566,9 @@ static void display_values_matrix()
 			display.fillRect(50, 9, 14, 14, myCUSTOM);
 			display.setFont(NULL);
 			display.setTextColor(myWHITE);
-			display.setCursor(0, 9);
 			display.setTextSize(2);
-			display.print(String(atmoSud.no2, 0));
+			drawCentreString(String(atmoSud.no2, 0), 0, 9, 14); 
 			//drawgradient(0, 25, atmoSud.no2, 40, 90, 120, 230, 340);
-			// if(gamma_correction){drawImage(0, 25, 7, 64, gradient_40_340_gamma);}else{drawImage(0, 25, 7, 64, gradient_40_340);}
 			if(gamma_correction){drawImage(0, 28, 4, 64, gradient_40_340_gamma);}else{drawImage(0, 28, 4, 64, gradient_40_340);}
 			display.setTextSize(1);
 			display.setCursor((uint8_t)((63*atmoSud.no2)/340)-2, 25-2); //2 pixels de offset
@@ -4609,11 +4597,9 @@ static void display_values_matrix()
 			display.fillRect(50, 9, 14, 14, myCUSTOM);
 			display.setFont(NULL);
 			display.setTextColor(myWHITE);
-			display.setCursor(0, 9);
 			display.setTextSize(2);
-			display.print(String(atmoSud.o3, 0));
+			drawCentreString(String(atmoSud.o3, 0), 0, 9, 14); 
 			//drawgradient(0, 25, atmoSud.o3, 50, 100, 130, 240, 380);
-			// if(gamma_correction){drawImage(0, 25, 7, 64, gradient_50_380_gamma);}else{drawImage(0, 25, 7, 64, gradient_50_380);}
 			if(gamma_correction){drawImage(0, 28, 4, 64, gradient_50_380_gamma);}else{drawImage(0, 28, 4, 64, gradient_50_380);}
 			display.setTextSize(1);
 			display.setCursor((uint8_t)((63*atmoSud.o3)/380)-2, 25-2); //2 pixels de offset
@@ -4641,11 +4627,9 @@ static void display_values_matrix()
 			display.fillRect(50, 9, 14, 14, myCUSTOM);
 			display.setFont(NULL);
 			display.setTextColor(myWHITE);
-			display.setCursor(0, 9);
 			display.setTextSize(2);
-			display.print(String(atmoSud.pm10, 0));
+			drawCentreString(String(atmoSud.pm10, 0), 0, 9, 14); 
 			//drawgradient(0, 25, atmoSud.pm10, 20, 40, 50, 100, 150);
-			// if(gamma_correction){drawImage(0, 25, 7, 64, gradient_20_150_gamma);}else{drawImage(0, 25, 7, 64, gradient_20_150);}
 			if(gamma_correction){drawImage(0, 28, 4, 64, gradient_20_150_gamma);}else{drawImage(0, 28, 4, 64, gradient_20_150);}
 			display.setTextSize(1);
 			display.setCursor((uint8_t)((63*atmoSud.pm10)/150)-2, 25-2); //2 pixels de offset
@@ -4673,11 +4657,9 @@ static void display_values_matrix()
 			display.fillRect(50, 9, 14, 14, myCUSTOM);
 			display.setFont(NULL);
 			display.setTextColor(myWHITE);
-			display.setCursor(0, 9);
 			display.setTextSize(2);
-			display.print(String(atmoSud.pm2_5, 0));
+			drawCentreString(String(atmoSud.pm2_5, 0), 0, 9, 14); 
 			//drawgradient(0, 25, atmoSud.pm2_5, 10, 20, 25, 50, 75);
-			// if(gamma_correction){drawImage(0, 25, 7, 64, gradient_10_75_gamma);}else{drawImage(0, 25, 7, 64, gradient_10_75);}
 			if(gamma_correction){drawImage(0, 28, 4, 64, gradient_10_75_gamma);}else{drawImage(0, 28, 4, 64, gradient_10_75);}
 			display.setTextSize(1);
 			display.setCursor((uint8_t)((63*atmoSud.pm2_5)/75)-2, 25-2); //2 pixels de offset
@@ -4764,12 +4746,6 @@ static void display_values_matrix()
 			display.print(cfg::appkey);
 			break;
 		case 23:
-		// if(pm10_value == -1.0 && pm25_value == -1.0 && pm01_value == -1.0 && co2_value == -1.0 && cov_value == -1.0  && t_value == -128.0 && h_value == -1.0 && p_value == -1.0 && atmoSud.multi == -1.0 && atmoSud.no2 == -1.0 && atmoSud.o3 == -1.0 && atmoSud.pm10 == -1.0 && atmoSud.pm2_5 == -1.0)
-		// {
-		// 	drawImage(0, 0, 32, 64, logo_moduleair);
-		// }else{
-		// 	act_milli += 5000;
-		// }
 		if (has_logo && (logos[logo_index + 1] != 0 && logo_index != 5))
 		{
 		logo_index++;
