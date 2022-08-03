@@ -63,12 +63,14 @@ To force the use of both the SPIs on the ESP32, the SPI library and the PXMatrix
 SPI.cpp
 
 Modify as this:
-`#if CONFIG_IDF_TARGET_ESP32\
-SPIClass SPI(VSPI);\
-SPIClass SPI_H(HSPI);\
-#else\
-SPIClass SPI(FSPI);\
-#endif`
+```
+#if CONFIG_IDF_TARGET_ESP32
+SPIClass SPI(VSPI);
+SPIClass SPI_H(HSPI);
+#else
+SPIClass SPI(FSPI);
+#endif
+```
 
 SPI.h
 
@@ -77,15 +79,17 @@ Add this line at the bottom:
 
 PxMatrix.h
 
-Replace all `SPI` with `SPI_H`.
+Replace all `SPI` with `SPI_H` except for `#include <SPI.h>`.
 
 Verify that those pins are defined:
 
-`// HW SPI PINS\
-#define SPI_BUS_CLK 14\
-#define SPI_BUS_MOSI 13\
-#define SPI_BUS_MISO 12\
-#define SPI_BUS_SS 4`
+```
+// HW SPI PINS
+#define SPI_BUS_CLK 14
+#define SPI_BUS_MOSI 13
+#define SPI_BUS_MISO 12
+#define SPI_BUS_SS 4
+```
 
 ## Font changes
 
@@ -171,3 +175,20 @@ Then go to:
 http://www.rinkydinkelectronics.com/t_imageconverter565.php
 
 Finally copy/paste the 2048 HEX-bytes in logos-custom.h.
+
+
+			//{"software_version" : "ModuleAirV2-V1-122021", "sensordatavalues" : 
+			//[ {"value_type" : "NPM_P0", "value" : "1.84"}, 
+			//{"value_type" : "NPM_P1", "value" : "2.80"}, 
+			//{"value_type" : "NPM_P2", "value" : "2.06"}, 
+			//{"value_type" : "NPM_N1", "value" : "27.25"}, 
+			//{"value_type" : "NPM_N10", "value" : "27.75"}, 
+			//{"value_type" : "NPM_N25", "value" : "27.50"}, 
+			//{"value_type" : "BME280_temperature", "value" : "20.84"}, 
+			//{"value_type" : "BME280_pressure", "value" : "99220.03"}, 
+			//{"value_type" : "BME280_humidity", "value" : "61.66"}, 
+			//{"value_type" : "samples", "value" : "138555"}, 
+			//{"value_type" : "min_micro", "value" : "933"}, 
+			//{"value_type" : "max_micro", "value" : "351024"}, 
+			//{"value_type" : "interval", "value" : "145000"}, 
+			//{"value_type" : "signal", "value" : "-71"} ]}

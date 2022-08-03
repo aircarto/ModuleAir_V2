@@ -642,23 +642,26 @@ void messager1(float valueSensor, int step1, int step2, int step3, int step4, in
 //MESSAGES FIXES => CENTRER à la main
 
 display.setFont(NULL);
-display.setCursor(0, 25); //voir les position car caractères spéciaux
+//display.setCursor(0, 25); //voir les position car caractères spéciaux
 display.setTextSize(1);
 
 
 	//   if (valueSensor >= 0 && valueSensor <= step1)
 	if (valueSensor >= -1 && valueSensor <= step1)
 	{
+		display.setCursor(23, 25);
 		display.print("Bon");
 	}
 	else if (valueSensor > step1 && valueSensor <= step5)
 	{
 		if (valueSensor <= step2)
 		{
+		display.setCursor(17, 25);
 		display.print("Moyen");
 		}
 		else if (valueSensor > step2 && valueSensor <= step3)
 		{
+		display.setCursor(11, 25);
 		display.print("D");
 		display.write(130);
 		display.print("grad");
@@ -666,10 +669,12 @@ display.setTextSize(1);
 		}
 		else if (valueSensor > step3 && valueSensor <= step4)
 		{
+		display.setCursor(11, 25);
 		display.print("Mauvais");
 		}
 		else
 		{
+		display.setCursor(2, 25);
 		display.print("Tr");
 		display.write(138);
 		display.print("s mauvais");
@@ -677,13 +682,12 @@ display.setTextSize(1);
 	}
 	else if (valueSensor > step5)
 	{
+		display.setCursor(2, 25);
 		display.print("Ext. mauvais");
-		// display.write(136);
-		//display.print("mement mauvais");
 	}
 	else
 	{
-		display.setCursor(0, 25);
+		display.setCursor(14, 25);
 		display.setTextSize(1);
 		display.print("Erreur");
 	}
@@ -697,24 +701,26 @@ void messager2(float valueSensor, int step1, int step2, int step3)
 
 
 display.setFont(NULL);
-display.setCursor(0, 25); //voir les position?
+//display.setCursor(0, 25); //voir les position?
 display.setTextSize(1);
 
 
 	//   if (valueSensor >= 0 && valueSensor <= step1)
 	if (valueSensor >= -1 && valueSensor <= step1)
 	{
-
+		display.setCursor(20, 25);
 		display.print("Bien");
 	}
 	else if (valueSensor > step1 && valueSensor <= step3)
 	{
 		if (valueSensor <= step2)
 		{
+		display.setCursor(20, 25);
 		display.print("Bien");
 		}
 		else if (valueSensor > step2 && valueSensor <= step3)
 		{
+		display.setCursor(5, 25);
 		display.print("A");
 		display.write(130);
 		display.print("rer SVP");
@@ -722,13 +728,14 @@ display.setTextSize(1);
 	}
 	else if (valueSensor > step3)
 	{
+		display.setCursor(2, 25);
 		display.print("A");
 		display.write(130);
 		display.print("rer vite");
 	}
 	else
 	{
-		display.setCursor(0, 25);
+		display.setCursor(14, 25);
 		display.setTextSize(1);
 		display.print("Erreur");
 	}
@@ -4203,6 +4210,7 @@ static void display_values_matrix()
 		drawImage(0, 0, 32, 64, interieur);
 		display.setTextColor(myWHITE);
 		display.setFont(&Font4x7Fixed);
+		display.setTextSize(1);
 		display.setCursor(13, 14);
 		display.print("Air");
 		display.setCursor(1, 24);
@@ -4216,7 +4224,7 @@ static void display_values_matrix()
 		case 1:   //SDS
 		if(pm10_value != -1.0){
 			display.fillScreen(myBLACK);
-			display.setTextColor(myCYAN);
+			display.setTextColor(myWHITE);
 			display.setFont(NULL);
 			display.setCursor(0, 0);
 			display.setTextSize(1);
@@ -4245,7 +4253,7 @@ static void display_values_matrix()
 		case 2:
 		if(pm25_value != -1.0){
 			display.fillScreen(myBLACK);
-			display.setTextColor(myCYAN);
+			display.setTextColor(myWHITE);
 			display.setFont(NULL);
 			display.setCursor(0, 0);
 			display.setTextSize(1);
@@ -4274,7 +4282,7 @@ static void display_values_matrix()
 		case 3:   //NPM
 			if(pm10_value != -1.0){
 			display.fillScreen(myBLACK);
-			display.setTextColor(myCYAN);
+			display.setTextColor(myWHITE);
 			display.setFont(NULL);
 			display.setCursor(0, 0);
 			display.setTextSize(1);
@@ -4303,7 +4311,7 @@ static void display_values_matrix()
 		case 4:
 		if(pm25_value != -1.0){
 			display.fillScreen(myBLACK);
-			display.setTextColor(myCYAN);
+			display.setTextColor(myWHITE);
 			display.setFont(NULL);
 			display.setCursor(0, 0);
 			display.setTextSize(1);
@@ -4332,7 +4340,7 @@ static void display_values_matrix()
 		case 5:
 		if(pm01_value != -1.0){
 			display.fillScreen(myBLACK);
-			display.setTextColor(myCYAN);
+			display.setTextColor(myWHITE);
 			display.setFont(NULL);
 			display.setCursor(0, 0);
 			display.setTextSize(1);
@@ -4361,7 +4369,7 @@ static void display_values_matrix()
 		case 6:
 		if(t_value != -128.0){
 			display.fillScreen(myBLACK);
-			display.setTextColor(myCYAN);
+			display.setTextColor(myWHITE);
 			display.setFont(NULL);
 			display.setCursor(0, 0);
 			display.setTextSize(1);
@@ -4384,7 +4392,7 @@ static void display_values_matrix()
 		case 7:
 		if(h_value != -1.0){
 			display.fillScreen(myBLACK);
-			display.setTextColor(myCYAN);
+			display.setTextColor(myWHITE);
 			display.setFont(NULL);
 			display.setCursor(0, 0);
 			display.setTextSize(1);
@@ -4407,7 +4415,7 @@ static void display_values_matrix()
 		case 8:
 		if(p_value != -1.0){
 			display.fillScreen(myBLACK);
-			display.setTextColor(myCYAN);
+			display.setTextColor(myWHITE);
 			display.setFont(NULL);
 			display.setCursor(0, 0);
 			display.setTextSize(1);
@@ -4429,7 +4437,7 @@ static void display_values_matrix()
 		case 9:
 		if(co2_value != -1.0){
 			display.fillScreen(myBLACK);
-			display.setTextColor(myCYAN);
+			display.setTextColor(myWHITE);
 			display.setFont(NULL);
 			display.setCursor(0, 0);
 			display.setTextSize(1);
@@ -4457,7 +4465,7 @@ static void display_values_matrix()
 		case 10:
 		if(co2_value != -1.0){
 			display.fillScreen(myBLACK);
-			display.setTextColor(myCYAN);
+			display.setTextColor(myWHITE);
 			display.setFont(NULL);
 			display.setCursor(0, 0);
 			display.setTextSize(1);
@@ -4485,7 +4493,7 @@ static void display_values_matrix()
 		case 11:
 		if(cov_value != -1.0){
 			display.fillScreen(myBLACK);
-			display.setTextColor(myCYAN);
+			display.setTextColor(myWHITE);
 			display.setFont(NULL);
 			display.setCursor(0, 0);
 			display.setTextSize(1);
