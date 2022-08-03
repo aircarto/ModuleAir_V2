@@ -10,7 +10,7 @@ More information on Aircarto.fr
 * MH-Z19
 * BME280
 
-## Display
+## Displays
 * 64x32 RGB Matrix
 * OLED SSD1306
 
@@ -60,7 +60,7 @@ The .ini file should be able to get all the needed boards, platforms and librari
 
 To force the use of both the SPIs on the ESP32, the SPI library and the PXMatrix librar has to be corrected a bit.
 
-SPI.cpp
+**SPI.cpp**
 
 Modify as this:
 ```
@@ -72,12 +72,12 @@ SPIClass SPI(FSPI);
 #endif
 ```
 
-SPI.h
+**SPI.h**
 
 Add this line at the bottom:
 `extern SPIClass SPI_H;`
 
-PxMatrix.h
+**PxMatrix.h**
 
 Replace all `SPI` with `SPI_H` except for `#include <SPI.h>`.
 
@@ -141,7 +141,7 @@ The value are initialised for the first uplink at the end of the void setup() wh
 
 Those default values will be replaced during the normal use of the station according to the selected sensors.
 
-The fist byte is the configuation summary, representeed as an array of 0/1 for false/true:
+The first byte is the configuation summary, representeed as an array of 0/1 for false/true:
 
 configlorawan[0] = cfg::sds_read;\
 configlorawan[1] = cfg::npm_read;\
@@ -165,6 +165,12 @@ If wifi is activated it is useless to decode the uplinks and transmit some downl
 
 The last byte is a selector which tells the LoRaWAN server which kind of downlink values it should transmit (AQ index, NO2, O3, PM10, PM2.5 from the AtmoSud API). 5 downlinks will be sent each day.
 
+## WiFi payload
+
+Example for transmited data:
+
+`{"software_version" : "ModuleAirV2-V1-122021", "sensordatavalues" : [ {"value_type" : "NPM_P0", "value" : "1.84"}, {"value_type" : "NPM_P1", "value" : "2.80"}, {"value_type" : "NPM_P2", "value" : "2.06"}, {"value_type" : "NPM_N1", "value" : "27.25"}, {"value_type" : "NPM_N10", "value" : "27.75"}, {"value_type" : "NPM_N25", "value" : "27.50"}, {"value_type" : "BME280_temperature", "value" : "20.84"}, {"value_type" : "BME280_pressure", "value" : "99220.03"}, {"value_type" : "BME280_humidity", "value" : "61.66"}, {"value_type" : "samples", "value" : "138555"}, {"value_type" : "min_micro", "value" : "933"}, {"value_type" : "max_micro", "value" : "351024"}, {"value_type" : "interval", "value" : "145000"}, {"value_type" : "signal", "value" : "-71"} ]}`
+
 ## Picture encoding
 
 Prepare you picture with the format 2:1.
@@ -175,20 +181,3 @@ Then go to:
 http://www.rinkydinkelectronics.com/t_imageconverter565.php
 
 Finally copy/paste the 2048 HEX-bytes in logos-custom.h.
-
-
-			//{"software_version" : "ModuleAirV2-V1-122021", "sensordatavalues" : 
-			//[ {"value_type" : "NPM_P0", "value" : "1.84"}, 
-			//{"value_type" : "NPM_P1", "value" : "2.80"}, 
-			//{"value_type" : "NPM_P2", "value" : "2.06"}, 
-			//{"value_type" : "NPM_N1", "value" : "27.25"}, 
-			//{"value_type" : "NPM_N10", "value" : "27.75"}, 
-			//{"value_type" : "NPM_N25", "value" : "27.50"}, 
-			//{"value_type" : "BME280_temperature", "value" : "20.84"}, 
-			//{"value_type" : "BME280_pressure", "value" : "99220.03"}, 
-			//{"value_type" : "BME280_humidity", "value" : "61.66"}, 
-			//{"value_type" : "samples", "value" : "138555"}, 
-			//{"value_type" : "min_micro", "value" : "933"}, 
-			//{"value_type" : "max_micro", "value" : "351024"}, 
-			//{"value_type" : "interval", "value" : "145000"}, 
-			//{"value_type" : "signal", "value" : "-71"} ]}
