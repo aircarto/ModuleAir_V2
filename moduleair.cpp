@@ -1,9 +1,5 @@
 #include <WString.h>
 #include <pgmspace.h>
-//#include <vector>
-//#include <iostream>
-// #include <iomanip>
-// #include <sstream>
 
 #define SOFTWARE_VERSION_STR "ModuleAirV2-V1-042022"
 #define SOFTWARE_VERSION_STR_SHORT "V1-042022"
@@ -2056,7 +2052,7 @@ static void webserver_config_send_body_get(String &page_content)
 	// page_content += FPSTR(WEB_BRACE_BR);
 
 	server.sendContent(page_content);
-
+	page_content = emptyString;
 	page_content = FPSTR(TABLE_TAG_OPEN);
 	add_form_input(page_content, Config_host_custom2, FPSTR(INTL_SERVER2), LEN_HOST_CUSTOM2 - 1);
 	add_form_input(page_content, Config_url_custom2, FPSTR(INTL_PATH2), LEN_URL_CUSTOM2 - 1);
@@ -2065,7 +2061,7 @@ static void webserver_config_send_body_get(String &page_content)
 	add_form_input(page_content, Config_pwd_custom2, FPSTR(INTL_PASSWORD2), LEN_CFG_PASSWORD2 - 1);
 	page_content += FPSTR(TABLE_TAG_CLOSE_BR);
 
-	server.sendContent(page_content);
+	//server.sendContent(page_content);
 	// page_content = tmpl(FPSTR(WEB_DIV_PANEL), String(6));
 	// page_content += FPSTR("<b>");
 	// page_content += FPSTR(INTL_LOGOS);
@@ -3156,6 +3152,8 @@ static unsigned long sendData(const LoggerEntry logger, const String &data, cons
 static unsigned long sendSensorCommunity(const String &data, const int pin, const __FlashStringHelper *sensorname, const char *replace_str)
 {
 	unsigned long sum_send_time = 0;
+
+	Debug.println(data);
 
 	if (cfg::send2dusti && data.length())
 	{
@@ -5146,6 +5144,8 @@ static unsigned long sendDataToOptionalApis(const String &data)
 {
 	unsigned long sum_send_time = 0;
 
+	Debug.println(data);
+
 	if (cfg::send2madavi)
 	{
 		debug_outln_info(FPSTR(DBG_TXT_SENDING_TO), F("madavi.de: "));
@@ -5917,7 +5917,9 @@ void loop()
 		{
 			last_signal_strength = WiFi.RSSI();
 			RESERVE_STRING(data, LARGE_STR);
+			//RESERVE_STRING(data_custom, LARGE_STR);
 			data = FPSTR(data_first_part);
+			//data_custom
 			RESERVE_STRING(result, MED_STR);
 
 			void *SpActual = NULL;
@@ -5932,7 +5934,6 @@ void loop()
 			{
 				data += result_NPM;
 				sum_send_time += sendSensorCommunity(result_NPM, NPM_API_PIN, FPSTR(SENSORS_NPM), "NPM_");
-				Debug.println(data);
 			}
 
 			if (cfg::bmx280_read && (!bmx280_init_failed))
@@ -5948,7 +5949,6 @@ void loop()
 					sum_send_time += sendSensorCommunity(result, BMP280_API_PIN, FPSTR(SENSORS_BMP280), "BMP280_");
 				}
 				result = emptyString;
-				Debug.println(data);
 			}
 
 			if (cfg::mhz16_read)
@@ -5956,7 +5956,6 @@ void loop()
 				fetchSensorMHZ16(result);
 				data += result;
 				result = emptyString;
-				Debug.println(data);
 			}
 
 			if (cfg::mhz19_read)
@@ -5964,7 +5963,6 @@ void loop()
 				fetchSensorMHZ19(result);
 				data += result;
 				result = emptyString;
-				Debug.println(data);
 			}
 
 			if (cfg::sgp40_read && (!sgp40_init_failed))
@@ -5972,7 +5970,6 @@ void loop()
 				fetchSensorSGP40(result);
 				data += result;
 				result = emptyString;
-				Debug.println(data);
 			}
 
 			add_Value2Json(data, F("samples"), String(sample_count));
@@ -5980,6 +5977,8 @@ void loop()
 			add_Value2Json(data, F("max_micro"), String(max_micro));
 			add_Value2Json(data, F("interval"), String(cfg::sending_intervall_ms));
 			add_Value2Json(data, F("signal"), String(last_signal_strength));
+			add_Value2Json(data, F("latitude"), String(cfg::latitude));
+			add_Value2Json(data, F("longitude"), String(cfg::longitude));
 
 			if ((unsigned)(data.lastIndexOf(',') + 1) == data.length())
 			{
@@ -5988,7 +5987,6 @@ void loop()
 			data += "]}";
 
 			yield();
-			Debug.println(data);
 			sum_send_time += sendDataToOptionalApis(data);
 
 			//json example for WiFi transmission
@@ -6007,7 +6005,10 @@ void loop()
 			//{"value_type" : "min_micro", "value" : "933"}, 
 			//{"value_type" : "max_micro", "value" : "351024"}, 
 			//{"value_type" : "interval", "value" : "145000"}, 
-			//{"value_type" : "signal", "value" : "-71"} ]}
+			//{"value_type" : "signal", "value" : "-71"}
+			//{"value_type" : "latitude", "value" : "43.2964"}, 
+			//{"value_type" : "longitude", "value" : "5.36978"}
+			// ]}
 
 			// https://en.wikipedia.org/wiki/Moving_average#Cumulative_moving_average
 			sending_time = (3 * sending_time + sum_send_time) / 4;
