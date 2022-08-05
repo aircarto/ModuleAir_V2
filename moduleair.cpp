@@ -747,6 +747,15 @@ void drawCentreString(const String &buf, int x, int y, int offset)
     display.print(buf);
 }
 
+/*****************************************************************
+ * GPS coordinates                                              *
+ *****************************************************************/
+
+struct gps
+{
+	String latitude;
+	String longitude;
+};
 
 /*****************************************************************
  * Forecast Atmosud                                              *
@@ -3002,6 +3011,65 @@ static void waitForWifiToConnect(int maxRetries)
 	}
 }
 
+
+/*****************************************************************
+ * get GPS from AirCarto                                       *
+ *****************************************************************/
+
+String latitude_aircarto = "0.0";
+String longitude_aircarto = "0.0";
+
+gps getGPS(String id)
+{
+	String reponseAPI;
+	StaticJsonDocument<JSON_BUFFER_SIZE2> json;
+	char reponseJSON[JSON_BUFFER_SIZE2];
+
+	gps coordinates {"0.0","0.0"};
+
+	HTTPClient http;
+	http.setTimeout(20 * 1000);
+
+	String urlAirCarto = " http://data.aircarto.fr/getLocationModuleAir.php?id=";
+	String serverPath = urlAirCarto + id;
+
+	debug_outln_info(F("Call: "), serverPath);
+	http.begin(serverPath.c_str());
+
+	int httpResponseCode = http.GET();
+
+	if (httpResponseCode > 0)
+	{
+
+		reponseAPI = http.getString();
+		debug_outln_info(F("Response: "), reponseAPI);
+		strcpy(reponseJSON, reponseAPI.c_str());
+
+		DeserializationError error = deserializeJson(json, reponseJSON);
+
+		if (strcmp(error.c_str(), "Ok") == 0)
+		{
+			return {json["latitude"],json["longitude"]};
+		}
+		else
+		{
+			Debug.print(F("deserializeJson() failed: "));
+			Debug.println(error.c_str());
+			return {"0.0","0.0"};
+		}
+		http.end();
+	}
+	else
+	{
+		debug_outln_info(F("Failed connecting to AirCarto with error code:"), String(httpResponseCode));
+		return {"0.0","0.0"};
+		http.end();
+	}
+	
+}
+
+
+
 /*****************************************************************
  * WiFi auto connecting script                                   *
  *****************************************************************/
@@ -3038,6 +3106,8 @@ static void connectWifi()
 
 	waitForWifiToConnect(40);
 	debug_outln_info(emptyString);
+
+
 	if (WiFi.status() != WL_CONNECTED)
 	{
 		String fss(cfg::fs_ssid);
@@ -3051,7 +3121,13 @@ static void connectWifi()
 			waitForWifiToConnect(20);
 			debug_outln_info(emptyString);
 		}
+	}else{
+		Debug.println("Get coordinates...");
+		gps coordinates = getGPS(esp_chipid);
+		latitude_aircarto = coordinates.latitude;
+		longitude_aircarto = coordinates.longitude;
 	}
+
 	debug_outln_info(F("WiFi connected, IP is: "), WiFi.localIP().toString());
 	last_signal_strength = WiFi.RSSI();
 
@@ -3257,6 +3333,7 @@ static void getDataLora(uint8_t array[5])
 	Debug.println(u.f, 2);
 }
 
+
 /*****************************************************************
  * get data from AtmoSud api                                         *
  *****************************************************************/
@@ -3306,13 +3383,24 @@ float getDataAtmoSud(unsigned int type)
 	HTTPClient http;
 	http.setTimeout(20 * 1000);
 
-	double longbbox = atof(cfg::longitude) + 0.00001;
-	double latbbox = atof(cfg::latitude) + 0.00001;
+	double longbbox1 = atof(cfg::longitude) + 0.00001;
+	double latbbox1 = atof(cfg::latitude) + 0.00001;
+	double longbbox2 = longitude_aircarto.toDouble() + 0.00001;
+	double latbbox2 = latitude_aircarto.toDouble() + 0.00001;
+
 	char bufferlong[10];
 	char bufferlat[10];
-	sprintf(bufferlong, "%2.5f", longbbox);
-	sprintf(bufferlat, "%2.5f", latbbox);
-	String bbox = String(cfg::longitude) + "," + String(cfg::latitude) + "," + String(bufferlong) + "," + String(bufferlat);
+	String bbox;
+
+	if(String(cfg::longitude) == longitude_aircarto && String(cfg::latitude) == latitude_aircarto){
+	sprintf(bufferlong, "%2.5f", longbbox1);
+	sprintf(bufferlat, "%2.5f", latbbox1);
+	bbox = String(cfg::longitude) + "," + String(cfg::latitude) + "," + String(bufferlong) + "," + String(bufferlat);
+	}else{
+	sprintf(bufferlong, "%2.5f", longbbox2);
+	sprintf(bufferlat, "%2.5f", latbbox2);
+	bbox = longitude_aircarto + "," + latitude_aircarto + "," + String(bufferlong) + "," + String(bufferlat);
+	}
 	Debug.println(bbox);
 	String urlAtmo1 = "https://geoservices.atmosud.org/geoserver/azurjour/wms?&INFO_FORMAT=application/json&REQUEST=GetFeatureInfo&SERVICE=WMS%20&VERSION=1.1.1&WIDTH=1%20&HEIGHT=1&X=1&Y=1&BBOX=";
 	String urlAtmo2 = "&LAYERS=azurjour:paca-";
