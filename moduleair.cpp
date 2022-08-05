@@ -3016,8 +3016,8 @@ static void waitForWifiToConnect(int maxRetries)
  * get GPS from AirCarto                                       *
  *****************************************************************/
 
-String latitude_aircarto = "0.0";
-String longitude_aircarto = "0.0";
+String latitude_aircarto = "0.00000";
+String longitude_aircarto = "0.00000";
 
 gps getGPS(String id)
 {
@@ -3025,12 +3025,12 @@ gps getGPS(String id)
 	StaticJsonDocument<JSON_BUFFER_SIZE2> json;
 	char reponseJSON[JSON_BUFFER_SIZE2];
 
-	gps coordinates {"0.0","0.0"};
+	gps coordinates {"0.00000","0.00000"};
 
 	HTTPClient http;
 	http.setTimeout(20 * 1000);
 
-	String urlAirCarto = " https://data.aircarto.fr/getLocationModuleAir.php?id=";
+	String urlAirCarto = "http://data.aircarto.fr/getLocationModuleAir.php?id=";
 	String serverPath = urlAirCarto + id;
 
 	debug_outln_info(F("Call: "), serverPath);
@@ -3054,14 +3054,14 @@ gps getGPS(String id)
 		{
 			Debug.print(F("deserializeJson() failed: "));
 			Debug.println(error.c_str());
-			return {"0.0","0.0"};
+			return {"0.00000","0.00000"};
 		}
 		http.end();
 	}
 	else
 	{
 		debug_outln_info(F("Failed connecting to AirCarto with error code:"), String(httpResponseCode));
-		return {"0.0","0.0"};
+		return {"0.00000","0.00000"};
 		http.end();
 	}
 	
@@ -3119,6 +3119,18 @@ static void connectWifi()
 		{
 			waitForWifiToConnect(20);
 			debug_outln_info(emptyString);
+		}
+	}else{
+		Debug.println("Get coordinates..."); //only once!
+		gps coordinates = getGPS(esp_chipid);
+		latitude_aircarto = coordinates.latitude;
+		longitude_aircarto = coordinates.longitude;
+
+		Debug.println(coordinates.latitude);
+		Debug.println(coordinates.longitude);
+		if (coordinates.latitude != "0.00000" && coordinates.latitude != "0.00000"){
+		strcpy_P(cfg::latitude, latitude_aircarto.c_str()); //replace the values
+		strcpy_P(cfg::longitude, longitude_aircarto.c_str());
 		}
 	}
 	
@@ -3377,24 +3389,30 @@ float getDataAtmoSud(unsigned int type)
 	HTTPClient http;
 	http.setTimeout(20 * 1000);
 
-	double longbbox1 = atof(cfg::longitude) + 0.00001;
-	double latbbox1 = atof(cfg::latitude) + 0.00001;
-	double longbbox2 = longitude_aircarto.toDouble() + 0.00001;
-	double latbbox2 = latitude_aircarto.toDouble() + 0.00001;
+	double longbbox = atof(cfg::longitude) + 0.00001;
+	double latbbox = atof(cfg::latitude) + 0.00001;
+	// double longbbox1 = atof(cfg::longitude) + 0.00001;
+	// double latbbox1 = atof(cfg::latitude) + 0.00001;
+	// double longbbox2 = longitude_aircarto.toDouble() + 0.00001;
+	// double latbbox2 = latitude_aircarto.toDouble() + 0.00001;
 
 	char bufferlong[10];
 	char bufferlat[10];
-	String bbox;
+	//String bbox;
 
-	if((String(cfg::longitude) == longitude_aircarto && String(cfg::latitude) == latitude_aircarto) || (longitude_aircarto == "0.0" && latitude_aircarto == "0.0")){
-	sprintf(bufferlong, "%2.5f", longbbox1);
-	sprintf(bufferlat, "%2.5f", latbbox1);
-	bbox = String(cfg::longitude) + "," + String(cfg::latitude) + "," + String(bufferlong) + "," + String(bufferlat);
-	}else{
-	sprintf(bufferlong, "%2.5f", longbbox2);
-	sprintf(bufferlat, "%2.5f", latbbox2);
-	bbox = longitude_aircarto + "," + latitude_aircarto + "," + String(bufferlong) + "," + String(bufferlat);
-	}
+    sprintf(bufferlong, "%2.5f", longbbox);
+	sprintf(bufferlat, "%2.5f", latbbox);
+	String bbox = String(cfg::longitude) + "," + String(cfg::latitude) + "," + String(bufferlong) + "," + String(bufferlat);
+
+	// if((String(cfg::longitude) == longitude_aircarto && String(cfg::latitude) == latitude_aircarto) || (longitude_aircarto == "0.00000" && latitude_aircarto == "0.00000")){
+	// sprintf(bufferlong, "%2.5f", longbbox1);
+	// sprintf(bufferlat, "%2.5f", latbbox1);
+	// bbox = String(cfg::longitude) + "," + String(cfg::latitude) + "," + String(bufferlong) + "," + String(bufferlat);
+	// }else{
+	// sprintf(bufferlong, "%2.5f", longbbox2);
+	// sprintf(bufferlat, "%2.5f", latbbox2);
+	// bbox = longitude_aircarto + "," + latitude_aircarto + "," + String(bufferlong) + "," + String(bufferlat);
+	// }
 	Debug.println(bbox);
 	String urlAtmo1 = "https://geoservices.atmosud.org/geoserver/azurjour/wms?&INFO_FORMAT=application/json&REQUEST=GetFeatureInfo&SERVICE=WMS%20&VERSION=1.1.1&WIDTH=1%20&HEIGHT=1&X=1&Y=1&BBOX=";
 	String urlAtmo2 = "&LAYERS=azurjour:paca-";
@@ -6124,14 +6142,6 @@ void loop()
 
 			if (cfg::display_forecast)
 			{
-
-		Debug.println("Get coordinates...");
-		gps coordinates = getGPS(esp_chipid);
-		latitude_aircarto = coordinates.latitude;
-		longitude_aircarto = coordinates.longitude;
-
-		Debug.println(coordinates.latitude);
-		Debug.println(coordinates.longitude);
 
 				switch (forecast_selector)
 				{
