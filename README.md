@@ -187,3 +187,65 @@ Then go to:
 http://www.rinkydinkelectronics.com/t_imageconverter565.php
 
 Finally copy/paste the 2048 HEX-bytes in logos-custom.h.
+
+## Payload formaters
+
+**Uplink**
+
+```
+function Decoder(bytes, port) { 
+
+var buf = new ArrayBuffer(bytes.length);
+var view1 = new DataView(buf);
+var view2 = new DataView(buf);
+
+bytes.forEach(function (b, i) {
+    view1.setUint8(i, b);
+});
+
+bytes.forEach(function (b, i) {
+    view2.setInt8(i, b);
+});
+
+
+if (view1.getUint8(0) < 0 || view1.getUint8(0) > 255 || view1.getUint8(0) % 1 !== 0) {
+      throw new Error(byte+ " does not fit in a byte");
+  }
+  
+return {"configuration":("000000000" + view1.getUint8(0).toString(2)).substr(-8),"PM1_SDS":view2.getInt16(1).toString(),"PM2_SDS":view2.getInt16(3).toString(),"PM0_NPM":view1.getInt16(5).toString(),"PM1_NPM":view1.getInt16(7).toString(),"PM2_NPM":view1.getInt16(9).toString(),"N1_NPM":view1.getInt16(11).toString(),"N10_NPM":view1.getInt16(13).toString(),"N25_NPM":view1.getInt16(15).toString(),"CO2_MHZ16":view2.getInt16(17).toString(),"CO2_MHZ19":view2.getInt16(19).toString(), "COV_SGP40":view2.getInt16(21).toString(),"T_BME":view2.getInt8(23).toString(),"H_BME":view2.getInt8(24).toString(),"P_BME":view2.getInt16(25).toString(),"latitude":view1.getFloat32(27,true).toFixed(5),"longitude":view1.getFloat32(31,true).toFixed(5),"selector":view2.getInt8(35).toString()};  
+}
+```
+
+**Downlink**
+
+```
+function encodeDownlink(input) {
+  var selector = parseInt(input.data.selector);
+  var value = parseFloat(input.data.value);
+  var floatArray = new Float32Array(1)
+  floatArray[0]= value;
+  var byteArray = new Uint8Array(floatArray.buffer);
+  
+  return {
+    bytes: [selector,byteArray[0],byteArray[1],byteArray[2],byteArray[3]],
+    fPort: input.fPort,
+  };
+}
+
+function decodeDownlink(input) {
+  
+var buf = new ArrayBuffer(5);
+var view = new DataView(buf);
+
+input.bytes.forEach(function (b, i) {
+    view.setUint8(i, b);
+});
+  
+  return {
+    data: {
+      selector: view.getInt8(0).toString(),
+      value: view.getFloat32(1,true).toFixed(2).toString()
+    } 
+  }
+}
+```
