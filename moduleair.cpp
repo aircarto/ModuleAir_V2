@@ -3030,7 +3030,7 @@ gps getGPS(String id)
 	HTTPClient http;
 	http.setTimeout(20 * 1000);
 
-	String urlAirCarto = " http://data.aircarto.fr/getLocationModuleAir.php?id=";
+	String urlAirCarto = " https://data.aircarto.fr/getLocationModuleAir.php?id=";
 	String serverPath = urlAirCarto + id;
 
 	debug_outln_info(F("Call: "), serverPath);
@@ -3040,7 +3040,6 @@ gps getGPS(String id)
 
 	if (httpResponseCode > 0)
 	{
-
 		reponseAPI = http.getString();
 		debug_outln_info(F("Response: "), reponseAPI);
 		strcpy(reponseJSON, reponseAPI.c_str());
@@ -3121,13 +3120,8 @@ static void connectWifi()
 			waitForWifiToConnect(20);
 			debug_outln_info(emptyString);
 		}
-	}else{
-		Debug.println("Get coordinates...");
-		gps coordinates = getGPS(esp_chipid);
-		latitude_aircarto = coordinates.latitude;
-		longitude_aircarto = coordinates.longitude;
 	}
-
+	
 	debug_outln_info(F("WiFi connected, IP is: "), WiFi.localIP().toString());
 	last_signal_strength = WiFi.RSSI();
 
@@ -3392,7 +3386,7 @@ float getDataAtmoSud(unsigned int type)
 	char bufferlat[10];
 	String bbox;
 
-	if(String(cfg::longitude) == longitude_aircarto && String(cfg::latitude) == latitude_aircarto){
+	if((String(cfg::longitude) == longitude_aircarto && String(cfg::latitude) == latitude_aircarto) || (longitude_aircarto == "0.0" && latitude_aircarto == "0.0")){
 	sprintf(bufferlong, "%2.5f", longbbox1);
 	sprintf(bufferlat, "%2.5f", latbbox1);
 	bbox = String(cfg::longitude) + "," + String(cfg::latitude) + "," + String(bufferlong) + "," + String(bufferlat);
@@ -6130,6 +6124,15 @@ void loop()
 
 			if (cfg::display_forecast)
 			{
+
+		Debug.println("Get coordinates...");
+		gps coordinates = getGPS(esp_chipid);
+		latitude_aircarto = coordinates.latitude;
+		longitude_aircarto = coordinates.longitude;
+
+		Debug.println(coordinates.latitude);
+		Debug.println(coordinates.longitude);
+
 				switch (forecast_selector)
 				{
 				case 0:
