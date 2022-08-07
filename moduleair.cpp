@@ -637,7 +637,6 @@ void messager1(float valueSensor, int step1, int step2, int step3, int step4, in
 
 //MESSAGES FIXES => CENTRER à la main
 
-display.setFont(NULL);
 //display.setCursor(0, 25); //voir les position car caractères spéciaux
 display.setTextSize(1);
 
@@ -645,6 +644,7 @@ display.setTextSize(1);
 	//   if (valueSensor >= 0 && valueSensor <= step1)
 	if (valueSensor >= -1 && valueSensor <= step1)
 	{
+		display.setFont(NULL);
 		display.setCursor(23, 25);
 		display.print("Bon");
 	}
@@ -652,11 +652,13 @@ display.setTextSize(1);
 	{
 		if (valueSensor <= step2)
 		{
+		display.setFont(NULL);
 		display.setCursor(17, 25);
 		display.print("Moyen");
 		}
 		else if (valueSensor > step2 && valueSensor <= step3)
 		{
+		display.setFont(NULL);
 		display.setCursor(11, 25);
 		display.print("D");
 		display.write(130);
@@ -665,26 +667,29 @@ display.setTextSize(1);
 		}
 		else if (valueSensor > step3 && valueSensor <= step4)
 		{
+		display.setFont(NULL);
 		display.setCursor(11, 25);
 		display.print("Mauvais");
 		}
 		else
 		{
-		display.setCursor(2, 25);
+		display.setFont(&Font4x7Fixed);
+		display.setCursor(0, 31);
 		display.print("Tr");
-		display.write(138);
+		display.write(232);
 		display.print("s mauvais");
 		}
 	}
 	else if (valueSensor > step5)
 	{
-		display.setCursor(2, 25);
+		display.setFont(&Font4x7Fixed);
+		display.setCursor(0, 31);
 		display.print("Ext. mauvais");
 	}
 	else
 	{
+		display.setFont(NULL);
 		display.setCursor(14, 25);
-		display.setTextSize(1);
 		display.print("Erreur");
 	}
 
@@ -1366,6 +1371,10 @@ static String NPM_temp_humi()
  *****************************************************************/
 static bool writeConfig()
 {
+	if (cfg::has_matrix){
+		display_update_enable(false); //prevent crash
+	}
+
 	DynamicJsonDocument json(JSON_BUFFER_SIZE);
 	debug_outln_info(F("Saving config..."));
 	json["SOFTWARE_VERSION"] = SOFTWARE_VERSION;
@@ -2893,6 +2902,12 @@ static int selectChannelForAp()
  *****************************************************************/
 static void wifiConfig()
 {
+
+	if (cfg::has_matrix)
+		{
+		display_update_enable(true); //deactivate matrix during wifi connection because of interrupts
+		}
+
 	debug_outln_info(F("Starting WiFiManager"));
 	debug_outln_info(F("AP ID: "), String(cfg::fs_ssid));
 	debug_outln_info(F("Password: "), String(cfg::fs_pwd));
@@ -3077,6 +3092,11 @@ gps getGPS(String id)
 
 static void connectWifi()
 {
+	if (cfg::has_matrix)
+		{
+		display_update_enable(false); //deactivate matrix during wifi connection because of interrupts
+		}
+
 	display_debug(F("Connecting to"), String(cfg::wlanssid));
 
 	if (WiFi.getAutoConnect())
@@ -3129,7 +3149,7 @@ static void connectWifi()
 		Debug.println(coordinates.latitude);
 		Debug.println(coordinates.longitude);
 		if (coordinates.latitude != "0.00000" && coordinates.latitude != "0.00000"){
-		strcpy_P(cfg::latitude, latitude_aircarto.c_str()); //replace the values
+		strcpy_P(cfg::latitude, latitude_aircarto.c_str()); //replace the values in the firmware but not in the SPIFFS
 		strcpy_P(cfg::longitude, longitude_aircarto.c_str());
 		}
 	}
@@ -3142,6 +3162,11 @@ static void connectWifi()
 		MDNS.addService("http", "tcp", 80);
 		MDNS.addServiceTxt("http", "tcp", "PATH", "/config");
 	}
+
+if (cfg::has_matrix)
+		{
+		display_update_enable(true); //reactivate matrix
+		}
 }
 
 static WiFiClient *getNewLoggerWiFiClient(const LoggerEntry logger)
@@ -5765,6 +5790,14 @@ void setup()
 	Debug.printf("End of Stack is near: %p \r\n", (void *)StackPtrEnd);
 	Debug.printf("Free Stack at setup is:  %d \r\n", (uint32_t)StackPtrAtStart - (uint32_t)StackPtrEnd);
 
+
+
+	// if (cfg::has_matrix)
+	// {
+	// 	init_matrix();
+	// }
+
+
 	esp_chipid = String((uint16_t)(ESP.getEfuseMac() >> 32), HEX); // for esp32
 	esp_chipid += String((uint32_t)ESP.getEfuseMac(), HEX);
 	esp_chipid.toUpperCase();
@@ -5774,6 +5807,16 @@ void setup()
 	debug_outln_info(F("ModuleAirV2: " SOFTWARE_VERSION_STR "/"), String(CURRENT_LANG));
 
 	init_config();
+
+	//SPI.end();
+
+	if (cfg::has_matrix)
+	{
+		init_matrix();
+	}
+
+
+
 
 #if defined(ESP32) and not defined(ARDUINO_HELTEC_WIFI_LORA_32_V2) and not defined(ARDUINO_TTGO_LoRa32_v21new)
 	Wire.begin(I2C_PIN_SDA, I2C_PIN_SCL);
@@ -5836,6 +5879,16 @@ void setup()
 		init_display();
 	}
 
+
+	// if (cfg::has_matrix)
+	// {
+	// 	init_matrix();
+	// }
+
+
+
+
+
 	debug_outln_info(F("\nChipId: "), esp_chipid);
 
 	// always start the Webserver on void setup to get access to the sensor
@@ -5868,10 +5921,12 @@ void setup()
 		last_display_millis_matrix = starttime_SDS = starttime;
 	}
 
-	if (cfg::has_matrix)
-	{
-		init_matrix();
-	}
+	// if (cfg::has_matrix)
+	// {
+	// 	init_matrix();
+	// }
+
+	//powerOnTestSensors();
 
 	if (cfg::has_lora && lorachip)
 	{
