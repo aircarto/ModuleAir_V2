@@ -3002,6 +3002,10 @@ static void wifiConfig()
 	debug_outln_info(FPSTR(DBG_TXT_SEP));
 	debug_outln_info_bool(F("SDS: "), cfg::sds_read);
 	debug_outln_info_bool(F("NPM: "), cfg::npm_read);
+	debug_outln_info_bool(F("BMX: "), cfg::bmx280_read);
+	debug_outln_info_bool(F("MHZ16: "), cfg::mhz16_read);
+	debug_outln_info_bool(F("MHZ19: "), cfg::mhz19_read);
+	debug_outln_info_bool(F("SGP40: "), cfg::sgp40_read);
 	debug_outln_info(FPSTR(DBG_TXT_SEP));
 	debug_outln_info_bool(F("SensorCommunity: "), cfg::send2dusti);
 	debug_outln_info_bool(F("Madavi: "), cfg::send2madavi);
@@ -6071,6 +6075,7 @@ void loop()
 		if (cfg::has_wifi)
 		{
 			last_signal_strength = WiFi.RSSI();
+		}
 			RESERVE_STRING(data, LARGE_STR);
 			//RESERVE_STRING(data_custom, LARGE_STR);
 			data = FPSTR(data_first_part);
@@ -6083,12 +6088,18 @@ void loop()
 			if (cfg::sds_read)
 			{
 				data += result_SDS;
+				if (cfg::has_wifi)
+				{
 				sum_send_time += sendSensorCommunity(result_SDS, SDS_API_PIN, FPSTR(SENSORS_SDS011), "SDS_");
+				}
 			}
 			if (cfg::npm_read)
 			{
 				data += result_NPM;
+				if (cfg::has_wifi)
+				{
 				sum_send_time += sendSensorCommunity(result_NPM, NPM_API_PIN, FPSTR(SENSORS_NPM), "NPM_");
+				}
 			}
 
 			if (cfg::bmx280_read && (!bmx280_init_failed))
@@ -6097,14 +6108,23 @@ void loop()
 				data += result;
 				if (bmx280.sensorID() == BME280_SENSOR_ID)
 				{
+				if (cfg::has_wifi)
+				{
 					sum_send_time += sendSensorCommunity(result, BME280_API_PIN, FPSTR(SENSORS_BME280), "BME280_");
+				}
 				}
 				else
 				{
+				if (cfg::has_wifi)
+				{
 					sum_send_time += sendSensorCommunity(result, BMP280_API_PIN, FPSTR(SENSORS_BMP280), "BMP280_");
+				}
 				}
 				result = emptyString;
 			}
+
+
+			//These values are not sent because not configured in the SC API:
 
 			if (cfg::mhz16_read)
 			{
@@ -6142,8 +6162,11 @@ void loop()
 			data += "]}";
 
 			yield();
-			sum_send_time += sendDataToOptionalApis(data);
 
+			if (cfg::has_wifi)
+				{
+			sum_send_time += sendDataToOptionalApis(data);
+			
 			//json example for WiFi transmission
 
 			//{"software_version" : "ModuleAirV2-V1-122021", "sensordatavalues" : 
@@ -6180,7 +6203,7 @@ void loop()
 				WiFi.reconnect();
 				waitForWifiToConnect(20);
 			}
-
+			}
 			// only do a restart after finishing sending
 			if (msSince(time_point_device_start_ms) > DURATION_BEFORE_FORCED_RESTART_MS)
 			{
@@ -6195,7 +6218,7 @@ void loop()
 			max_micro = 0;
 			sum_send_time = 0;
 
-			if (cfg::display_forecast)
+			if (cfg::display_forecast && cfg::has_wifi) //the reception through LoRaWAN downlink is automatically done
 			{
 
 				switch (forecast_selector)
@@ -6217,7 +6240,7 @@ void loop()
 					break;
 				}
 			}
-		}
+		//}
 
 		if (cfg::has_lora && lorachip)
 		{
