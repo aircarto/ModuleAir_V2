@@ -3015,6 +3015,8 @@ static void wifiConfig()
 	debug_outln_info(FPSTR(DBG_TXT_SEP));
 	debug_outln_info_bool(F("Display: "), cfg::has_ssd1306);
 	debug_outln_info_bool(F("Matrix: "), cfg::has_matrix);
+	debug_outln_info_bool(F("Display Measures: "), cfg::display_measure);
+	debug_outln_info_bool(F("Display forecast: "), cfg::display_forecast);
 	debug_outln_info(F("Debug: "), String(cfg::debug));
 	wificonfig_loop = false; // VOIR ICI
 }
@@ -3720,6 +3722,10 @@ static void fetchSensorSDS(String &s)
  *****************************************************************/
 static void fetchSensorNPM(String &s)
 {
+
+	//bool NPM_new_data = false; // test if NPM produced new data
+	//NPM_new_data = true;
+
 	if (cfg::sending_intervall_ms > (WARMUPTIME_NPM_MS + READINGTIME_NPM_MS) && msSince(starttime) < (cfg::sending_intervall_ms - (WARMUPTIME_NPM_MS + READINGTIME_NPM_MS)))
 	{
 		if (is_NPM_running && !cfg::npm_fulltime && nextpmconnected)
@@ -6204,7 +6210,7 @@ void loop()
 				waitForWifiToConnect(20);
 			}
 			}
-			// only do a restart after finishing sending
+			// only do a restart after finishing sending (Wifi). Befor Lora to avoid conflicts with the LMIC
 			if (msSince(time_point_device_start_ms) > DURATION_BEFORE_FORCED_RESTART_MS)
 			{
 				sensor_restart();
@@ -6220,7 +6226,6 @@ void loop()
 
 			if (cfg::display_forecast && cfg::has_wifi) //the reception through LoRaWAN downlink is automatically done
 			{
-
 				switch (forecast_selector)
 				{
 				case 0:
@@ -6248,7 +6253,7 @@ void loop()
 			do_send(&sendjob);
 
 			//os_run_loop_once here ?
-			//boolean in EV_TX_COMPLETE to allaw WiFi after?
+			//boolean in EV_TX_COMPLETE to allaw WiFi after? 
 		}
 
 		starttime = millis(); // store the start time
@@ -6273,15 +6278,10 @@ void loop()
 		//		Serial.println(ESP.getFreeHeap(),DEC);
 	}
 
-
-
-
-	
-
 	if (cfg::has_lora && lorachip)
 	{
 		os_runloop_once();
-		//place in the send now ?
+		//place in the send now ? Let here to let Lora lib control itself
 	}
 }
 
