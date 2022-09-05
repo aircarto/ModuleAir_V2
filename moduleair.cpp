@@ -6088,8 +6088,8 @@ void loop()
 			//data_custom
 			RESERVE_STRING(result, MED_STR);
 
-			void *SpActual = NULL;
-			Debug.printf("Free Stack at sendSensorCommunity is: %d \r\n", (uint32_t)&SpActual - (uint32_t)StackPtrEnd);
+			//void *SpActual = NULL;
+			//Debug.printf("Free Stack at sendSensorCommunity is: %d \r\n", (uint32_t)&SpActual - (uint32_t)StackPtrEnd);
 
 			if (cfg::sds_read)
 			{
