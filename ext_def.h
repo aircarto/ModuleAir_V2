@@ -2,8 +2,8 @@
 #define CURRENT_LANG INTL_LANG
 
 // Wifi config
-const char WLANSSID[] PROGMEM = "__luftdaten";
-const char WLANPWD[] PROGMEM = "__luftd4ten";
+const char WLANSSID[] PROGMEM = "luftdaten";
+const char WLANPWD[] PROGMEM = "luftd4ten";
 
 // BasicAuth config
 const char WWW_USERNAME[] PROGMEM = "admin";
@@ -300,7 +300,7 @@ const char LONGITUDE[] PROGMEM = "5.369";
 #define HAS_SSD1306 0
 
 // RGB Matrix
-#define HAS_MATRIX 0
+#define HAS_MATRIX 1
 
 //Actual Data
 

@@ -13,6 +13,7 @@ String SOFTWARE_VERSION_SHORT(SOFTWARE_VERSION_STR_SHORT);
 #include <hal/hal.h>
 #include <SPI.h>
 
+
 /*****************************************************************
  * IMPORTANT                                          *
  *****************************************************************/
@@ -594,6 +595,227 @@ Debug.println(rgb565); // to get list of color if drawGradient is acitvated
 return result;
 }
 
+
+struct RGB interpolate3(float valueSensor, int step1, int step2, bool correction) //Humi
+{
+
+	byte endColorValueR;
+	byte startColorValueR;
+	byte endColorValueG;
+	byte startColorValueG;
+	byte endColorValueB;
+	byte startColorValueB;
+
+	int valueLimitHigh;
+	int valueLimitLow;
+	struct RGB result;
+	uint16_t rgb565;
+
+	if (valueSensor == 0)
+	{
+
+		result.R = 255;
+		result.G = 0;   //red
+		result.B = 0;
+	}
+	else if (valueSensor > 0 && valueSensor <= step2)
+	{
+		if (valueSensor <= step1)
+		{
+			valueLimitHigh = step1;
+			valueLimitLow = 0;
+			endColorValueR = 0;
+			startColorValueR = 255;  //red to green
+			endColorValueG = 255;
+			startColorValueG = 0; 
+			endColorValueB = 0;
+			startColorValueB = 0;
+		}
+		else if (valueSensor > step1 && valueSensor <= step2)
+		{
+			valueLimitHigh = step2;
+			valueLimitLow = step1;
+			endColorValueR = 255;
+			startColorValueR = 0;
+			endColorValueG = 0; //green to red
+			startColorValueG = 255;
+			endColorValueB = 0;
+			startColorValueB = 0;
+		}
+
+		result.R = (byte)(((endColorValueR - startColorValueR) * ((valueSensor - valueLimitLow) / (valueLimitHigh - valueLimitLow))) + startColorValueR);
+		result.G = (byte)(((endColorValueG - startColorValueG) * ((valueSensor - valueLimitLow) / (valueLimitHigh - valueLimitLow))) + startColorValueG);
+		result.B = (byte)(((endColorValueB - startColorValueB) * ((valueSensor - valueLimitLow) / (valueLimitHigh - valueLimitLow))) + startColorValueB);
+	}
+	else if (valueSensor > step2 && valueSensor <= 100 )
+	{
+		result.R = 255;
+		result.G = 0;  //red
+		result.B = 0;
+	}
+	else
+	{
+		result.R = 0;
+		result.G = 0;
+		result.B = 0;
+	}
+
+	// Debug.println(result.R);
+	// Debug.println(result.G);
+	// Debug.println(result.B);
+
+// Debug.println("Value in");
+// Debug.println(valueSensor);
+
+// Debug.println("Color in low RGB:");
+// Debug.print(startColorValueR);
+// Debug.print(" ");
+// Debug.print(startColorValueG);
+// Debug.print(" ");
+// Debug.print(startColorValueB);
+// Debug.printf("\n");
+
+// Debug.println("Color in high RGB:");
+// Debug.print(endColorValueR);
+// Debug.print(" ");
+// Debug.print(endColorValueG);
+// Debug.print(" ");
+// Debug.print(endColorValueB);
+// Debug.printf("\n");
+
+// Debug.println("Color out RGB:");
+// Debug.print(result.R);
+// Debug.print(" ");
+// Debug.print(result.G);
+// Debug.print(" ");
+// Debug.print(result.B);
+// Debug.printf("\n");
+
+//Gamma Correction
+
+if (correction == true){
+result.R = pgm_read_byte(&gamma8[result.R]);
+result.G = pgm_read_byte(&gamma8[result.G]);
+result.B = pgm_read_byte(&gamma8[result.B]);
+}
+
+rgb565 = ((result.R & 0b11111000) << 8) | ((result.G & 0b11111100) << 3) | (result.B >> 3);
+Debug.println(rgb565); // to get list of color if drawGradient is acitvated
+return result;
+}
+
+
+
+struct RGB interpolate4(float valueSensor, int step1, int step2, bool correction) //temp
+{
+
+	byte endColorValueR;
+	byte startColorValueR;
+	byte endColorValueG;
+	byte startColorValueG;
+	byte endColorValueB;
+	byte startColorValueB;
+
+	int valueLimitHigh;
+	int valueLimitLow;
+	struct RGB result;
+	uint16_t rgb565;
+
+	if (valueSensor == -128)
+	{
+
+		result.R = 0;
+		result.G = 0;   //blue
+		result.B = 255;
+	}
+	else if (valueSensor > 0 && valueSensor <= step2)
+	{
+		if (valueSensor <= step1)
+		{
+			valueLimitHigh = step1;
+			valueLimitLow = 0;
+			endColorValueR = 0;
+			startColorValueR = 0;  //blue to green
+			endColorValueG = 255;
+			startColorValueG = 0; 
+			endColorValueB = 0;
+			startColorValueB = 255;
+		}
+		else if (valueSensor > step1 && valueSensor <= step2)
+		{
+			valueLimitHigh = step2;
+			valueLimitLow = step1;
+			endColorValueR = 255;
+			startColorValueR = 0;
+			endColorValueG = 0; //green to red
+			startColorValueG = 255;
+			endColorValueB = 0;
+			startColorValueB = 0;
+		}
+
+		result.R = (byte)(((endColorValueR - startColorValueR) * ((valueSensor - valueLimitLow) / (valueLimitHigh - valueLimitLow))) + startColorValueR);
+		result.G = (byte)(((endColorValueG - startColorValueG) * ((valueSensor - valueLimitLow) / (valueLimitHigh - valueLimitLow))) + startColorValueG);
+		result.B = (byte)(((endColorValueB - startColorValueB) * ((valueSensor - valueLimitLow) / (valueLimitHigh - valueLimitLow))) + startColorValueB);
+	}
+	else if (valueSensor > step2)
+	{
+		result.R = 255;
+		result.G = 0;  //red
+		result.B = 0;
+	}
+	else
+	{
+		result.R = 0;
+		result.G = 0;
+		result.B = 0;
+	}
+
+	// Debug.println(result.R);
+	// Debug.println(result.G);
+	// Debug.println(result.B);
+
+// Debug.println("Value in");
+// Debug.println(valueSensor);
+
+// Debug.println("Color in low RGB:");
+// Debug.print(startColorValueR);
+// Debug.print(" ");
+// Debug.print(startColorValueG);
+// Debug.print(" ");
+// Debug.print(startColorValueB);
+// Debug.printf("\n");
+
+// Debug.println("Color in high RGB:");
+// Debug.print(endColorValueR);
+// Debug.print(" ");
+// Debug.print(endColorValueG);
+// Debug.print(" ");
+// Debug.print(endColorValueB);
+// Debug.printf("\n");
+
+// Debug.println("Color out RGB:");
+// Debug.print(result.R);
+// Debug.print(" ");
+// Debug.print(result.G);
+// Debug.print(" ");
+// Debug.print(result.B);
+// Debug.printf("\n");
+
+//Gamma Correction
+
+if (correction == true){
+result.R = pgm_read_byte(&gamma8[result.R]);
+result.G = pgm_read_byte(&gamma8[result.G]);
+result.B = pgm_read_byte(&gamma8[result.B]);
+}
+
+rgb565 = ((result.R & 0b11111000) << 8) | ((result.G & 0b11111100) << 3) | (result.B >> 3);
+Debug.println(rgb565); // to get list of color if drawGradient is acitvated
+return result;
+}
+
+
+
 //You can use drawGradient once in order to get the list of colors and then create an image which is much faster to display
 
 void drawgradient(int x, int y, float valueSensor, int step1, int step2, int step3, int step4, int step5)
@@ -742,6 +964,87 @@ display.setTextSize(1);
 	}
 
 }
+
+
+void messager3(float valueSensor, int step1, int step2) //humi
+{
+
+//MESSAGES FIXES => CENTRER à la main
+
+
+display.setFont(NULL);
+//display.setCursor(0, 25); //voir les position?
+display.setTextSize(1);
+
+
+	//   if (valueSensor >= 0 && valueSensor <= step1)
+	if (valueSensor >= -1 && valueSensor <= step1)
+	{
+		display.setCursor(20, 25);
+		display.print("Trop sec");
+	}
+	else if (valueSensor > step1 && valueSensor <= step2)
+	{
+
+		display.setCursor(20, 25);
+		display.print("Id");
+		display.write(130);
+		display.print("al");
+
+	}
+	else if (valueSensor > step2)
+	{
+		display.setCursor(2, 25);
+		display.print("Trop humide");
+	}
+	else
+	{
+		display.setCursor(14, 25);
+		display.setTextSize(1);
+		display.print("Erreur");
+	}
+
+}
+
+
+void messager4(float valueSensor, int step1, int step2) //temp
+{
+
+//MESSAGES FIXES => CENTRER à la main
+
+
+display.setFont(NULL);
+//display.setCursor(0, 25); //voir les position?
+display.setTextSize(1);
+
+
+	//   if (valueSensor >= 0 && valueSensor <= step1)
+	if (valueSensor >= -128 && valueSensor <= step1)
+	{
+		display.setCursor(20, 25);
+		display.print("Trop froid");
+	}
+	else if (valueSensor > step1 && valueSensor <= step2)
+	{
+
+		display.setCursor(20, 25);
+		display.print("Comfort");
+	}
+	else if (valueSensor > step2)
+	{
+		display.setCursor(2, 25);
+		display.print("Trop chaud");
+	}
+	else
+	{
+		display.setCursor(14, 25);
+		display.setTextSize(1);
+		display.print("Erreur");
+	}
+
+}
+
+
 
 void drawCentreString(const String &buf, int x, int y, int offset)
 {
@@ -4512,10 +4815,15 @@ static void display_values_matrix()
 			display.write(176);
 			display.print("C");
 			drawImage(55, 0, 8, 9, maison);
+			displayColor = interpolate4(t_value, 40, 60, gamma_correction);
+			myCUSTOM = display.color565(displayColor.R, displayColor.G, displayColor.B);
+			display.fillRect(50, 9, 14, 14, myCUSTOM);
 			display.setFont(NULL);
 			display.setTextSize(2);
 			display.setTextColor(myWHITE);
 			drawCentreString(String(t_value, 1), 0, 9, 0); 
+			display.setTextColor(myCUSTOM);
+			messager4(t_value, 40, 60);
 			}
 			else
 			{
@@ -4535,10 +4843,15 @@ static void display_values_matrix()
 			display.setCursor(display.getCursorX()+2, 7);
 			display.write(37);
 			drawImage(55, 0, 8, 9, maison);
+			displayColor = interpolate3(h_value, 40, 60, gamma_correction);
+			myCUSTOM = display.color565(displayColor.R, displayColor.G, displayColor.B);
+			display.fillRect(50, 9, 14, 14, myCUSTOM);
 			display.setFont(NULL);
 			display.setTextSize(2);
 			display.setTextColor(myWHITE);
-			drawCentreString(String(h_value, 0), 0, 9, 0); 
+			drawCentreString(String(h_value, 0), 0, 9, 0);
+			display.setTextColor(myCUSTOM);
+			messager3(h_value, 40, 60);
 			}
 			else
 			{
@@ -6196,6 +6509,7 @@ void loop()
 
 			// https://en.wikipedia.org/wiki/Moving_average#Cumulative_moving_average
 			sending_time = (3 * sending_time + sum_send_time) / 4;
+			
 			if (sum_send_time > 0)
 			{
 				debug_outln_info(F("Time for Sending (ms): "), String(sending_time));
