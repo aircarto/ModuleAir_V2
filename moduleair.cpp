@@ -4584,24 +4584,26 @@ static void display_values_matrix()
 			if(cfg_screen_pm25)screens[screen_count++] = 4; //PM2.5
 			if(cfg_screen_pm01)screens[screen_count++] = 5; //PM1
 		}
-		if (cfg::bmx280_read && cfg::display_measure)
-		{
-			if(cfg_screen_temp)screens[screen_count++] = 6; //T
-			if(cfg_screen_humi)screens[screen_count++] = 7; //H
-			if(cfg_screen_press)screens[screen_count++] = 8; //P
-		}
+
 
 		if (cfg::mhz16_read  && cfg::display_measure)
 		{
-			if(cfg_screen_co2)screens[screen_count++] = 9;
+			if(cfg_screen_co2)screens[screen_count++] = 6;
 		}
 		if (cfg::mhz19_read && cfg::display_measure)
 		{
-			if(cfg_screen_co2)screens[screen_count++] = 10;
+			if(cfg_screen_co2)screens[screen_count++] = 7;
 		}
 		if (cfg::sgp40_read && cfg::display_measure)
 		{
-			if(cfg_screen_cov)screens[screen_count++] = 11;
+			if(cfg_screen_cov)screens[screen_count++] = 8;
+		}
+
+		if (cfg::bmx280_read && cfg::display_measure)
+		{
+			if(cfg_screen_temp)screens[screen_count++] = 9; //T
+			if(cfg_screen_humi)screens[screen_count++] = 10; //H
+			if(cfg_screen_press)screens[screen_count++] = 11; //P
 		}
 
 		if (cfg::display_forecast)
@@ -4803,6 +4805,84 @@ static void display_values_matrix()
 			}
 			break;
 		case 6:
+		if(co2_value != -1.0){
+			display.fillScreen(myBLACK);
+			display.setTextColor(myWHITE);
+			display.setFont(NULL);
+			display.setCursor(0, 0);
+			display.setTextSize(1);
+			display.print("C0");
+			display.write(250);
+			display.setFont(&Font4x7Fixed);
+			display.setCursor(display.getCursorX()+2, 7);
+			display.print("ppm");
+			drawImage(55, 0, 8, 9, maison);
+			displayColor = interpolate2(co2_value, 440, 800, 1700, gamma_correction);
+			myCUSTOM = display.color565(displayColor.R, displayColor.G, displayColor.B);
+			display.fillRect(50, 9, 14, 14, myCUSTOM);
+			display.setFont(NULL);
+			display.setTextSize(2);
+			display.setTextColor(myWHITE);
+			drawCentreString(String(co2_value, 0), 0, 9, 14); 
+			display.setTextColor(myCUSTOM);
+			messager2(co2_value, 440, 800, 1700);
+			}
+			else
+			{
+			act_milli += 5000;	
+			}
+			break;
+		case 7:
+		if(co2_value != -1.0){
+			display.fillScreen(myBLACK);
+			display.setTextColor(myWHITE);
+			display.setFont(NULL);
+			display.setCursor(0, 0);
+			display.setTextSize(1);
+			display.print("C0");
+			display.write(250);
+			display.setFont(&Font4x7Fixed);
+			display.setCursor(display.getCursorX()+2, 7);
+			display.print("ppm");
+			drawImage(55, 0, 8, 9, maison);
+			displayColor = interpolate2(co2_value, 440, 800, 1700, gamma_correction);
+			myCUSTOM = display.color565(displayColor.R, displayColor.G, displayColor.B);
+			display.fillRect(50, 9, 14, 14, myCUSTOM);
+			display.setFont(NULL);
+			display.setTextSize(2);
+			display.setTextColor(myWHITE);
+			drawCentreString(String(co2_value, 0), 0, 9, 14); 
+			display.setTextColor(myCUSTOM);
+			messager2(co2_value, 440, 800, 1700);
+			}
+			else
+			{
+			act_milli += 5000;	
+			}
+			break;
+		case 8:
+		if(cov_value != -1.0){
+			display.fillScreen(myBLACK);
+			display.setTextColor(myWHITE);
+			display.setFont(NULL);
+			display.setCursor(0, 0);
+			display.setTextSize(1);
+			display.print("COV");
+			display.setFont(&Font4x7Fixed);
+			display.setCursor(display.getCursorX()+2, 7);
+			display.print("ppm");
+			drawImage(55, 0, 8, 9, maison);
+			display.setFont(NULL);
+			display.setTextSize(2);
+			display.setTextColor(myWHITE);
+			drawCentreString(String(cov_value, 0), 0, 9, 0); 
+			}
+			else
+			{
+			act_milli += 5000;	
+			}
+			break;
+		case 9:
 		if(t_value != -128.0){
 			display.fillScreen(myBLACK);
 			display.setTextColor(myWHITE);
@@ -4830,7 +4910,7 @@ static void display_values_matrix()
 			act_milli += 5000;	
 			}
 			break;
-		case 7:
+		case 10:
 		if(h_value != -1.0){
 			display.fillScreen(myBLACK);
 			display.setTextColor(myWHITE);
@@ -4858,7 +4938,7 @@ static void display_values_matrix()
 			act_milli += 5000;	
 			}
 			break;
-		case 8:
+		case 11:
 		if(p_value != -1.0){
 			display.fillScreen(myBLACK);
 			display.setTextColor(myWHITE);
@@ -4874,84 +4954,6 @@ static void display_values_matrix()
 			display.setTextSize(2);
 			display.setTextColor(myWHITE);
 			drawCentreString(String(pressure_at_sealevel(t_value, p_value)/100, 0), 0, 9, 0); 
-			}
-			else
-			{
-			act_milli += 5000;	
-			}
-			break;
-		case 9:
-		if(co2_value != -1.0){
-			display.fillScreen(myBLACK);
-			display.setTextColor(myWHITE);
-			display.setFont(NULL);
-			display.setCursor(0, 0);
-			display.setTextSize(1);
-			display.print("C0");
-			display.write(250);
-			display.setFont(&Font4x7Fixed);
-			display.setCursor(display.getCursorX()+2, 7);
-			display.print("ppm");
-			drawImage(55, 0, 8, 9, maison);
-			displayColor = interpolate2(co2_value, 440, 800, 1700, gamma_correction);
-			myCUSTOM = display.color565(displayColor.R, displayColor.G, displayColor.B);
-			display.fillRect(50, 9, 14, 14, myCUSTOM);
-			display.setFont(NULL);
-			display.setTextSize(2);
-			display.setTextColor(myWHITE);
-			drawCentreString(String(co2_value, 0), 0, 9, 14); 
-			display.setTextColor(myCUSTOM);
-			messager2(co2_value, 440, 800, 1700);
-			}
-			else
-			{
-			act_milli += 5000;	
-			}
-			break;
-		case 10:
-		if(co2_value != -1.0){
-			display.fillScreen(myBLACK);
-			display.setTextColor(myWHITE);
-			display.setFont(NULL);
-			display.setCursor(0, 0);
-			display.setTextSize(1);
-			display.print("C0");
-			display.write(250);
-			display.setFont(&Font4x7Fixed);
-			display.setCursor(display.getCursorX()+2, 7);
-			display.print("ppm");
-			drawImage(55, 0, 8, 9, maison);
-			displayColor = interpolate2(co2_value, 440, 800, 1700, gamma_correction);
-			myCUSTOM = display.color565(displayColor.R, displayColor.G, displayColor.B);
-			display.fillRect(50, 9, 14, 14, myCUSTOM);
-			display.setFont(NULL);
-			display.setTextSize(2);
-			display.setTextColor(myWHITE);
-			drawCentreString(String(co2_value, 0), 0, 9, 14); 
-			display.setTextColor(myCUSTOM);
-			messager2(co2_value, 440, 800, 1700);
-			}
-			else
-			{
-			act_milli += 5000;	
-			}
-			break;
-		case 11:
-		if(cov_value != -1.0){
-			display.fillScreen(myBLACK);
-			display.setTextColor(myWHITE);
-			display.setFont(NULL);
-			display.setCursor(0, 0);
-			display.setTextSize(1);
-			display.print("COV");
-			display.setFont(&Font4x7Fixed);
-			display.setCursor(display.getCursorX()+2, 7);
-			display.print("ppm");
-			drawImage(55, 0, 8, 9, maison);
-			display.setFont(NULL);
-			display.setTextSize(2);
-			display.setTextColor(myWHITE);
-			drawCentreString(String(cov_value, 0), 0, 9, 0); 
 			}
 			else
 			{
