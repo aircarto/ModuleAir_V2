@@ -868,7 +868,7 @@ display.setTextSize(1);
 	{
 		display.setFont(NULL);
 		display.setCursor(23, 25);
-		display.print("Bon");
+		display.print("BON");
 	}
 	else if (valueSensor > step1 && valueSensor <= step5)
 	{
@@ -876,43 +876,38 @@ display.setTextSize(1);
 		{
 		display.setFont(NULL);
 		display.setCursor(17, 25);
-		display.print("Moyen");
+		display.print("MOYEN");
 		}
 		else if (valueSensor > step2 && valueSensor <= step3)
 		{
 		display.setFont(NULL);
 		display.setCursor(11, 25);
-		display.print("D");
-		display.write(130);
-		display.print("grad");
-		display.write(130);
+		display.print("DEGRADE");
 		}
 		else if (valueSensor > step3 && valueSensor <= step4)
 		{
 		display.setFont(NULL);
 		display.setCursor(11, 25);
-		display.print("Mauvais");
+		display.print("MAUVAIS");
 		}
 		else
 		{
 		display.setFont(&Font4x7Fixed);
 		display.setCursor(0, 31);
-		display.print("Tr");
-		display.write(232);
-		display.print("s mauvais");
+		display.print("TRES MAUVAIS");
 		}
 	}
 	else if (valueSensor > step5)
 	{
 		display.setFont(&Font4x7Fixed);
 		display.setCursor(0, 31);
-		display.print("Ext. mauvais");
+		display.print("EXT. MAUVAIS");
 	}
 	else
 	{
 		display.setFont(NULL);
 		display.setCursor(14, 25);
-		display.print("Erreur");
+		display.print("ERREUR");
 	}
 
 }
@@ -932,35 +927,31 @@ display.setTextSize(1);
 	if (valueSensor >= -1 && valueSensor <= step1)
 	{
 		display.setCursor(20, 25);
-		display.print("Bien");
+		display.print("BIEN");
 	}
 	else if (valueSensor > step1 && valueSensor <= step3)
 	{
 		if (valueSensor <= step2)
 		{
 		display.setCursor(20, 25);
-		display.print("Bien");
+		display.print("BIEN");
 		}
 		else if (valueSensor > step2 && valueSensor <= step3)
 		{
 		display.setCursor(5, 25);
-		display.print("A");
-		display.write(130);
-		display.print("rer SVP");
+		display.print("AERER SVP");
 		}
 	}
 	else if (valueSensor > step3)
 	{
 		display.setCursor(2, 25);
-		display.print("A");
-		display.write(130);
-		display.print("rer vite");
+		display.print("AERER VITE");
 	}
 	else
 	{
 		display.setCursor(14, 25);
 		display.setTextSize(1);
-		display.print("Erreur");
+		display.print("ERREUR");
 	}
 
 }
@@ -980,28 +971,25 @@ display.setTextSize(1);
 	//   if (valueSensor >= 0 && valueSensor <= step1)
 	if (valueSensor >= -1 && valueSensor <= step1)
 	{
-		display.setCursor(20, 25);
-		display.print("Trop sec");
+		display.setCursor(2, 25);
+		display.print("TROP SEC");
 	}
 	else if (valueSensor > step1 && valueSensor <= step2)
 	{
 
 		display.setCursor(20, 25);
-		display.print("Id");
-		display.write(130);
-		display.print("al");
-
+		display.print("IDEAL");
 	}
 	else if (valueSensor > step2)
 	{
-		display.setCursor(2, 25);
-		display.print("Trop humide");
+		display.setCursor(0, 25);
+		display.print("TROP HUMIDE");
 	}
 	else
 	{
 		display.setCursor(14, 25);
 		display.setTextSize(1);
-		display.print("Erreur");
+		display.print("ERREUR");
 	}
 
 }
@@ -1022,29 +1010,27 @@ display.setTextSize(1);
 	if (valueSensor >= -128 && valueSensor <= step1)
 	{
 		display.setCursor(20, 25);
-		display.print("Trop froid");
+		display.print("TROP FROID");
 	}
 	else if (valueSensor > step1 && valueSensor <= step2)
 	{
 
 		display.setCursor(20, 25);
-		display.print("Comfort");
+		display.print("COMFORT");
 	}
 	else if (valueSensor > step2)
 	{
 		display.setCursor(2, 25);
-		display.print("Trop chaud");
+		display.print("TROP CHAUD");
 	}
 	else
 	{
 		display.setCursor(14, 25);
 		display.setTextSize(1);
-		display.print("Erreur");
+		display.print("ERREUR");
 	}
 
 }
-
-
 
 void drawCentreString(const String &buf, int x, int y, int offset)
 {
