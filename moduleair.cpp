@@ -630,28 +630,35 @@ struct RGB interpolate3(float valueSensor, int step1, int step2, bool correction
 			startColorValueG = 0; 
 			endColorValueB = 0;
 			startColorValueB = 0;
-		}
-		else if (valueSensor > step1 && valueSensor <= step2)
-		{
-			valueLimitHigh = step2;
-			valueLimitLow = step1;
-			endColorValueR = 255;
-			startColorValueR = 0;
-			endColorValueG = 0; //green to red
-			startColorValueG = 255;
-			endColorValueB = 0;
-			startColorValueB = 0;
-		}
 
 		result.R = (byte)(((endColorValueR - startColorValueR) * ((valueSensor - valueLimitLow) / (valueLimitHigh - valueLimitLow))) + startColorValueR);
 		result.G = (byte)(((endColorValueG - startColorValueG) * ((valueSensor - valueLimitLow) / (valueLimitHigh - valueLimitLow))) + startColorValueG);
 		result.B = (byte)(((endColorValueB - startColorValueB) * ((valueSensor - valueLimitLow) / (valueLimitHigh - valueLimitLow))) + startColorValueB);
+		
+		}
+		else if (valueSensor > step1 && valueSensor <= step2)
+		{
+		result.R = 0;
+		result.G = 255;   //green
+		result.B = 0;
+		}
+
 	}
 	else if (valueSensor > step2 && valueSensor <= 100 )
 	{
-		result.R = 255;
-		result.G = 0;  //red
-		result.B = 0;
+			valueLimitHigh = 100;
+			valueLimitLow = step2;
+			endColorValueR = 255;
+			startColorValueR = 0;  //green to red
+			endColorValueG = 0;
+			startColorValueG = 255; 
+			endColorValueB = 0;
+			startColorValueB = 0;
+
+		result.R = (byte)(((endColorValueR - startColorValueR) * ((valueSensor - valueLimitLow) / (valueLimitHigh - valueLimitLow))) + startColorValueR);
+		result.G = (byte)(((endColorValueG - startColorValueG) * ((valueSensor - valueLimitLow) / (valueLimitHigh - valueLimitLow))) + startColorValueG);
+		result.B = (byte)(((endColorValueB - startColorValueB) * ((valueSensor - valueLimitLow) / (valueLimitHigh - valueLimitLow))) + startColorValueB);
+		
 	}
 	else
 	{
@@ -721,14 +728,14 @@ struct RGB interpolate4(float valueSensor, int step1, int step2, bool correction
 	struct RGB result;
 	uint16_t rgb565;
 
-	if (valueSensor == -128)
+	if (valueSensor >= -128 && valueSensor < 0 )
 	{
 
 		result.R = 0;
 		result.G = 0;   //blue
 		result.B = 255;
 	}
-	else if (valueSensor > 0 && valueSensor <= step2)
+	else if (valueSensor >= 0 && valueSensor <= step1)
 	{
 		if (valueSensor <= step1)
 		{
@@ -740,27 +747,39 @@ struct RGB interpolate4(float valueSensor, int step1, int step2, bool correction
 			startColorValueG = 0; 
 			endColorValueB = 0;
 			startColorValueB = 255;
-		}
-		else if (valueSensor > step1 && valueSensor <= step2)
-		{
-			valueLimitHigh = step2;
-			valueLimitLow = step1;
-			endColorValueR = 255;
-			startColorValueR = 0;
-			endColorValueG = 0; //green to red
-			startColorValueG = 255;
-			endColorValueB = 0;
-			startColorValueB = 0;
-		}
 
 		result.R = (byte)(((endColorValueR - startColorValueR) * ((valueSensor - valueLimitLow) / (valueLimitHigh - valueLimitLow))) + startColorValueR);
 		result.G = (byte)(((endColorValueG - startColorValueG) * ((valueSensor - valueLimitLow) / (valueLimitHigh - valueLimitLow))) + startColorValueG);
 		result.B = (byte)(((endColorValueB - startColorValueB) * ((valueSensor - valueLimitLow) / (valueLimitHigh - valueLimitLow))) + startColorValueB);
+
+		}
+		else if (valueSensor > step1 && valueSensor <= step2)
+		{
+		result.R = 0;
+		result.G = 255;   //green
+		result.B = 0;
+		}
 	}
-	else if (valueSensor > step2)
+	else if (valueSensor > step2 && valueSensor <= 50)
+	{
+			valueLimitHigh = 50;
+			valueLimitLow = step2;
+			endColorValueR = 255;
+			startColorValueR = 0;  //green to red
+			endColorValueG = 0;
+			startColorValueG = 255; 
+			endColorValueB = 0;
+			startColorValueB = 0;
+
+		result.R = (byte)(((endColorValueR - startColorValueR) * ((valueSensor - valueLimitLow) / (valueLimitHigh - valueLimitLow))) + startColorValueR);
+		result.G = (byte)(((endColorValueG - startColorValueG) * ((valueSensor - valueLimitLow) / (valueLimitHigh - valueLimitLow))) + startColorValueG);
+		result.B = (byte)(((endColorValueB - startColorValueB) * ((valueSensor - valueLimitLow) / (valueLimitHigh - valueLimitLow))) + startColorValueB);
+		
+	}
+		else if (valueSensor > 50)
 	{
 		result.R = 255;
-		result.G = 0;  //red
+		result.G = 0;
 		result.B = 0;
 	}
 	else
@@ -4887,7 +4906,7 @@ static void display_values_matrix()
 			display.setFont(NULL);
 			display.setTextSize(2);
 			display.setTextColor(myWHITE);
-			drawCentreString(String(t_value, 1), 0, 9, 0); 
+			drawCentreString(String(t_value, 1), 0, 9, 14); 
 			display.setTextColor(myCUSTOM);
 			messager4(t_value, 40, 60);
 			}
@@ -4915,7 +4934,7 @@ static void display_values_matrix()
 			display.setFont(NULL);
 			display.setTextSize(2);
 			display.setTextColor(myWHITE);
-			drawCentreString(String(h_value, 0), 0, 9, 0);
+			drawCentreString(String(h_value, 0), 0, 9, 14);
 			display.setTextColor(myCUSTOM);
 			messager3(h_value, 40, 60);
 			}
