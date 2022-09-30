@@ -2,8 +2,8 @@
 #define CURRENT_LANG INTL_LANG
 
 // Wifi config
-const char WLANSSID[] PROGMEM = "luftdaten";
-const char WLANPWD[] PROGMEM = "luftd4ten";
+const char WLANSSID[] PROGMEM = "QG-Wifi";
+const char WLANPWD[] PROGMEM = "2826gambetta";
 
 // BasicAuth config
 const char WWW_USERNAME[] PROGMEM = "admin";
@@ -14,13 +14,13 @@ const char WWW_PASSWORD[] PROGMEM = "";
 #define FS_SSID ""
 #define FS_PWD "moduleaircfg"
 
-#define HAS_WIFI 1
-#define HAS_LORA 0
-const char APPEUI[] = "0000000000000000";
-const char DEVEUI [] = "0000000000000000";
-const char APPKEY[] = "00000000000000000000000000000000";
+#define HAS_WIFI 0
+#define HAS_LORA 1
+const char APPEUI[] = "6081F9538B15F28B";
+const char DEVEUI[] = "6081F9642B4C043E";
+const char APPKEY[] = "C73FE09FCA58113C603CC1742F550B81";
 
-// Where to send the data?
+// Where to send the data (over WIFI)
 #define SEND2SENSORCOMMUNITY 0
 #define SSL_SENSORCOMMUNITY 0
 #define SEND2MADAVI 0
@@ -29,7 +29,8 @@ const char APPKEY[] = "00000000000000000000000000000000";
 #define SEND2CUSTOM 0
 #define SEND2CUSTOM2 0
 
-enum LoggerEntry {
+enum LoggerEntry
+{
     LoggerSensorCommunity,
     LoggerMadavi,
     LoggerCustom,
@@ -37,10 +38,11 @@ enum LoggerEntry {
     LoggerCount
 };
 
-struct LoggerConfig {
+struct LoggerConfig
+{
     uint16_t destport;
     uint16_t errors;
-    void* session;
+    void *session;
 };
 
 // IMPORTANT: NO MORE CHANGES TO VARIABLE NAMES NEEDED FOR EXTERNAL APIS
@@ -56,8 +58,8 @@ static const char NTP_SERVER_1[] PROGMEM = "ntp-p1.obspm.fr";
 static const char NTP_SERVER_2[] PROGMEM = "ntp.obspm.fr";
 
 // define own API
-static const char HOST_CUSTOM[] PROGMEM = "192.168.234.1";
-static const char URL_CUSTOM[] PROGMEM = "/data.php";
+static const char HOST_CUSTOM[] PROGMEM = "moduleair.fr";
+static const char URL_CUSTOM[] PROGMEM = "/influx/dataModuleAir_v2_wifi.php";
 #define PORT_CUSTOM 80
 #define USER_CUSTOM ""
 #define PWD_CUSTOM ""
@@ -71,6 +73,65 @@ static const char URL_CUSTOM2[] PROGMEM = "/data.php";
 #define PWD_CUSTOM2 ""
 #define SSL_CUSTOM2 0
 
+// SDS011, the more expensive version of the particle sensor
+#define SDS_READ 0
+#define SDS_API_PIN 1
+
+// Tera Sensor Next PM sensor
+#define NPM_READ 1
+#define NPM_FULLTIME 0
+#define NPM_API_PIN 1
+
+// BMP280/BME280, temperature, pressure (humidity on BME280)
+#define BMX280_READ 1
+#define BMP280_API_PIN 3
+#define BME280_API_PIN 11
+
+// MH-Z16/MH-Z19, CO2 Sensor
+#define MHZ16_READ 1
+#define MHZ19_READ 0
+// #define MHZ16_API_PIN X
+// #define MHZ19_API_PIN X
+
+// SGP40, COV Sensor
+
+#define SGP40_READ 0
+// #define SGP40_API_PIN X
+
+// Location
+
+const char LATITUDE[] PROGMEM = "43.296";
+const char LONGITUDE[] PROGMEM = "5.369";
+
+// GPS, preferred Neo-6M
+#define GPS_READ 0
+#define GPS_API_PIN 9
+
+// OLED Display SSD1306
+#define HAS_SSD1306 0
+
+// RGB Matrix
+#define HAS_MATRIX 1
+
+// Actual Data
+
+#define DISPLAY_MEASURE 1
+#define DISPLAY_FORECAST 1
+
+// Show wifi info on displays
+#define DISPLAY_WIFI_INFO 0
+
+// Show wifi info on displays
+#define DISPLAY_LORA_INFO 0
+
+// Show device info on displays
+#define DISPLAY_DEVICE_INFO 0
+
+// Set debug level for serial output?
+#define DEBUG 5
+
+static const char URL_API_SENSORCOMMUNITY[] PROGMEM = "https://data.sensor.community/airrohr/v1/sensor/";
+
 #if defined(ARDUINO_ESP32_DEV) and defined(KIT_V1)
 //#define ONEWIRE_PIN D25
 #define PM_SERIAL_RX D39
@@ -82,7 +143,7 @@ static const char URL_CUSTOM2[] PROGMEM = "/data.php";
 // #define GPS_SERIAL_RX D12
 // #define GPS_SERIAL_TX D13
 
-//Original PINout
+// Original PINout
 
 // #define P_LAT 22
 // #define P_A 19
@@ -91,8 +152,6 @@ static const char URL_CUSTOM2[] PROGMEM = "/data.php";
 // #define P_D 5
 // #define P_E 15
 // #define P_OE 16
-
-
 
 #define P_LAT D15
 #define P_A D16
@@ -111,7 +170,7 @@ static const char URL_CUSTOM2[] PROGMEM = "/data.php";
 
 // MOSI 23
 // MISO 19
-// SCK  18 
+// SCK  18
 
 #endif
 
@@ -135,8 +194,7 @@ static const char URL_CUSTOM2[] PROGMEM = "/data.php";
 // #define P_E D32
 // #define P_OE D33
 
-
-//RECUP LE SCK DU VSPI SUR PXMATRIX + MOSI +MISO MOSI EST REATTRIBUABLE
+// RECUP LE SCK DU VSPI SUR PXMATRIX + MOSI +MISO MOSI EST REATTRIBUABLE
 
 // SPIClass SPI1(HSPI);
 
@@ -156,41 +214,40 @@ static const char URL_CUSTOM2[] PROGMEM = "/data.php";
 
 // NSS 5 pas obligé
 
-    //// LMIC init
-    //SPI.setMOSI(PC3);       
-    //SPI.setMISO(PC2);
-    //SPI.setSCLK(PB10);
+//// LMIC init
+// SPI.setMOSI(PC3);
+// SPI.setMISO(PC2);
+// SPI.setSCLK(PB10);
 
-   // os_init();
-    
-   //LMIC_reset();
+// os_init();
 
-//INITIATLISER LE SPI.BEGIN par defaut au debut du setup(), enlever de PXmatrix
+// LMIC_reset();
 
-//when using Begin/EndTransactions, don't set CS manually but use "setCS(pin)".
+// INITIATLISER LE SPI.BEGIN par defaut au debut du setup(), enlever de PXmatrix
 
-//setCS(5) => lora
-//setCS(4) => matrix
+// when using Begin/EndTransactions, don't set CS manually but use "setCS(pin)".
 
+// setCS(5) => lora
+// setCS(4) => matrix
 
-//Ou bien
+// Ou bien
 
 ////Attach/Detach SS pin to SPI_CSx signal
-//void spiAttachSS(spi_t * spi, uint8_t cs_num, int8_t ss);
-//void spiDetachSS(spi_t * spi, int8_t ss);
+// void spiAttachSS(spi_t * spi, uint8_t cs_num, int8_t ss);
+// void spiDetachSS(spi_t * spi, int8_t ss);
 
-//esp32-hal-spi.h
+// esp32-hal-spi.h
 
-//cf ici https://stackoverflow.com/questions/57454066/how-to-use-2-spi-devices-lora-and-sd-card-on-esp32 RESITANCE A AJOUTER????
+// cf ici https://stackoverflow.com/questions/57454066/how-to-use-2-spi-devices-lora-and-sd-card-on-esp32 RESITANCE A AJOUTER????
 
-//https://learn.sparkfun.com/tutorials/serial-peripheral-interface-spi/all
+// https://learn.sparkfun.com/tutorials/serial-peripheral-interface-spi/all
 
-//SPI.pins(6, 7, 8, 0) before the call to SPI.begin().
+// SPI.pins(6, 7, 8, 0) before the call to SPI.begin().
 
 // #define P_LAT D25
 // #define P_A D17
 // #define P_B D33
-// #define P_C D13 
+// #define P_C D13
 // #define P_D D12
 // #define P_E D15
 // #define P_OE D16
@@ -198,11 +255,10 @@ static const char URL_CUSTOM2[] PROGMEM = "/data.php";
 #define P_LAT D25
 #define P_A D17
 #define P_B D33
-#define P_C D4 //2
-#define P_D D12 //27
+#define P_C D4  // 2
+#define P_D D12 // 27
 #define P_E D15
 #define P_OE D16
-
 
 // const lmic_pinmap lmic_pins = {
 // 	.nss = D5,
@@ -213,8 +269,7 @@ static const char URL_CUSTOM2[] PROGMEM = "/data.php";
 
 #endif
 
-
-#if defined (ARDUINO_TTGO_LoRa32_v21new)
+#if defined(ARDUINO_TTGO_LoRa32_v21new)
 //#define ONEWIRE_PIN D25
 #define PM_SERIAL_RX D19
 #define PM_SERIAL_TX D23
@@ -261,62 +316,3 @@ static const char URL_CUSTOM2[] PROGMEM = "/data.php";
 // 	.spi_freq = 8000000 /* 8 MHz */
 // };
 #endif
-
-// SDS011, the more expensive version of the particle sensor
-#define SDS_READ 1
-#define SDS_API_PIN 1
-
-// Tera Sensor Next PM sensor
-#define NPM_READ 0
-#define NPM_FULLTIME 0
-#define NPM_API_PIN 1
-
-// BMP280/BME280, temperature, pressure (humidity on BME280)
-#define BMX280_READ 0
-#define BMP280_API_PIN 3
-#define BME280_API_PIN 11
-
-// MH-Z16/MH-Z19, CO2 Sensor
-#define MHZ16_READ 0
-#define MHZ19_READ 0
-// #define MHZ16_API_PIN X
-// #define MHZ19_API_PIN X
-
-// SGP40, COV Sensor
-
-#define SGP40_READ 0
-// #define SGP40_API_PIN X
-
-//Location
-
-const char LATITUDE[] PROGMEM = "43.296";
-const char LONGITUDE[] PROGMEM = "5.369";
-
-// GPS, preferred Neo-6M
-#define GPS_READ 0
-#define GPS_API_PIN 9
-
-// OLED Display SSD1306
-#define HAS_SSD1306 0
-
-// RGB Matrix
-#define HAS_MATRIX 1
-
-//Actual Data
-
-#define DISPLAY_MEASURE 0
-#define DISPLAY_FORECAST 0
-
-// Show wifi info on displays
-#define DISPLAY_WIFI_INFO 1
-
-// Show wifi info on displays
-#define DISPLAY_LORA_INFO 0
-
-// Show device info on displays
-#define DISPLAY_DEVICE_INFO 1
-
-// Set debug level for serial output?
-#define DEBUG 5
-
-static const char URL_API_SENSORCOMMUNITY[] PROGMEM = "https://data.sensor.community/airrohr/v1/sensor/";
