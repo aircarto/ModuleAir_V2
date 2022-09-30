@@ -5658,8 +5658,13 @@ void os_getDevKey(u1_t *buf) { memcpy_P(buf, appkey_hex, 16); }
 
 //uint8_t datalora[31] = {0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x80, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff};
 
-uint8_t datalora[37] = {0x00, 0xff, 0xff, 0xff, 0xff,0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x80, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff};
-			//			conf       sds		 sds         npm 		 npm		npm		    npm			npm			npm			co2			co2			 cov     temp  humi	   press   
+// uint8_t datalora[37] = {0x00, 0xff, 0xff, 0xff, 0xff,0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x80, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff};
+// 			//			conf       sds		 sds         npm 		 npm		npm		    npm			npm			npm			co2			co2			 cov     temp  humi	   press   
+
+uint8_t datalora[38] = {0x00, 0xff, 0xff, 0xff, 0xff,0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,0x80, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff};
+			//		    conf|   sds	    |	 sds    |    npm   | 	 npm   | 	npm	   |   npm	   |	npm	   |	npm	   |	co2	   |	 co2   |	cov    |    temp  | humi|   press   |       lat             |       lon             | sel
+
+			//Peut-être changer l'indianess pour temp = inverser
 
 
 // 0x00, config
@@ -6046,36 +6051,42 @@ static void prepareTxFrame()
 	datalora[21] = u1.temp_byte[1];
 	datalora[22] = u1.temp_byte[0];
 
-	datalora[23] = (int8_t)round(last_value_BMX280_T);
 
-	datalora[24] = (int8_t)round(last_value_BME280_H);
+	u1.temp_int = (int16_t)round(last_value_BMX280_T*10);
+
+	datalora[23] = u1.temp_byte[1];
+	datalora[24] = u1.temp_byte[0];
+
+//datalora[23] = (int8_t)round(last_value_BMX280_T);
+
+	datalora[25] = (int8_t)round(last_value_BME280_H);
 
 	u1.temp_int = (int16_t)round(last_value_BMX280_P);
 
-	datalora[25] = u1.temp_byte[1];
-	datalora[26] = u1.temp_byte[0];
+	datalora[26] = u1.temp_byte[1];
+	datalora[27] = u1.temp_byte[0];
 
 	u3.temp_float = atof(cfg::latitude);
 
-	datalora[27] = u3.temp_byte[0];
-	datalora[28] = u3.temp_byte[1];
-	datalora[29] = u3.temp_byte[2];
-	datalora[30] = u3.temp_byte[3];
+	datalora[28] = u3.temp_byte[0];
+	datalora[29] = u3.temp_byte[1];
+	datalora[30] = u3.temp_byte[2];
+	datalora[31] = u3.temp_byte[3];
 
 	u3.temp_float = atof(cfg::longitude);
 
-	datalora[31] = u3.temp_byte[0];
-	datalora[32] = u3.temp_byte[1];
-	datalora[33] = u3.temp_byte[2];
-	datalora[34] = u3.temp_byte[3];
+	datalora[32] = u3.temp_byte[0];
+	datalora[33] = u3.temp_byte[1];
+	datalora[34] = u3.temp_byte[2];
+	datalora[35] = u3.temp_byte[3];
 
-	datalora[35] = forecast_selector;
+	datalora[36] = forecast_selector;
 
 	Debug.printf("HEX values:\n");
-	for (int i = 0; i < 36; i++)
+	for (int i = 0; i < 37; i++)
 	{
 		Debug.printf(" %02x", datalora[i]);
-		if (i == 35)
+		if (i == 36)
 		{
 			Debug.printf("\n");
 		}
