@@ -97,8 +97,8 @@ namespace cfg
 {
 	unsigned debug = DEBUG;
 
-	unsigned time_for_wifi_config = 180000;
-	unsigned sending_intervall_ms = 145000;
+	unsigned time_for_wifi_config = 180000; // time after wifi_config is disabled 3min:180000  5min:300000  10min:600000
+	unsigned sending_intervall_ms = 145000; // time between each new measure and send data
 
 	char current_lang[3];
 
@@ -329,7 +329,7 @@ void drawImage(int x, int y, int h, int w, uint16_t image[])
 	}
 }
 
-bool gamma_correction = false; // Gamma correction
+bool gamma_correction = true; // Gamma correction
 
 struct RGB interpolateint(float valueSensor, int step1, int step2, int step3, bool correction)
 {
@@ -4473,15 +4473,15 @@ static void display_values_matrix()
 		if (pm10_value != -1.0 || pm25_value != -1.0 || pm01_value != -1.0 || t_value != -128.0 || h_value != -1.0 || p_value != -1.0 || co2_value != -1.0 || cov_value != -1.0)
 		{
 			drawImage(0, 0, 32, 64, interieur);
-			display.setTextColor(myWHITE);
-			display.setFont(&Font4x7Fixed);
-			display.setTextSize(1);
-			display.setCursor(13, 14);
-			display.print("Air");
-			display.setCursor(1, 24);
-			display.print("int");
-			display.write(233);
-			display.print("rieur");
+			// display.setTextColor(myWHITE);
+			// display.setFont(&Font4x7Fixed);
+			// display.setTextSize(1);
+			// display.setCursor(13, 14);
+			// display.print("Air");
+			// display.setCursor(1, 24);
+			// display.print("int");
+			// display.write(233);
+			// display.print("rieur");
 		}
 		else
 		{
@@ -4492,7 +4492,7 @@ static void display_values_matrix()
 		if (pm10_value != -1.0)
 		{
 			display.fillScreen(myBLACK);
-			display.setTextColor(myWHITE);
+			display.setTextColor(myBLUE);
 			display.setFont(NULL);
 			display.setCursor(0, 0);
 			display.setTextSize(1);
@@ -4522,7 +4522,7 @@ static void display_values_matrix()
 		if (pm25_value != -1.0)
 		{
 			display.fillScreen(myBLACK);
-			display.setTextColor(myWHITE);
+			display.setTextColor(myBLUE);
 			display.setFont(NULL);
 			display.setCursor(0, 0);
 			display.setTextSize(1);
@@ -4552,7 +4552,7 @@ static void display_values_matrix()
 		if (pm10_value != -1.0)
 		{
 			display.fillScreen(myBLACK);
-			display.setTextColor(myWHITE);
+			display.setTextColor(myBLUE);
 			display.setFont(NULL);
 			display.setCursor(0, 0);
 			display.setTextSize(1);
@@ -4582,7 +4582,7 @@ static void display_values_matrix()
 		if (pm25_value != -1.0)
 		{
 			display.fillScreen(myBLACK);
-			display.setTextColor(myWHITE);
+			display.setTextColor(myBLUE);
 			display.setFont(NULL);
 			display.setCursor(0, 0);
 			display.setTextSize(1);
@@ -4612,7 +4612,7 @@ static void display_values_matrix()
 		if (pm01_value != -1.0)
 		{
 			display.fillScreen(myBLACK);
-			display.setTextColor(myWHITE);
+			display.setTextColor(myBLUE);
 			display.setFont(NULL);
 			display.setCursor(0, 0);
 			display.setTextSize(1);
@@ -4642,7 +4642,7 @@ static void display_values_matrix()
 		if (co2_value != -1.0)
 		{
 			display.fillScreen(myBLACK);
-			display.setTextColor(myWHITE);
+			display.setTextColor(myBLUE);
 			display.setFont(NULL);
 			display.setCursor(0, 0);
 			display.setTextSize(1);
@@ -4671,7 +4671,7 @@ static void display_values_matrix()
 		if (co2_value != -1.0)
 		{
 			display.fillScreen(myBLACK);
-			display.setTextColor(myWHITE);
+			display.setTextColor(myBLUE);
 			display.setFont(NULL);
 			display.setCursor(0, 0);
 			display.setTextSize(1);
@@ -4700,7 +4700,7 @@ static void display_values_matrix()
 		if (cov_value != -1.0)
 		{
 			display.fillScreen(myBLACK);
-			display.setTextColor(myWHITE);
+			display.setTextColor(myBLUE);
 			display.setFont(NULL);
 			display.setCursor(0, 0);
 			display.setTextSize(1);
@@ -4723,7 +4723,7 @@ static void display_values_matrix()
 		if (t_value != -128.0)
 		{
 			display.fillScreen(myBLACK);
-			display.setTextColor(myWHITE);
+			display.setTextColor(myBLUE);
 			display.setFont(NULL);
 			display.setCursor(0, 0);
 			display.setTextSize(1);
@@ -4752,7 +4752,7 @@ static void display_values_matrix()
 		if (h_value != -1.0)
 		{
 			display.fillScreen(myBLACK);
-			display.setTextColor(myWHITE);
+			display.setTextColor(myBLUE);
 			display.setFont(NULL);
 			display.setCursor(0, 0);
 			display.setTextSize(1);
@@ -4781,7 +4781,7 @@ static void display_values_matrix()
 		if (p_value != -1.0)
 		{
 			display.fillScreen(myBLACK);
-			display.setTextColor(myWHITE);
+			display.setTextColor(myBLUE);
 			display.setFont(NULL);
 			display.setCursor(0, 0);
 			display.setTextSize(1);
@@ -4804,15 +4804,15 @@ static void display_values_matrix()
 		if (atmoSud.multi != -1.0 || atmoSud.no2 != -1.0 || atmoSud.o3 != -1.0 || atmoSud.pm10 != -1.0 || atmoSud.pm2_5 != -1.0)
 		{
 			drawImage(0, 0, 32, 64, exterieur);
-			display.setTextColor(myWHITE);
-			display.setFont(&Font4x7Fixed);
-			display.setTextSize(1);
-			display.setCursor(13, 14);
-			display.print("Air");
-			display.setCursor(1, 24);
-			display.print("ext");
-			display.write(233);
-			display.print("rieur");
+			// display.setTextColor(myWHITE);
+			// display.setFont(&Font4x7Fixed);
+			// display.setTextSize(1);
+			// display.setCursor(13, 14);
+			// display.print("Air");
+			// display.setCursor(1, 24);
+			// display.print("ext");
+			// display.write(233);
+			// display.print("rieur");
 		}
 		else
 		{
