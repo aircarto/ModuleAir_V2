@@ -2,8 +2,8 @@
 #define CURRENT_LANG INTL_LANG
 
 // Wifi config
-const char WLANSSID[] PROGMEM = "QG-Wifi";
-const char WLANPWD[] PROGMEM = "2826gambetta";
+const char WLANSSID[] PROGMEM = "luftdaten";
+const char WLANPWD[] PROGMEM = "luftd4ten";
 
 // BasicAuth config
 const char WWW_USERNAME[] PROGMEM = "admin";
@@ -14,19 +14,19 @@ const char WWW_PASSWORD[] PROGMEM = "";
 #define FS_SSID ""
 #define FS_PWD "moduleaircfg"
 
-#define HAS_WIFI 0
-#define HAS_LORA 1
-const char APPEUI[] = "6081F9538B15F28B";
-const char DEVEUI[] = "6081F9642B4C043E";
-const char APPKEY[] = "C73FE09FCA58113C603CC1742F550B81";
+#define HAS_WIFI 1
+#define HAS_LORA 0
+const char APPEUI[] = "0000000000000000";
+const char DEVEUI[] = "0000000000000000";
+const char APPKEY[] = "00000000000000000000000000000000";
 
-// Where to send the data (over WIFI)
+// Where to send the data?
 #define SEND2SENSORCOMMUNITY 0
 #define SSL_SENSORCOMMUNITY 0
 #define SEND2MADAVI 0
 #define SSL_MADAVI 0
 #define SEND2CSV 0
-#define SEND2CUSTOM 0
+#define SEND2CUSTOM 1
 #define SEND2CUSTOM2 0
 
 enum LoggerEntry
@@ -72,65 +72,6 @@ static const char URL_CUSTOM2[] PROGMEM = "/data.php";
 #define USER_CUSTOM2 ""
 #define PWD_CUSTOM2 ""
 #define SSL_CUSTOM2 0
-
-// SDS011, the more expensive version of the particle sensor
-#define SDS_READ 0
-#define SDS_API_PIN 1
-
-// Tera Sensor Next PM sensor
-#define NPM_READ 1
-#define NPM_FULLTIME 0
-#define NPM_API_PIN 1
-
-// BMP280/BME280, temperature, pressure (humidity on BME280)
-#define BMX280_READ 1
-#define BMP280_API_PIN 3
-#define BME280_API_PIN 11
-
-// MH-Z16/MH-Z19, CO2 Sensor
-#define MHZ16_READ 1
-#define MHZ19_READ 0
-// #define MHZ16_API_PIN X
-// #define MHZ19_API_PIN X
-
-// SGP40, COV Sensor
-
-#define SGP40_READ 0
-// #define SGP40_API_PIN X
-
-// Location
-
-const char LATITUDE[] PROGMEM = "43.296";
-const char LONGITUDE[] PROGMEM = "5.369";
-
-// GPS, preferred Neo-6M
-#define GPS_READ 0
-#define GPS_API_PIN 9
-
-// OLED Display SSD1306
-#define HAS_SSD1306 0
-
-// RGB Matrix
-#define HAS_MATRIX 1
-
-// Actual Data
-
-#define DISPLAY_MEASURE 1
-#define DISPLAY_FORECAST 1
-
-// Show wifi info on displays
-#define DISPLAY_WIFI_INFO 0
-
-// Show wifi info on displays
-#define DISPLAY_LORA_INFO 0
-
-// Show device info on displays
-#define DISPLAY_DEVICE_INFO 0
-
-// Set debug level for serial output?
-#define DEBUG 5
-
-static const char URL_API_SENSORCOMMUNITY[] PROGMEM = "https://data.sensor.community/airrohr/v1/sensor/";
 
 #if defined(ARDUINO_ESP32_DEV) and defined(KIT_V1)
 //#define ONEWIRE_PIN D25
@@ -316,3 +257,62 @@ static const char URL_API_SENSORCOMMUNITY[] PROGMEM = "https://data.sensor.commu
 // 	.spi_freq = 8000000 /* 8 MHz */
 // };
 #endif
+
+// SDS011, the more expensive version of the particle sensor
+#define SDS_READ 0
+#define SDS_API_PIN 1
+
+// Tera Sensor Next PM sensor
+#define NPM_READ 1
+#define NPM_FULLTIME 0
+#define NPM_API_PIN 1
+
+// BMP280/BME280, temperature, pressure (humidity on BME280)
+#define BMX280_READ 1
+#define BMP280_API_PIN 3
+#define BME280_API_PIN 11
+
+// MH-Z16/MH-Z19, CO2 Sensor
+#define MHZ16_READ 1
+#define MHZ19_READ 0
+// #define MHZ16_API_PIN X
+// #define MHZ19_API_PIN X
+
+// SGP40, COV Sensor
+
+#define SGP40_READ 0
+// #define SGP40_API_PIN X
+
+// Location
+
+const char LATITUDE[] PROGMEM = "43.296";
+const char LONGITUDE[] PROGMEM = "5.369";
+
+// GPS, preferred Neo-6M
+#define GPS_READ 0
+#define GPS_API_PIN 9
+
+// OLED Display SSD1306
+#define HAS_SSD1306 0
+
+// RGB Matrix
+#define HAS_MATRIX 1
+
+// Actual Data
+
+#define DISPLAY_MEASURE 1
+#define DISPLAY_FORECAST 1
+
+// Show wifi info on displays
+#define DISPLAY_WIFI_INFO 0
+
+// Show wifi info on displays
+#define DISPLAY_LORA_INFO 0
+
+// Show device info on displays
+#define DISPLAY_DEVICE_INFO 0
+
+// Set debug level for serial output?
+#define DEBUG 5
+
+static const char URL_API_SENSORCOMMUNITY[] PROGMEM = "https://data.sensor.community/airrohr/v1/sensor/";

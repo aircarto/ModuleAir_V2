@@ -4494,7 +4494,7 @@ static void display_values_matrix()
 			display.fillScreen(myBLACK);
 			display.setTextColor(myBLUE);
 			display.setFont(NULL);
-			display.setCursor(0, 0);
+			display.setCursor(1, 0);
 			display.setTextSize(1);
 			display.print("PM10");
 			display.setFont(&Font4x7Fixed);
@@ -4524,7 +4524,7 @@ static void display_values_matrix()
 			display.fillScreen(myBLACK);
 			display.setTextColor(myBLUE);
 			display.setFont(NULL);
-			display.setCursor(0, 0);
+			display.setCursor(1, 0);
 			display.setTextSize(1);
 			display.print("PM2.5");
 			display.setFont(&Font4x7Fixed);
@@ -4554,7 +4554,7 @@ static void display_values_matrix()
 			display.fillScreen(myBLACK);
 			display.setTextColor(myBLUE);
 			display.setFont(NULL);
-			display.setCursor(0, 0);
+			display.setCursor(1, 0);
 			display.setTextSize(1);
 			display.print("PM10");
 			display.setFont(&Font4x7Fixed);
@@ -4584,7 +4584,7 @@ static void display_values_matrix()
 			display.fillScreen(myBLACK);
 			display.setTextColor(myBLUE);
 			display.setFont(NULL);
-			display.setCursor(0, 0);
+			display.setCursor(1, 0);
 			display.setTextSize(1);
 			display.print("PM2.5");
 			display.setFont(&Font4x7Fixed);
@@ -4614,7 +4614,7 @@ static void display_values_matrix()
 			display.fillScreen(myBLACK);
 			display.setTextColor(myBLUE);
 			display.setFont(NULL);
-			display.setCursor(0, 0);
+			display.setCursor(1, 0);
 			display.setTextSize(1);
 			display.print("PM1");
 			display.setFont(&Font4x7Fixed);
@@ -4644,7 +4644,7 @@ static void display_values_matrix()
 			display.fillScreen(myBLACK);
 			display.setTextColor(myBLUE);
 			display.setFont(NULL);
-			display.setCursor(0, 0);
+			display.setCursor(1, 0);
 			display.setTextSize(1);
 			display.print("C0");
 			display.write(250);
@@ -4673,7 +4673,7 @@ static void display_values_matrix()
 			display.fillScreen(myBLACK);
 			display.setTextColor(myBLUE);
 			display.setFont(NULL);
-			display.setCursor(0, 0);
+			display.setCursor(1, 0);
 			display.setTextSize(1);
 			display.print("C0");
 			display.write(250);
@@ -4702,7 +4702,7 @@ static void display_values_matrix()
 			display.fillScreen(myBLACK);
 			display.setTextColor(myBLUE);
 			display.setFont(NULL);
-			display.setCursor(0, 0);
+			display.setCursor(1, 0);
 			display.setTextSize(1);
 			display.print("COV");
 			display.setFont(&Font4x7Fixed);
@@ -4725,7 +4725,7 @@ static void display_values_matrix()
 			display.fillScreen(myBLACK);
 			display.setTextColor(myBLUE);
 			display.setFont(NULL);
-			display.setCursor(0, 0);
+			display.setCursor(1, 0);
 			display.setTextSize(1);
 			display.print("Temp.");
 			display.setFont(&Font4x7Fixed);
@@ -4754,7 +4754,7 @@ static void display_values_matrix()
 			display.fillScreen(myBLACK);
 			display.setTextColor(myBLUE);
 			display.setFont(NULL);
-			display.setCursor(0, 0);
+			display.setCursor(1, 0);
 			display.setTextSize(1);
 			display.print("Humidit");
 			display.write(130);
@@ -4783,7 +4783,7 @@ static void display_values_matrix()
 			display.fillScreen(myBLACK);
 			display.setTextColor(myBLUE);
 			display.setFont(NULL);
-			display.setCursor(0, 0);
+			display.setCursor(1, 0);
 			display.setTextSize(1);
 			display.print("Press.");
 			display.setFont(&Font4x7Fixed);
@@ -4825,7 +4825,7 @@ static void display_values_matrix()
 			display.fillScreen(myBLACK);
 			display.setTextColor(myWHITE);
 			display.setFont(NULL);
-			display.setCursor(0, 0);
+			display.setCursor(1, 0);
 			display.setTextSize(1);
 			display.print("Indice");
 			displayColor = interpolate(atmoSud.multi, 20, 40, 50, 100, 150, gamma_correction);
@@ -4859,7 +4859,7 @@ static void display_values_matrix()
 			display.fillScreen(myBLACK);
 			display.setTextColor(myWHITE);
 			display.setFont(NULL);
-			display.setCursor(0, 0);
+			display.setCursor(1, 0);
 			display.setTextSize(1);
 			display.print("NO");
 			display.write(250);
@@ -4899,7 +4899,7 @@ static void display_values_matrix()
 			display.fillScreen(myBLACK);
 			display.setTextColor(myWHITE);
 			display.setFont(NULL);
-			display.setCursor(0, 0);
+			display.setCursor(1, 0);
 			display.setTextSize(1);
 			display.print("O");
 			display.write(253);
@@ -4939,7 +4939,7 @@ static void display_values_matrix()
 			display.fillScreen(myBLACK);
 			display.setTextColor(myWHITE);
 			display.setFont(NULL);
-			display.setCursor(0, 0);
+			display.setCursor(1, 0);
 			display.setTextSize(1);
 			display.print("PM10");
 			display.setFont(&Font4x7Fixed);
@@ -4978,7 +4978,7 @@ static void display_values_matrix()
 			display.fillScreen(myBLACK);
 			display.setTextColor(myWHITE);
 			display.setFont(NULL);
-			display.setCursor(0, 0);
+			display.setCursor(1, 0);
 			display.setTextSize(1);
 			display.print("PM2.5");
 			display.setFont(&Font4x7Fixed);
