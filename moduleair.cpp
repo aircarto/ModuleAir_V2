@@ -284,7 +284,8 @@ struct RGB displayColor
 
 uint16_t myRED = display.color565(255, 0, 0);
 uint16_t myGREEN = display.color565(0, 255, 0);
-uint16_t myBLUE = display.color565(0, 0, 255);
+//uint16_t myBLUE = display.color565(0, 0, 255);
+uint16_t myBLUE = display.color565(0, 255, 255);
 uint16_t myWHITE = display.color565(255, 255, 255);
 uint16_t myYELLOW = display.color565(255, 255, 0);
 uint16_t myCYAN = display.color565(0, 255, 255);
@@ -4667,9 +4668,9 @@ static void display_values_matrix()
 		case 1:   //SDS
 		if(pm10_value != -1.0){
 			display.fillScreen(myBLACK);
-			display.setTextColor(myWHITE);
+			display.setTextColor(myBLUE);
 			display.setFont(NULL);
-			display.setCursor(0, 0);
+			display.setCursor(1, 0);
 			display.setTextSize(1);
 			display.print("PM10");
 			display.setFont(&Font4x7Fixed);
@@ -4696,9 +4697,9 @@ static void display_values_matrix()
 		case 2:
 		if(pm25_value != -1.0){
 			display.fillScreen(myBLACK);
-			display.setTextColor(myWHITE);
+			display.setTextColor(myBLUE);
 			display.setFont(NULL);
-			display.setCursor(0, 0);
+			display.setCursor(1, 0);
 			display.setTextSize(1);
 			display.print("PM2.5");
 			display.setFont(&Font4x7Fixed);
@@ -4725,9 +4726,9 @@ static void display_values_matrix()
 		case 3:   //NPM
 			if(pm10_value != -1.0){
 			display.fillScreen(myBLACK);
-			display.setTextColor(myWHITE);
+			display.setTextColor(myBLUE);
 			display.setFont(NULL);
-			display.setCursor(0, 0);
+			display.setCursor(1, 0);
 			display.setTextSize(1);
 			display.print("PM10");
 			display.setFont(&Font4x7Fixed);
@@ -4754,9 +4755,9 @@ static void display_values_matrix()
 		case 4:
 		if(pm25_value != -1.0){
 			display.fillScreen(myBLACK);
-			display.setTextColor(myWHITE);
+			display.setTextColor(myBLUE);
 			display.setFont(NULL);
-			display.setCursor(0, 0);
+			display.setCursor(1, 0);
 			display.setTextSize(1);
 			display.print("PM2.5");
 			display.setFont(&Font4x7Fixed);
@@ -4783,9 +4784,9 @@ static void display_values_matrix()
 		case 5:
 		if(pm01_value != -1.0){
 			display.fillScreen(myBLACK);
-			display.setTextColor(myWHITE);
+			display.setTextColor(myBLUE);
 			display.setFont(NULL);
-			display.setCursor(0, 0);
+			display.setCursor(1, 0);
 			display.setTextSize(1);
 			display.print("PM1");
 			display.setFont(&Font4x7Fixed);
@@ -4812,9 +4813,9 @@ static void display_values_matrix()
 		case 6:
 		if(co2_value != -1.0){
 			display.fillScreen(myBLACK);
-			display.setTextColor(myWHITE);
+			display.setTextColor(myBLUE);
 			display.setFont(NULL);
-			display.setCursor(0, 0);
+			display.setCursor(1, 0);
 			display.setTextSize(1);
 			display.print("C0");
 			display.write(250);
@@ -4840,9 +4841,9 @@ static void display_values_matrix()
 		case 7:
 		if(co2_value != -1.0){
 			display.fillScreen(myBLACK);
-			display.setTextColor(myWHITE);
+			display.setTextColor(myBLUE);
 			display.setFont(NULL);
-			display.setCursor(0, 0);
+			display.setCursor(1, 0);
 			display.setTextSize(1);
 			display.print("C0");
 			display.write(250);
@@ -4868,9 +4869,9 @@ static void display_values_matrix()
 		case 8:
 		if(cov_value != -1.0){
 			display.fillScreen(myBLACK);
-			display.setTextColor(myWHITE);
+			display.setTextColor(myBLUE);
 			display.setFont(NULL);
-			display.setCursor(0, 0);
+			display.setCursor(1, 0);
 			display.setTextSize(1);
 			display.print("COV");
 			display.setFont(&Font4x7Fixed);
@@ -4890,9 +4891,9 @@ static void display_values_matrix()
 		case 9:
 		if(t_value != -128.0){
 			display.fillScreen(myBLACK);
-			display.setTextColor(myWHITE);
+			display.setTextColor(myBLUE);
 			display.setFont(NULL);
-			display.setCursor(0, 0);
+			display.setCursor(1, 0);
 			display.setTextSize(1);
 			display.print("Temp.");
 			display.setFont(&Font4x7Fixed);
@@ -4918,9 +4919,9 @@ static void display_values_matrix()
 		case 10:
 		if(h_value != -1.0){
 			display.fillScreen(myBLACK);
-			display.setTextColor(myWHITE);
+			display.setTextColor(myBLUE);
 			display.setFont(NULL);
-			display.setCursor(0, 0);
+			display.setCursor(1, 0);
 			display.setTextSize(1);
 			display.print("Humidit");
 			display.write(130);
@@ -4946,9 +4947,9 @@ static void display_values_matrix()
 		case 11:
 		if(p_value != -1.0){
 			display.fillScreen(myBLACK);
-			display.setTextColor(myWHITE);
+			display.setTextColor(myBLUE);
 			display.setFont(NULL);
-			display.setCursor(0, 0);
+			display.setCursor(1, 0);
 			display.setTextSize(1);
 			display.print("Press.");
 			display.setFont(&Font4x7Fixed);
@@ -4988,7 +4989,7 @@ static void display_values_matrix()
 			display.fillScreen(myBLACK);
 			display.setTextColor(myWHITE);
 			display.setFont(NULL);
-			display.setCursor(0, 0);
+			display.setCursor(1, 0);
 			display.setTextSize(1);
 			display.print("Indice");
 			displayColor = interpolate(atmoSud.multi, 20, 40, 50, 100, 150, gamma_correction);
@@ -5013,7 +5014,7 @@ static void display_values_matrix()
 			display.fillScreen(myBLACK);
 			display.setTextColor(myWHITE);
 			display.setFont(NULL);
-			display.setCursor(0, 0);
+			display.setCursor(1, 0);
 			display.setTextSize(1);
 			display.print("NO");
 			display.write(250);
@@ -5044,7 +5045,7 @@ static void display_values_matrix()
 			display.fillScreen(myBLACK);
 			display.setTextColor(myWHITE);
 			display.setFont(NULL);
-			display.setCursor(0, 0);
+			display.setCursor(1, 0);
 			display.setTextSize(1);
 			display.print("O");
 			display.write(253);
@@ -5075,7 +5076,7 @@ static void display_values_matrix()
 			display.fillScreen(myBLACK);
 			display.setTextColor(myWHITE);
 			display.setFont(NULL);
-			display.setCursor(0, 0);
+			display.setCursor(1, 0);
 			display.setTextSize(1);
 			display.print("PM10");
 			display.setFont(&Font4x7Fixed);
@@ -5105,7 +5106,7 @@ static void display_values_matrix()
 			display.fillScreen(myBLACK);
 			display.setTextColor(myWHITE);
 			display.setFont(NULL);
-			display.setCursor(0, 0);
+			display.setCursor(1, 0);
 			display.setTextSize(1);
 			display.print("PM2.5");
 			display.setFont(&Font4x7Fixed);
@@ -5661,7 +5662,7 @@ void os_getDevKey(u1_t *buf) { memcpy_P(buf, appkey_hex, 16); }
 // uint8_t datalora[37] = {0x00, 0xff, 0xff, 0xff, 0xff,0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x80, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff};
 // 			//			conf       sds		 sds         npm 		 npm		npm		    npm			npm			npm			co2			co2			 cov     temp  humi	   press   
 
-uint8_t datalora[38] = {0x00, 0xff, 0xff, 0xff, 0xff,0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,0x80, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff};
+uint8_t datalora[38] = {0x00, 0xff, 0xff, 0xff, 0xff,0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x80, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff};
 			//		    conf|   sds	    |	 sds    |    npm   | 	 npm   | 	npm	   |   npm	   |	npm	   |	npm	   |	co2	   |	 co2   |	cov    |    temp  | humi|   press   |       lat             |       lon             | sel
 
 			//Peut-être changer l'indianess pour temp = inverser
