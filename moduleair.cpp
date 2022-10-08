@@ -349,33 +349,31 @@ struct RGB interpolateint(float valueSensor, int step1, int step2, int step3, bo
 		result.G = 255; // VERT
 		result.B = 0;
 	}
-	else if (valueSensor > 0 && valueSensor <= step3)
+	else if (valueSensor > 0 && valueSensor < step1)
 	{
-		if (valueSensor < step1)
-		{
+	
 			result.R = 0;
 			result.G = 255; // VERT
 			result.B = 0;
-		}
-		else if (valueSensor >= step1 && valueSensor < step2)
+	}
+	else if (valueSensor >= step1 && valueSensor < step2)
 		{
 			result.R = 255;
 			result.G = 140; // orange
 			result.B = 0;
 		}
-		else if (valueSensor >= step2 && valueSensor < step3)
+	else if (valueSensor >= step2 && valueSensor < step3)
 		{
 			result.R = 255;
 			result.G = 140; // orange
 			result.B = 0;
 		}
-		else if (valueSensor >= step3)
+	else if (valueSensor >= step3)
 		{
 
 			result.R = 255;
 			result.G = 0; // ROUGE
 			result.B = 0;
-		}
 	}
 	else
 	{
@@ -392,7 +390,6 @@ struct RGB interpolateint(float valueSensor, int step1, int step2, int step3, bo
 	}
 
 	rgb565 = ((result.R & 0b11111000) << 8) | ((result.G & 0b11111100) << 3) | (result.B >> 3);
-	//Debug.println(rgb565); // to get list of color if drawGradient is acitvated
 	return result;
 }
 
@@ -550,37 +547,6 @@ struct RGB interpolate(float valueSensor, int step1, int step2, int step3, int s
 		result.B = 0;
 	}
 
-	// Debug.println(result.R);
-	// Debug.println(result.G);
-	// Debug.println(result.B);
-
-// Debug.println("Value in");
-// Debug.println(valueSensor);
-
-// Debug.println("Color in low RGB:");
-// Debug.print(startColorValueR);
-// Debug.print(" ");
-// Debug.print(startColorValueG);
-// Debug.print(" ");
-// Debug.print(startColorValueB);
-// Debug.printf("\n");
-
-// Debug.println("Color in high RGB:");
-// Debug.print(endColorValueR);
-// Debug.print(" ");
-// Debug.print(endColorValueG);
-// Debug.print(" ");
-// Debug.print(endColorValueB);
-// Debug.printf("\n");
-
-// Debug.println("Color out RGB:");
-// Debug.print(result.R);
-// Debug.print(" ");
-// Debug.print(result.G);
-// Debug.print(" ");
-// Debug.print(result.B);
-// Debug.printf("\n");
-
 //Gamma Correction
 
 if (correction == true){
@@ -607,22 +573,20 @@ struct RGB interpolateint2(float valueSensor, int step1, int step2, bool correct
 		result.G = 255; // Green entre 0 et 800
 		result.B = 0;
 	}
-	else if (valueSensor > 0 && valueSensor <= step2)
+	else if (valueSensor > 0 && valueSensor < step1)
 	{
-		if (valueSensor <= step1)
-		{
+
 			result.R = 0;
 			result.G = 255; // Green entre 0 et 800
 			result.B = 0;
-		}
-		else if (valueSensor > step1 && valueSensor <= step2)
+	}
+	else if (valueSensor >= step1 && valueSensor < step2)
 		{
 			result.R = 255;
 			result.G = 140; // Orange entre 800 et 1500
 			result.B = 0;
 		}
-	}
-	else if (valueSensor > step2)
+	else if (valueSensor >= step2)
 	{
 		result.R = 255;
 		result.G = 0; // Rouge supérieur à 1500
@@ -661,16 +625,16 @@ struct RGB interpolateint3(float valueSensor, int step1, int step2, bool correct
 		result.G = 0; // red
 		result.B = 0;
 	}
-	else if (valueSensor > 0 && valueSensor <= step1)
+	else if (valueSensor > 0 && valueSensor < step1)
 	{
 		result.R = 255;
 		result.G = 0; // red
 		result.B = 0;
 	}
-	else if (valueSensor > step1 && valueSensor <= step2)
+	else if (valueSensor >= step1 && valueSensor < step2)
 	{
 		result.R = 0;
-		result.G = 255; // red
+		result.G = 255; // green
 		result.B = 0;
 	}
 	else if (valueSensor > step2)
@@ -711,14 +675,14 @@ struct RGB interpolateint4(float valueSensor, int step1, int step2, bool correct
 		result.G = 0; // Bleu / Trop froid inférieur à 19 (step1)
 		result.B = 255;
 	}
-	else if (valueSensor >= step1 && valueSensor <= step2)
+	else if (valueSensor >= step1 && valueSensor < step2)
 	{
 
 		result.R = 0;
 		result.G = 255; // Green ok
 		result.B = 0;
 	}
-	else if (valueSensor > step2)
+	else if (valueSensor >= step2)
 	{
 		result.R = 255;
 		result.G = 0; // RED / trop chaud supérieur à 28
@@ -742,8 +706,6 @@ struct RGB interpolateint4(float valueSensor, int step1, int step2, bool correct
 	//Debug.println(rgb565); // to get list of color if drawGradient is acitvated
 	return result;
 }
-
-
 
 //You can use drawGradient once in order to get the list of colors and then create an image which is much faster to display
 
@@ -787,33 +749,30 @@ void messager1(float valueSensor, int step1, int step2, int step3)
 
 	display.setTextSize(1);
 
-	if (valueSensor >= -1 && valueSensor <= step1)
+	if (valueSensor > -1 && valueSensor < step1)
 	{
 		display.setFont(NULL);
 		display.setCursor(23, 25);
 		display.print("BON");
 	}
-	else if (valueSensor > step1 && valueSensor <= step3)
+	else if (valueSensor >= step1 && valueSensor < step2)
 	{
-		if (valueSensor <= step2)
-		{
 			display.setFont(NULL);
 			display.setCursor(17, 25);
 			display.print("MOYEN");
 		}
-		else if (valueSensor > step2 && valueSensor <= step3)
+	else if (valueSensor >= step2 && valueSensor < step3)
 		{
 			display.setFont(NULL);
 			display.setCursor(11, 25);
 			display.print("DEGRADE");
 		}
-		else
+	else if (valueSensor>= step3)
 		{
 			display.setFont(NULL);
 			display.setCursor(11, 25);
 			display.print("MAUVAIS");
 		}
-	}
 	else
 	{
 		display.setFont(NULL);
@@ -828,17 +787,17 @@ void messager2(float valueSensor, int step1, int step2)
 	display.setFont(NULL);
 	display.setTextSize(1);
 
-	if (valueSensor >= -1 && valueSensor <= step1)
+	if (valueSensor > -1 && valueSensor < step1)
 	{
 		display.setCursor(20, 25);
 		display.print("BIEN"); // inférieur à 800ppm
 	}
-	else if (valueSensor > step1 && valueSensor <= step2)
+	else if (valueSensor >= step1 && valueSensor < step2)
 	{
 		display.setCursor(5, 25);
 		display.print("AERER SVP"); // entre 800 et 1500
 	}
-	else if (valueSensor > step2)
+	else if (valueSensor >= step2)
 	{
 		display.setCursor(2, 25);
 		display.print("AERER VITE");
@@ -857,18 +816,18 @@ void messager3(float valueSensor, int step1, int step2) // humi
 	display.setFont(NULL);
 	display.setTextSize(1);
 
-	if (valueSensor >= -1 && valueSensor <= step1)
+	if (valueSensor > -1 && valueSensor < step1)
 	{
 		display.setCursor(2, 25);
 		display.print("TROP SEC");
 	}
-	else if (valueSensor > step1 && valueSensor <= step2)
+	else if (valueSensor >= step1 && valueSensor < step2)
 	{
 
 		display.setCursor(20, 25);
 		display.print("IDEAL");
 	}
-	else if (valueSensor > step2)
+	else if (valueSensor >= step2)
 	{
 		display.setCursor(0, 25);
 		display.print("TROP HUMIDE");
@@ -886,18 +845,18 @@ void messager4(float valueSensor, int step1, int step2) // temp
 	display.setFont(NULL);
 	display.setTextSize(1);
 
-	if (valueSensor >= -128 && valueSensor <= step1)
+	if (valueSensor > -128 && valueSensor < step1)
 	{
 		display.setCursor(2, 25);
 		display.print("TROP FROID");
 	}
-	else if (valueSensor > step1 && valueSensor <= step2)
+	else if (valueSensor >= step1 && valueSensor < step2)
 	{
 
 		display.setCursor(10, 25);
 		display.print("CONFORT");
 	}
-	else if (valueSensor > step2)
+	else if (valueSensor >= step2)
 	{
 		display.setCursor(2, 25);
 		display.print("TROP CHAUD");
@@ -953,7 +912,6 @@ void messager5(int value) // Indice Atmo
 		display.print("ERREUR");
 }
 }
-
 
 void drawCentreString(const String &buf, int x, int y, int offset)
 {
