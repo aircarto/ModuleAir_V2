@@ -54,6 +54,8 @@ String SOFTWARE_VERSION_SHORT(SOFTWARE_VERSION_STR_SHORT);
 #include <MHZ16_uart.h> // CO2
 #include <MHZ19.h>
 
+#include "ccs811.h"  // CCS811 
+
 // includes ESP32 libraries
 #define FORMAT_SPIFFS_IF_FAILED true
 #include <FS.h>
@@ -81,7 +83,6 @@ String SOFTWARE_VERSION_SHORT(SOFTWARE_VERSION_STR_SHORT);
 #include <DNSServer.h>
 #include <StreamString.h>
 #include "./bmx280_i2c.h"
-#include "./SensirionI2CSgp40.h"
 #include "./configuration.h"
 
 // includes files
@@ -131,7 +132,7 @@ namespace cfg
 	bool bmx280_read = BMX280_READ;
 	bool mhz16_read = MHZ16_READ;
 	bool mhz19_read = MHZ19_READ;
-	bool sgp40_read = SGP40_READ;
+	bool ccs811_read = CCS811_READ;
 
 	// Location
 
@@ -211,7 +212,7 @@ bool configlorawan[8] = {false, false, false, false, false, false, false, false}
 // configlorawan[2] = cfg::bmx280_read;
 // configlorawan[3] = cfg::mhz16_read;
 // configlorawan[4] = cfg::mhz19_read;
-// configlorawan[5] = cfg::sgp40_read;
+// configlorawan[5] = cfg::ccs811_read;
 // configlorawan[6] = cfg::display_forecast;
 // configlorawan[7] = cfg::has_wifi;
 
@@ -240,7 +241,7 @@ LoggerConfig loggerConfigs[LoggerCount];
 // test variables
 long int sample_count = 0;
 bool bmx280_init_failed = false;
-bool sgp40_init_failed = false;
+bool ccs811_init_failed = false;
 bool moduleair_selftest_failed = false;
 
 WebServer server(80);
@@ -334,6 +335,67 @@ void drawImage(int x, int y, int h, int w, uint16_t image[])
 }
 
 bool gamma_correction = true; //Gamma correction
+
+struct RGB interpolateint(float valueSensor, int step1, int step2, int step3, bool correction)
+{
+
+	struct RGB result;
+	uint16_t rgb565;
+
+	if (valueSensor == 0)
+	{
+
+		result.R = 0;
+		result.G = 255; // VERT
+		result.B = 0;
+	}
+	else if (valueSensor > 0 && valueSensor <= step3)
+	{
+		if (valueSensor < step1)
+		{
+			result.R = 0;
+			result.G = 255; // VERT
+			result.B = 0;
+		}
+		else if (valueSensor >= step1 && valueSensor < step2)
+		{
+			result.R = 255;
+			result.G = 140; // orange
+			result.B = 0;
+		}
+		else if (valueSensor >= step2 && valueSensor < step3)
+		{
+			result.R = 255;
+			result.G = 140; // orange
+			result.B = 0;
+		}
+		else if (valueSensor >= step3)
+		{
+
+			result.R = 255;
+			result.G = 0; // ROUGE
+			result.B = 0;
+		}
+	}
+	else
+	{
+		result.R = 0;
+		result.G = 0;
+		result.B = 0;
+	}
+
+	if (correction == true)
+	{
+		result.R = pgm_read_byte(&gamma8[result.R]);
+		result.G = pgm_read_byte(&gamma8[result.G]);
+		result.B = pgm_read_byte(&gamma8[result.B]);
+	}
+
+	rgb565 = ((result.R & 0b11111000) << 8) | ((result.G & 0b11111100) << 3) | (result.B >> 3);
+	Debug.println(rgb565); // to get list of color if drawGradient is acitvated
+	return result;
+}
+
 
 struct RGB interpolate(float valueSensor, int step1, int step2, int step3, int step4, int step5, bool correction)
 {
@@ -477,18 +539,9 @@ Debug.println(rgb565); // to get list of color if drawGradient is acitvated
 return result;
 }
 
-struct RGB interpolate2(float valueSensor, int step1, int step2, int step3, bool correction)
+struct RGB interpolateint2(float valueSensor, int step1, int step2, bool correction)
 {
 
-	byte endColorValueR;
-	byte startColorValueR;
-	byte endColorValueG;
-	byte startColorValueG;
-	byte endColorValueB;
-	byte startColorValueB;
-
-	int valueLimitHigh;
-	int valueLimitLow;
 	struct RGB result;
 	uint16_t rgb565;
 
@@ -496,170 +549,29 @@ struct RGB interpolate2(float valueSensor, int step1, int step2, int step3, bool
 	{
 
 		result.R = 0;
-		result.G = 0;   //blue
-		result.B = 255;
-	}
-	else if (valueSensor > 0 && valueSensor <= step3)
-	{
-		if (valueSensor <= step1)
-		{
-			valueLimitHigh = step1;
-			valueLimitLow = 0;
-			endColorValueR = 0;
-			startColorValueR = 0;  //blue to green
-			endColorValueG = 255;
-			startColorValueG = 0; 
-			endColorValueB = 0;
-			startColorValueB = 255;
-		}
-		else if (valueSensor > step1 && valueSensor <= step2)
-		{
-			valueLimitHigh = step2;
-			valueLimitLow = step1;
-			endColorValueR = 255;
-			startColorValueR = 0;
-			endColorValueG = 255; //green to yellow
-			startColorValueG = 255;
-			endColorValueB = 0;
-			startColorValueB = 0;
-		}
-		else if (valueSensor > step2 && valueSensor <= step3)
-		{
-			valueLimitHigh = step3;
-			valueLimitLow = step2;
-			endColorValueR = 255;
-			startColorValueR = 255;
-			endColorValueG = 0;		//yellow to red
-			startColorValueG = 255; 
-			endColorValueB = 0;
-			startColorValueB = 0;
-		}
-
-		result.R = (byte)(((endColorValueR - startColorValueR) * ((valueSensor - valueLimitLow) / (valueLimitHigh - valueLimitLow))) + startColorValueR);
-		result.G = (byte)(((endColorValueG - startColorValueG) * ((valueSensor - valueLimitLow) / (valueLimitHigh - valueLimitLow))) + startColorValueG);
-		result.B = (byte)(((endColorValueB - startColorValueB) * ((valueSensor - valueLimitLow) / (valueLimitHigh - valueLimitLow))) + startColorValueB);
-	}
-	else if (valueSensor > step3)
-	{
-		result.R = 255;
-		result.G = 0;  //red
-		result.B = 0;
-	}
-	else
-	{
-		result.R = 0;
-		result.G = 0;
-		result.B = 0;
-	}
-
-	// Debug.println(result.R);
-	// Debug.println(result.G);
-	// Debug.println(result.B);
-
-// Debug.println("Value in");
-// Debug.println(valueSensor);
-
-// Debug.println("Color in low RGB:");
-// Debug.print(startColorValueR);
-// Debug.print(" ");
-// Debug.print(startColorValueG);
-// Debug.print(" ");
-// Debug.print(startColorValueB);
-// Debug.printf("\n");
-
-// Debug.println("Color in high RGB:");
-// Debug.print(endColorValueR);
-// Debug.print(" ");
-// Debug.print(endColorValueG);
-// Debug.print(" ");
-// Debug.print(endColorValueB);
-// Debug.printf("\n");
-
-// Debug.println("Color out RGB:");
-// Debug.print(result.R);
-// Debug.print(" ");
-// Debug.print(result.G);
-// Debug.print(" ");
-// Debug.print(result.B);
-// Debug.printf("\n");
-
-//Gamma Correction
-
-if (correction == true){
-result.R = pgm_read_byte(&gamma8[result.R]);
-result.G = pgm_read_byte(&gamma8[result.G]);
-result.B = pgm_read_byte(&gamma8[result.B]);
-}
-
-rgb565 = ((result.R & 0b11111000) << 8) | ((result.G & 0b11111100) << 3) | (result.B >> 3);
-Debug.println(rgb565); // to get list of color if drawGradient is acitvated
-return result;
-}
-
-
-struct RGB interpolate3(float valueSensor, int step1, int step2, bool correction) //Humi
-{
-
-	byte endColorValueR;
-	byte startColorValueR;
-	byte endColorValueG;
-	byte startColorValueG;
-	byte endColorValueB;
-	byte startColorValueB;
-
-	int valueLimitHigh;
-	int valueLimitLow;
-	struct RGB result;
-	uint16_t rgb565;
-
-	if (valueSensor == 0)
-	{
-
-		result.R = 255;
-		result.G = 0;   //red
+		result.G = 255; // Green entre 0 et 800
 		result.B = 0;
 	}
 	else if (valueSensor > 0 && valueSensor <= step2)
 	{
 		if (valueSensor <= step1)
 		{
-			valueLimitHigh = step1;
-			valueLimitLow = 0;
-			endColorValueR = 0;
-			startColorValueR = 255;  //red to green
-			endColorValueG = 255;
-			startColorValueG = 0; 
-			endColorValueB = 0;
-			startColorValueB = 0;
-
-		result.R = (byte)(((endColorValueR - startColorValueR) * ((valueSensor - valueLimitLow) / (valueLimitHigh - valueLimitLow))) + startColorValueR);
-		result.G = (byte)(((endColorValueG - startColorValueG) * ((valueSensor - valueLimitLow) / (valueLimitHigh - valueLimitLow))) + startColorValueG);
-		result.B = (byte)(((endColorValueB - startColorValueB) * ((valueSensor - valueLimitLow) / (valueLimitHigh - valueLimitLow))) + startColorValueB);
-		
+			result.R = 0;
+			result.G = 255; // Green entre 0 et 800
+			result.B = 0;
 		}
 		else if (valueSensor > step1 && valueSensor <= step2)
 		{
-		result.R = 0;
-		result.G = 255;   //green
-		result.B = 0;
+			result.R = 255;
+			result.G = 140; // Orange entre 800 et 1500
+			result.B = 0;
 		}
-
 	}
-	else if (valueSensor > step2 && valueSensor <= 100 )
+	else if (valueSensor > step2)
 	{
-			valueLimitHigh = 100;
-			valueLimitLow = step2;
-			endColorValueR = 255;
-			startColorValueR = 0;  //green to red
-			endColorValueG = 0;
-			startColorValueG = 255; 
-			endColorValueB = 0;
-			startColorValueB = 0;
-
-		result.R = (byte)(((endColorValueR - startColorValueR) * ((valueSensor - valueLimitLow) / (valueLimitHigh - valueLimitLow))) + startColorValueR);
-		result.G = (byte)(((endColorValueG - startColorValueG) * ((valueSensor - valueLimitLow) / (valueLimitHigh - valueLimitLow))) + startColorValueG);
-		result.B = (byte)(((endColorValueB - startColorValueB) * ((valueSensor - valueLimitLow) / (valueLimitHigh - valueLimitLow))) + startColorValueB);
-		
+		result.R = 255;
+		result.G = 0; // Rouge supérieur à 1500
+		result.B = 0;
 	}
 	else
 	{
@@ -668,119 +580,48 @@ struct RGB interpolate3(float valueSensor, int step1, int step2, bool correction
 		result.B = 0;
 	}
 
-	// Debug.println(result.R);
-	// Debug.println(result.G);
-	// Debug.println(result.B);
+	if (correction == true)
+	{
+		result.R = pgm_read_byte(&gamma8[result.R]);
+		result.G = pgm_read_byte(&gamma8[result.G]);
+		result.B = pgm_read_byte(&gamma8[result.B]);
+	}
 
-// Debug.println("Value in");
-// Debug.println(valueSensor);
-
-// Debug.println("Color in low RGB:");
-// Debug.print(startColorValueR);
-// Debug.print(" ");
-// Debug.print(startColorValueG);
-// Debug.print(" ");
-// Debug.print(startColorValueB);
-// Debug.printf("\n");
-
-// Debug.println("Color in high RGB:");
-// Debug.print(endColorValueR);
-// Debug.print(" ");
-// Debug.print(endColorValueG);
-// Debug.print(" ");
-// Debug.print(endColorValueB);
-// Debug.printf("\n");
-
-// Debug.println("Color out RGB:");
-// Debug.print(result.R);
-// Debug.print(" ");
-// Debug.print(result.G);
-// Debug.print(" ");
-// Debug.print(result.B);
-// Debug.printf("\n");
-
-//Gamma Correction
-
-if (correction == true){
-result.R = pgm_read_byte(&gamma8[result.R]);
-result.G = pgm_read_byte(&gamma8[result.G]);
-result.B = pgm_read_byte(&gamma8[result.B]);
-}
-
-rgb565 = ((result.R & 0b11111000) << 8) | ((result.G & 0b11111100) << 3) | (result.B >> 3);
-Debug.println(rgb565); // to get list of color if drawGradient is acitvated
-return result;
+	rgb565 = ((result.R & 0b11111000) << 8) | ((result.G & 0b11111100) << 3) | (result.B >> 3);
+	Debug.println(rgb565); // to get list of color if drawGradient is acitvated
+	return result;
 }
 
 
-
-struct RGB interpolate4(float valueSensor, int step1, int step2, bool correction) //temp
+struct RGB interpolateint3(float valueSensor, int step1, int step2, bool correction) // Humi
 {
 
-	byte endColorValueR;
-	byte startColorValueR;
-	byte endColorValueG;
-	byte startColorValueG;
-	byte endColorValueB;
-	byte startColorValueB;
-
-	int valueLimitHigh;
-	int valueLimitLow;
 	struct RGB result;
 	uint16_t rgb565;
 
-	if (valueSensor >= -128 && valueSensor < 0 )
+	if (valueSensor == 0)
 	{
 
-		result.R = 0;
-		result.G = 0;   //blue
-		result.B = 255;
-	}
-	else if (valueSensor >= 0 && valueSensor <= step1)
-	{
-		if (valueSensor <= step1)
-		{
-			valueLimitHigh = step1;
-			valueLimitLow = 0;
-			endColorValueR = 0;
-			startColorValueR = 0;  //blue to green
-			endColorValueG = 255;
-			startColorValueG = 0; 
-			endColorValueB = 0;
-			startColorValueB = 255;
-
-		result.R = (byte)(((endColorValueR - startColorValueR) * ((valueSensor - valueLimitLow) / (valueLimitHigh - valueLimitLow))) + startColorValueR);
-		result.G = (byte)(((endColorValueG - startColorValueG) * ((valueSensor - valueLimitLow) / (valueLimitHigh - valueLimitLow))) + startColorValueG);
-		result.B = (byte)(((endColorValueB - startColorValueB) * ((valueSensor - valueLimitLow) / (valueLimitHigh - valueLimitLow))) + startColorValueB);
-
-		}
-		else if (valueSensor > step1 && valueSensor <= step2)
-		{
-		result.R = 0;
-		result.G = 255;   //green
+		result.R = 255;
+		result.G = 0; // red
 		result.B = 0;
-		}
 	}
-	else if (valueSensor > step2 && valueSensor <= 50)
-	{
-			valueLimitHigh = 50;
-			valueLimitLow = step2;
-			endColorValueR = 255;
-			startColorValueR = 0;  //green to red
-			endColorValueG = 0;
-			startColorValueG = 255; 
-			endColorValueB = 0;
-			startColorValueB = 0;
-
-		result.R = (byte)(((endColorValueR - startColorValueR) * ((valueSensor - valueLimitLow) / (valueLimitHigh - valueLimitLow))) + startColorValueR);
-		result.G = (byte)(((endColorValueG - startColorValueG) * ((valueSensor - valueLimitLow) / (valueLimitHigh - valueLimitLow))) + startColorValueG);
-		result.B = (byte)(((endColorValueB - startColorValueB) * ((valueSensor - valueLimitLow) / (valueLimitHigh - valueLimitLow))) + startColorValueB);
-		
-	}
-		else if (valueSensor > 50)
+	else if (valueSensor > 0 && valueSensor <= step1)
 	{
 		result.R = 255;
-		result.G = 0;
+		result.G = 0; // red
+		result.B = 0;
+	}
+	else if (valueSensor > step1 && valueSensor <= step2)
+	{
+		result.R = 0;
+		result.G = 255; // red
+		result.B = 0;
+	}
+	else if (valueSensor > step2)
+	{
+		result.R = 255;
+		result.G = 0; // red
 		result.B = 0;
 	}
 	else
@@ -790,48 +631,61 @@ struct RGB interpolate4(float valueSensor, int step1, int step2, bool correction
 		result.B = 0;
 	}
 
-	// Debug.println(result.R);
-	// Debug.println(result.G);
-	// Debug.println(result.B);
+	if (correction == true)
+	{
+		result.R = pgm_read_byte(&gamma8[result.R]);
+		result.G = pgm_read_byte(&gamma8[result.G]);
+		result.B = pgm_read_byte(&gamma8[result.B]);
+	}
 
-// Debug.println("Value in");
-// Debug.println(valueSensor);
-
-// Debug.println("Color in low RGB:");
-// Debug.print(startColorValueR);
-// Debug.print(" ");
-// Debug.print(startColorValueG);
-// Debug.print(" ");
-// Debug.print(startColorValueB);
-// Debug.printf("\n");
-
-// Debug.println("Color in high RGB:");
-// Debug.print(endColorValueR);
-// Debug.print(" ");
-// Debug.print(endColorValueG);
-// Debug.print(" ");
-// Debug.print(endColorValueB);
-// Debug.printf("\n");
-
-// Debug.println("Color out RGB:");
-// Debug.print(result.R);
-// Debug.print(" ");
-// Debug.print(result.G);
-// Debug.print(" ");
-// Debug.print(result.B);
-// Debug.printf("\n");
-
-//Gamma Correction
-
-if (correction == true){
-result.R = pgm_read_byte(&gamma8[result.R]);
-result.G = pgm_read_byte(&gamma8[result.G]);
-result.B = pgm_read_byte(&gamma8[result.B]);
+	rgb565 = ((result.R & 0b11111000) << 8) | ((result.G & 0b11111100) << 3) | (result.B >> 3);
+	Debug.println(rgb565); // to get list of color if drawGradient is acitvated
+	return result;
 }
 
-rgb565 = ((result.R & 0b11111000) << 8) | ((result.G & 0b11111100) << 3) | (result.B >> 3);
-Debug.println(rgb565); // to get list of color if drawGradient is acitvated
-return result;
+
+struct RGB interpolateint4(float valueSensor, int step1, int step2, bool correction) // temp
+{
+
+	struct RGB result;
+	uint16_t rgb565;
+
+	if (valueSensor >= -128 && valueSensor < step1)
+	{
+		result.R = 0;
+		result.G = 0; // Bleu / Trop froid inférieur à 19 (step1)
+		result.B = 255;
+	}
+	else if (valueSensor >= step1 && valueSensor <= step2)
+	{
+
+		result.R = 0;
+		result.G = 255; // Green ok
+		result.B = 0;
+	}
+	else if (valueSensor > step2)
+	{
+		result.R = 255;
+		result.G = 0; // RED / trop chaud supérieur à 28
+		result.B = 0;
+	}
+	else
+	{
+		result.R = 0;
+		result.G = 0;
+		result.B = 0;
+	}
+
+	if (correction == true)
+	{
+		result.R = pgm_read_byte(&gamma8[result.R]);
+		result.G = pgm_read_byte(&gamma8[result.G]);
+		result.B = pgm_read_byte(&gamma8[result.B]);
+	}
+
+	rgb565 = ((result.R & 0b11111000) << 8) | ((result.G & 0b11111100) << 3) | (result.B >> 3);
+	Debug.println(rgb565); // to get list of color if drawGradient is acitvated
+	return result;
 }
 
 
@@ -872,56 +726,38 @@ for (uint8_t k = 0; k < gradientHeight; k++){
 }
 }
 
-//REVOIR POUR LE TRAITEMENT DES CARACTERES SPECIAUX
 
-void messager1(float valueSensor, int step1, int step2, int step3, int step4, int step5)
+void messager1(float valueSensor, int step1, int step2, int step3)
 {
 
-//MESSAGES FIXES => CENTRER à la main
+	display.setTextSize(1);
 
-//display.setCursor(0, 25); //voir les position car caractères spéciaux
-display.setTextSize(1);
-
-
-	//   if (valueSensor >= 0 && valueSensor <= step1)
 	if (valueSensor >= -1 && valueSensor <= step1)
 	{
 		display.setFont(NULL);
 		display.setCursor(23, 25);
 		display.print("BON");
 	}
-	else if (valueSensor > step1 && valueSensor <= step5)
+	else if (valueSensor > step1 && valueSensor <= step3)
 	{
 		if (valueSensor <= step2)
 		{
-		display.setFont(NULL);
-		display.setCursor(17, 25);
-		display.print("MOYEN");
+			display.setFont(NULL);
+			display.setCursor(17, 25);
+			display.print("MOYEN");
 		}
 		else if (valueSensor > step2 && valueSensor <= step3)
 		{
-		display.setFont(NULL);
-		display.setCursor(11, 25);
-		display.print("DEGRADE");
-		}
-		else if (valueSensor > step3 && valueSensor <= step4)
-		{
-		display.setFont(NULL);
-		display.setCursor(11, 25);
-		display.print("MAUVAIS");
+			display.setFont(NULL);
+			display.setCursor(11, 25);
+			display.print("DEGRADE");
 		}
 		else
 		{
-		display.setFont(&Font4x7Fixed);
-		display.setCursor(0, 31);
-		display.print("TRES MAUVAIS");
+			display.setFont(NULL);
+			display.setCursor(11, 25);
+			display.print("MAUVAIS");
 		}
-	}
-	else if (valueSensor > step5)
-	{
-		display.setFont(&Font4x7Fixed);
-		display.setCursor(0, 31);
-		display.print("EXT. MAUVAIS");
 	}
 	else
 	{
@@ -929,40 +765,25 @@ display.setTextSize(1);
 		display.setCursor(14, 25);
 		display.print("ERREUR");
 	}
-
 }
 
-void messager2(float valueSensor, int step1, int step2, int step3)
+void messager2(float valueSensor, int step1, int step2)
 {
 
-//MESSAGES FIXES => CENTRER à la main
+	display.setFont(NULL);
+	display.setTextSize(1);
 
-
-display.setFont(NULL);
-//display.setCursor(0, 25); //voir les position?
-display.setTextSize(1);
-
-
-	//   if (valueSensor >= 0 && valueSensor <= step1)
 	if (valueSensor >= -1 && valueSensor <= step1)
 	{
 		display.setCursor(20, 25);
-		display.print("BIEN");
+		display.print("BIEN"); // inférieur à 800ppm
 	}
-	else if (valueSensor > step1 && valueSensor <= step3)
+	else if (valueSensor > step1 && valueSensor <= step2)
 	{
-		if (valueSensor <= step2)
-		{
-		display.setCursor(20, 25);
-		display.print("BIEN");
-		}
-		else if (valueSensor > step2 && valueSensor <= step3)
-		{
 		display.setCursor(5, 25);
-		display.print("AERER SVP");
-		}
+		display.print("AERER SVP"); // entre 800 et 1500
 	}
-	else if (valueSensor > step3)
+	else if (valueSensor > step2)
 	{
 		display.setCursor(2, 25);
 		display.print("AERER VITE");
@@ -973,22 +794,14 @@ display.setTextSize(1);
 		display.setTextSize(1);
 		display.print("ERREUR");
 	}
-
 }
 
 
-void messager3(float valueSensor, int step1, int step2) //humi
+void messager3(float valueSensor, int step1, int step2) // humi
 {
+	display.setFont(NULL);
+	display.setTextSize(1);
 
-//MESSAGES FIXES => CENTRER à la main
-
-
-display.setFont(NULL);
-//display.setCursor(0, 25); //voir les position?
-display.setTextSize(1);
-
-
-	//   if (valueSensor >= 0 && valueSensor <= step1)
 	if (valueSensor >= -1 && valueSensor <= step1)
 	{
 		display.setCursor(2, 25);
@@ -1011,32 +824,23 @@ display.setTextSize(1);
 		display.setTextSize(1);
 		display.print("ERREUR");
 	}
-
 }
 
-
-void messager4(float valueSensor, int step1, int step2) //temp
+void messager4(float valueSensor, int step1, int step2) // temp
 {
+	display.setFont(NULL);
+	display.setTextSize(1);
 
-//MESSAGES FIXES => CENTRER à la main
-
-
-display.setFont(NULL);
-//display.setCursor(0, 25); //voir les position?
-display.setTextSize(1);
-
-
-	//   if (valueSensor >= 0 && valueSensor <= step1)
 	if (valueSensor >= -128 && valueSensor <= step1)
 	{
-		display.setCursor(20, 25);
+		display.setCursor(2, 25);
 		display.print("TROP FROID");
 	}
 	else if (valueSensor > step1 && valueSensor <= step2)
 	{
 
-		display.setCursor(20, 25);
-		display.print("COMFORT");
+		display.setCursor(10, 25);
+		display.print("CONFORT");
 	}
 	else if (valueSensor > step2)
 	{
@@ -1049,8 +853,55 @@ display.setTextSize(1);
 		display.setTextSize(1);
 		display.print("ERREUR");
 	}
+}
+
+
+void messager5(int value) // Indice Atmo
+{
+	display.setFont(NULL);
+	display.setTextSize(1);
+
+	switch (value)  {
+    case 1:
+		display.setFont(NULL);
+		display.setCursor(23, 25);
+		display.print("BON");
+        break;
+    case 2:
+		display.setFont(NULL);
+		display.setCursor(17, 25);
+		display.print("MOYEN");
+        break;
+    case 3:
+		display.setFont(NULL);
+		display.setCursor(11, 25);
+		display.print("DEGRADE");
+        break;
+    case 4:
+		display.setFont(NULL);
+		display.setCursor(11, 25);
+		display.print("MAUVAIS");
+        break;
+    case 5:
+		display.setFont(&Font4x7Fixed);
+		display.setCursor(0, 31);
+		display.print("TRES MAUVAIS");
+        break;
+    case 6:
+		display.setFont(&Font4x7Fixed);
+		display.setCursor(0, 31);
+		display.print("EXT. MAUVAIS");
+        break;
+    default:
+		display.setFont(NULL);
+		display.setCursor(14, 25);
+		display.print("ERREUR");
+}
+
+
 
 }
+
 
 void drawCentreString(const String &buf, int x, int y, int offset)
 {
@@ -1115,9 +966,9 @@ MHZ16_uart mhz16;
 MHZ19 mhz19; 
 
 /*****************************************************************
- * SGP40 declaration                                        *
+ * CCS811 declaration                                        *
  *****************************************************************/
-SensirionI2CSgp40 sgp40;
+CCS811 ccs811(-1);
 
 /*****************************************************************
  * Time                                       *
@@ -1253,7 +1104,7 @@ float last_value_NPM_N25 = -1.0;
 float last_value_MHZ16 = -1.0;
 float last_value_MHZ19 = -1.0;
 
-float last_value_SGP40 = -1.0;
+float last_value_CCS811 = -1.0;
 
 String last_data_string;
 int last_signal_strength;
@@ -2325,7 +2176,7 @@ static void webserver_config_send_body_get(String &page_content)
 	page_content += FPSTR(INTL_VOC_SENSORS);
 	page_content += FPSTR(WEB_B_BR);
 
-	add_form_checkbox_sensor(Config_sgp40_read, FPSTR(INTL_SGP40));
+	add_form_checkbox_sensor(Config_ccs811_read, FPSTR(INTL_CCS811));
 
 	// Paginate page after ~ 1500 Bytes
 	server.sendContent(page_content);
@@ -2629,6 +2480,7 @@ static void webserver_values()
 	const String unit_P("hPa");
 	const String unit_T("°C");
 	const String unit_CO2("ppm");
+	const String unit_COV("ppb");
 	const String unit_NC();
 	const String unit_LA(F("dB(A)"));
 	float dew_point_temp;
@@ -2673,7 +2525,7 @@ static void webserver_values()
 
 	auto add_table_voc_value = [&page_content](const __FlashStringHelper *sensor, const __FlashStringHelper *param, const float &value)
 	{
-		add_table_row_from_value(page_content, sensor, param, check_display_value(value, -1, 1, 0).substring(0,check_display_value(value, -1, 1, 0).indexOf(".")), "ppm"); //remove after .
+		add_table_row_from_value(page_content, sensor, param, check_display_value(value, -1, 1, 0).substring(0,check_display_value(value, -1, 1, 0).indexOf(".")), "ppb"); //remove after .
 	};
 
 	auto add_table_value = [&page_content](const __FlashStringHelper *sensor, const __FlashStringHelper *param, const String &value, const String &unit)
@@ -2732,10 +2584,10 @@ static void webserver_values()
 		page_content += FPSTR(EMPTY_ROW);
 	}
 
-			if (cfg::sgp40_read)
+			if (cfg::ccs811_read)
 	{
-		const char *const sensor_name = SENSORS_SGP40;
-		add_table_voc_value(FPSTR(sensor_name), FPSTR(INTL_VOC), last_value_SGP40);
+		const char *const sensor_name = SENSORS_CCS811;
+		add_table_voc_value(FPSTR(sensor_name), FPSTR(INTL_VOC), last_value_CCS811);
 		page_content += FPSTR(EMPTY_ROW);
 	}
 
@@ -3314,7 +3166,7 @@ static void wifiConfig()
 	debug_outln_info_bool(F("BMX: "), cfg::bmx280_read);
 	debug_outln_info_bool(F("MHZ16: "), cfg::mhz16_read);
 	debug_outln_info_bool(F("MHZ19: "), cfg::mhz19_read);
-	debug_outln_info_bool(F("SGP40: "), cfg::sgp40_read);
+	debug_outln_info_bool(F("CCS811: "), cfg::ccs811_read);
 	debug_outln_info(FPSTR(DBG_TXT_SEP));
 	debug_outln_info_bool(F("SensorCommunity: "), cfg::send2dusti);
 	debug_outln_info_bool(F("Madavi: "), cfg::send2madavi);
@@ -3360,7 +3212,7 @@ gps getGPS(String id)
 	HTTPClient http;
 	http.setTimeout(20 * 1000);
 
-	String urlAirCarto = "http://data.aircarto.fr/getLocationModuleAir.php?id=";
+	String urlAirCarto = "http://moduleair.fr/devices/get_loc.php?id=";
 	String serverPath = urlAirCarto + id;
 
 	debug_outln_info(F("Call: "), serverPath);
@@ -3744,15 +3596,6 @@ float getDataAtmoSud(unsigned int type)
 	sprintf(bufferlat, "%2.5f", latbbox);
 	String bbox = String(cfg::longitude) + "," + String(cfg::latitude) + "," + String(bufferlong) + "," + String(bufferlat);
 
-	// if((String(cfg::longitude) == longitude_aircarto && String(cfg::latitude) == latitude_aircarto) || (longitude_aircarto == "0.00000" && latitude_aircarto == "0.00000")){
-	// sprintf(bufferlong, "%2.5f", longbbox1);
-	// sprintf(bufferlat, "%2.5f", latbbox1);
-	// bbox = String(cfg::longitude) + "," + String(cfg::latitude) + "," + String(bufferlong) + "," + String(bufferlat);
-	// }else{
-	// sprintf(bufferlong, "%2.5f", longbbox2);
-	// sprintf(bufferlat, "%2.5f", latbbox2);
-	// bbox = longitude_aircarto + "," + latitude_aircarto + "," + String(bufferlong) + "," + String(bufferlat);
-	// }
 	Debug.println(bbox);
 	String urlAtmo1 = "https://geoservices.atmosud.org/geoserver/azurjour/wms?&INFO_FORMAT=application/json&REQUEST=GetFeatureInfo&SERVICE=WMS%20&VERSION=1.1.1&WIDTH=1%20&HEIGHT=1&X=1&Y=1&BBOX=";
 	String urlAtmo2 = "&LAYERS=azurjour:paca-";
@@ -3893,36 +3736,31 @@ static void fetchSensorMHZ19(String &s)
 }
 
 /*****************************************************************
- * read SGP40 sensor values                              *
+ * read CCS811 sensor values                              *
  *****************************************************************/
-static void fetchSensorSGP40(String &s)
+static void fetchSensorCCS811(String &s)
 {
-	const char *const sensor_name = SENSORS_SGP40;
+	const char *const sensor_name = SENSORS_CCS811;
 	debug_outln_verbose(FPSTR(DBG_TXT_START_READING), FPSTR(sensor_name));
 
-	uint16_t error;
-    char errorMessage[256];
-    uint16_t defaultRh = 0x8000;
-    uint16_t defaultT = 0x6666;
-    uint16_t srawVoc = 0;
+	uint16_t etvoc,errstat;
+  	ccs811.read(NULL,&etvoc,&errstat,NULL); 
 
-    error = sgp40.measureRawSignal(defaultRh, defaultT, srawVoc);
-    if (error) {
-        Debug.print("Error trying to execute measureRawSignal(): ");
-        errorToString(error, errorMessage, 256);
-        Debug.println(errorMessage);
-    } else {
-	if (isnan(srawVoc))
-	{
-		last_value_SGP40 = -1.0;
-		debug_outln_error(F("SGP40 read failed"));
-	}else{
-		last_value_SGP40 = (float)srawVoc;
-		add_Value2Json(s, F("SGP40_VOC"), FPSTR(DBG_TXT_VOCPPM), last_value_SGP40);
-	}
-    }
-	debug_outln_info(FPSTR(DBG_TXT_SEP));
-	debug_outln_verbose(FPSTR(DBG_TXT_END_READING), FPSTR(sensor_name));
+	if( errstat==CCS811_ERRSTAT_OK ) { 
+		last_value_CCS811 = (float)etvoc;
+		add_Value2Json(s, F("CCS811_VOC"), FPSTR(DBG_TXT_VOCPPB), last_value_CCS811);
+	}else if( errstat==CCS811_ERRSTAT_OK_NODATA ) {
+		Debug.println("CCS811: waiting for (new) data");
+  } else if( errstat & CCS811_ERRSTAT_I2CFAIL ) { 
+	Debug.println("CCS811: I2C error");
+  } else {
+	  Debug.print("CCS811: errstat=");
+	  Debug.print("errstat,HEX");
+	  Debug.print("=");
+	  Debug.println(ccs811.errstat_str(errstat));
+  }
+debug_outln_info(FPSTR(DBG_TXT_SEP));
+debug_outln_verbose(FPSTR(DBG_TXT_END_READING), FPSTR(sensor_name));
 }
 
 
@@ -4322,10 +4160,10 @@ static void display_values_oled()  //COMPLETER LES ECRANS
 		co2_sensor = FPSTR(SENSORS_MHZ19);
 	}
 
-			if (cfg::sgp40_read)
+			if (cfg::ccs811_read)
 	{
-		cov_value = last_value_SGP40;
-		cov_sensor = FPSTR(SENSORS_SGP40);
+		cov_value = last_value_CCS811;
+		cov_sensor = FPSTR(SENSORS_CCS811);
 	}
 
 		if (cfg::sds_read && cfg::display_measure)
@@ -4349,7 +4187,7 @@ static void display_values_oled()  //COMPLETER LES ECRANS
         {
             screens[screen_count++] = 4;
         }
-        if (cfg::sgp40_read && cfg::display_measure)
+        if (cfg::ccs811_read && cfg::display_measure)
         {
             screens[screen_count++] = 5;
         }
@@ -4423,8 +4261,8 @@ static void display_values_oled()  //COMPLETER LES ECRANS
 			display_lines[0] = std::move(tmpl(F("CO2: {v} ppm"), check_display_value(co2_value, -1, 1, 6)));
 			break;
 		case 5:
-			display_header = FPSTR(SENSORS_SGP40);
-			display_lines[0] = std::move(tmpl(F("COV: {v} ppm"), check_display_value(cov_value, -1, 1, 6)));
+			display_header = FPSTR(SENSORS_CCS811);
+			display_lines[0] = std::move(tmpl(F("COV: {v} ppb"), check_display_value(cov_value, -1, 1, 6)));
 			break;
 		case 6:
 			display_header = F("Forecast AtmoSud");
@@ -4567,13 +4405,13 @@ static void display_values_matrix()
 		co2_sensor = FPSTR(SENSORS_MHZ19);
 	}
 
-			if (cfg::sgp40_read)
+			if (cfg::ccs811_read)
 	{
-		cov_value = last_value_SGP40;
-		cov_sensor = FPSTR(SENSORS_SGP40);
+		cov_value = last_value_CCS811;
+		cov_sensor = FPSTR(SENSORS_CCS811);
 	}
 
-		if ((cfg::sds_read || cfg::npm_read || cfg::bmx280_read || cfg::mhz16_read || cfg::mhz19_read || cfg::sgp40_read) && cfg::display_measure)
+		if ((cfg::sds_read || cfg::npm_read || cfg::bmx280_read || cfg::mhz16_read || cfg::mhz19_read || cfg::ccs811_read) && cfg::display_measure)
 		{
 			screens[screen_count++] = 0; //Air intérieur
 		}
@@ -4600,7 +4438,7 @@ static void display_values_matrix()
 		{
 			if(cfg_screen_co2)screens[screen_count++] = 7;
 		}
-		if (cfg::sgp40_read && cfg::display_measure)
+		if (cfg::ccs811_read && cfg::display_measure)
 		{
 			if(cfg_screen_cov)screens[screen_count++] = 8;
 		}
@@ -4642,25 +4480,20 @@ static void display_values_matrix()
 
 		screens[screen_count++] = 23; // Logos
 
-
-
-
-		//display.fillScreen(myBLACK); //to avoid blink with display.clearDisplay();
-
 		switch (screens[next_display_count % screen_count])
 		{
 		case 0:
 		if(pm10_value != -1.0 || pm25_value != -1.0 || pm01_value != -1.0 || t_value != -128.0 || h_value != -1.0 || p_value != -1.0 || co2_value != -1.0 || cov_value != -1.0){
 		drawImage(0, 0, 32, 64, interieur);
-		display.setTextColor(myWHITE);
-		display.setFont(&Font4x7Fixed);
-		display.setTextSize(1);
-		display.setCursor(13, 14);
-		display.print("Air");
-		display.setCursor(1, 24);
-		display.print("int");
-		display.write(233);
-		display.print("rieur");
+		// display.setTextColor(myWHITE);
+		// display.setFont(&Font4x7Fixed);
+		// display.setTextSize(1);
+		// display.setCursor(13, 14);
+		// display.print("Air");
+		// display.setCursor(1, 24);
+		// display.print("int");
+		// display.write(233);
+		// display.print("rieur");
 		}else{
 			act_milli += 5000;	
 		}
@@ -4678,8 +4511,8 @@ static void display_values_matrix()
 			display.write(181);
 			display.print("g/m");
 			display.write(179);
-			drawImage(55, 0, 8, 9, maison);
-			displayColor = interpolate(pm10_value, 20, 40, 50, 100, 150, gamma_correction);
+			drawImage(55, 0, 7, 9, maison);
+			displayColor = interpolateint(pm10_value, 15, 30, 75, gamma_correction);
 			myCUSTOM = display.color565(displayColor.R, displayColor.G, displayColor.B);
 			display.fillRect(50, 9, 14, 14, myCUSTOM);
 			display.setFont(NULL);
@@ -4687,7 +4520,7 @@ static void display_values_matrix()
 			display.setTextColor(myWHITE);
 			drawCentreString(String(pm10_value, 0), 0, 9, 14); 
 			display.setTextColor(myCUSTOM);
-			messager1(pm10_value, 20, 40, 50, 100, 150);
+			messager1(pm10_value, 15, 30, 75);
 			}
 			else
 			{
@@ -4707,8 +4540,8 @@ static void display_values_matrix()
 			display.write(181);
 			display.print("g/m");
 			display.write(179);
-			drawImage(55, 0, 8, 9, maison);
-			displayColor = interpolate(pm25_value, 10, 20, 25, 50, 75, gamma_correction);
+			drawImage(55, 0, 7, 9, maison);
+			displayColor = interpolateint(pm25_value, 10, 20, 50, gamma_correction);
 			myCUSTOM = display.color565(displayColor.R, displayColor.G, displayColor.B);
 			display.fillRect(50, 9, 14, 14, myCUSTOM);
 			display.setFont(NULL);
@@ -4716,7 +4549,7 @@ static void display_values_matrix()
 			display.setTextColor(myWHITE);
 			drawCentreString(String(pm25_value, 0), 0, 9, 14); 
 			display.setTextColor(myCUSTOM);
-            messager1(pm25_value, 10, 20, 25, 50, 75);
+            messager1(pm25_value, 10, 20, 50);
 			}
 			else
 			{
@@ -4736,8 +4569,8 @@ static void display_values_matrix()
 			display.write(181);
 			display.print("g/m");
 			display.write(179);
-			drawImage(55, 0, 8, 9, maison);
-			displayColor = interpolate(pm10_value, 20, 40, 50, 100, 150, gamma_correction);
+			drawImage(55, 0, 7, 9, maison);
+			displayColor = interpolateint(pm10_value, 15, 30, 75, gamma_correction);
 			myCUSTOM = display.color565(displayColor.R, displayColor.G, displayColor.B);
 			display.fillRect(50, 9, 14, 14, myCUSTOM);
 			display.setFont(NULL);
@@ -4745,7 +4578,7 @@ static void display_values_matrix()
 			display.setTextColor(myWHITE);
 			drawCentreString(String(pm10_value, 0), 0, 9, 14); 
 			display.setTextColor(myCUSTOM);
-			messager1(pm10_value, 20, 40, 50, 100, 150);
+			messager1(pm10_value, 15, 30, 75);
 			}
 			else
 			{
@@ -4765,8 +4598,8 @@ static void display_values_matrix()
 			display.write(181);
 			display.print("g/m");
 			display.write(179);
-			drawImage(55, 0, 8, 9, maison);
-			displayColor = interpolate(pm25_value, 10, 20, 25, 50, 75, gamma_correction);
+			drawImage(55, 0, 7, 9, maison);
+			displayColor = interpolateint(pm25_value, 10, 20, 50, gamma_correction);
 			myCUSTOM = display.color565(displayColor.R, displayColor.G, displayColor.B);
 			display.fillRect(50, 9, 14, 14, myCUSTOM);
 			display.setFont(NULL);
@@ -4774,7 +4607,7 @@ static void display_values_matrix()
 			display.setTextColor(myWHITE);
 			drawCentreString(String(pm25_value, 0), 0, 9, 14); 
 			display.setTextColor(myCUSTOM);
-            messager1(pm25_value, 10, 20, 25, 50, 75);
+            messager1(pm25_value, 10, 20, 50);
 			}
 			else
 			{
@@ -4794,8 +4627,8 @@ static void display_values_matrix()
 			display.write(181);
 			display.print("g/m");
 			display.write(179);
-			drawImage(55, 0, 8, 9, maison);
-			displayColor = interpolate(pm01_value, 10, 20, 25, 50, 75, gamma_correction);
+			drawImage(55, 0, 7, 9, maison);
+			displayColor = interpolateint(pm01_value, 10, 20, 50, gamma_correction);
 			myCUSTOM = display.color565(displayColor.R, displayColor.G, displayColor.B);
 			display.fillRect(50, 9, 14, 14, myCUSTOM);
 			display.setFont(NULL);
@@ -4803,7 +4636,7 @@ static void display_values_matrix()
 			display.setTextColor(myWHITE);
 			drawCentreString(String(pm01_value, 0), 0, 9, 14); 
 			display.setTextColor(myCUSTOM);
-            messager1(pm25_value, 10, 20, 25, 50, 75);
+            messager1(pm25_value, 10, 20, 50);
 			}
 			else
 			{
@@ -4822,8 +4655,8 @@ static void display_values_matrix()
 			display.setFont(&Font4x7Fixed);
 			display.setCursor(display.getCursorX()+2, 7);
 			display.print("ppm");
-			drawImage(55, 0, 8, 9, maison);
-			displayColor = interpolate2(co2_value, 440, 800, 1700, gamma_correction);
+			drawImage(55, 0, 7, 9, maison);
+			displayColor = interpolateint2(co2_value, 800, 1500, gamma_correction);
 			myCUSTOM = display.color565(displayColor.R, displayColor.G, displayColor.B);
 			display.fillRect(50, 9, 14, 14, myCUSTOM);
 			display.setFont(NULL);
@@ -4831,7 +4664,7 @@ static void display_values_matrix()
 			display.setTextColor(myWHITE);
 			drawCentreString(String(co2_value, 0), 0, 9, 14); 
 			display.setTextColor(myCUSTOM);
-			messager2(co2_value, 440, 800, 1700);
+			messager2(co2_value, 800, 1500);
 			}
 			else
 			{
@@ -4850,8 +4683,8 @@ static void display_values_matrix()
 			display.setFont(&Font4x7Fixed);
 			display.setCursor(display.getCursorX()+2, 7);
 			display.print("ppm");
-			drawImage(55, 0, 8, 9, maison);
-			displayColor = interpolate2(co2_value, 440, 800, 1700, gamma_correction);
+			drawImage(55, 0, 7, 9, maison);
+			displayColor = interpolateint2(co2_value, 800, 1500, gamma_correction);
 			myCUSTOM = display.color565(displayColor.R, displayColor.G, displayColor.B);
 			display.fillRect(50, 9, 14, 14, myCUSTOM);
 			display.setFont(NULL);
@@ -4859,7 +4692,7 @@ static void display_values_matrix()
 			display.setTextColor(myWHITE);
 			drawCentreString(String(co2_value, 0), 0, 9, 14); 
 			display.setTextColor(myCUSTOM);
-			messager2(co2_value, 440, 800, 1700);
+			messager2(co2_value, 800, 1500);
 			}
 			else
 			{
@@ -4876,8 +4709,8 @@ static void display_values_matrix()
 			display.print("COV");
 			display.setFont(&Font4x7Fixed);
 			display.setCursor(display.getCursorX()+2, 7);
-			display.print("ppm");
-			drawImage(55, 0, 8, 9, maison);
+			display.print("ppb");
+			drawImage(55, 0, 7, 9, maison);
 			display.setFont(NULL);
 			display.setTextSize(2);
 			display.setTextColor(myWHITE);
@@ -4900,8 +4733,8 @@ static void display_values_matrix()
 			display.setCursor(display.getCursorX()+2, 7);
 			display.write(176);
 			display.print("C");
-			drawImage(55, 0, 8, 9, maison);
-			displayColor = interpolate4(t_value, 40, 60, gamma_correction);
+			drawImage(55, 0, 7, 9, maison);
+			displayColor = interpolateint4(t_value, 19, 28, gamma_correction);
 			myCUSTOM = display.color565(displayColor.R, displayColor.G, displayColor.B);
 			display.fillRect(50, 9, 14, 14, myCUSTOM);
 			display.setFont(NULL);
@@ -4909,7 +4742,7 @@ static void display_values_matrix()
 			display.setTextColor(myWHITE);
 			drawCentreString(String(t_value, 1), 0, 9, 14); 
 			display.setTextColor(myCUSTOM);
-			messager4(t_value, 40, 60);
+			messager4(t_value, 19, 28);
 			}
 			else
 			{
@@ -4928,8 +4761,8 @@ static void display_values_matrix()
 			display.setFont(&Font4x7Fixed);
 			display.setCursor(display.getCursorX()+2, 7);
 			display.write(37);
-			drawImage(55, 0, 8, 9, maison);
-			displayColor = interpolate3(h_value, 40, 60, gamma_correction);
+			drawImage(55, 0, 7, 9, maison);
+			displayColor = interpolateint3(h_value, 40, 60, gamma_correction);
 			myCUSTOM = display.color565(displayColor.R, displayColor.G, displayColor.B);
 			display.fillRect(50, 9, 14, 14, myCUSTOM);
 			display.setFont(NULL);
@@ -4955,7 +4788,7 @@ static void display_values_matrix()
 			display.setFont(&Font4x7Fixed);
 			display.setCursor(display.getCursorX()+2, 7);
 			display.print("hPa");
-			drawImage(55, 0, 8, 9, maison);
+			drawImage(55, 0, 7, 9, maison);
 			display.setFont(NULL);
 			display.setTextSize(2);
 			display.setTextColor(myWHITE);
@@ -4969,15 +4802,15 @@ static void display_values_matrix()
 		case 12:
 		if(atmoSud.multi != -1.0 || atmoSud.no2 != -1.0 || atmoSud.o3 != -1.0 || atmoSud.pm10 != -1.0 || atmoSud.pm2_5 != -1.0){
 		drawImage(0, 0, 32, 64, exterieur);
-		display.setTextColor(myWHITE);
-		display.setFont(&Font4x7Fixed);
-		display.setTextSize(1);
-		display.setCursor(13, 14);
-		display.print("Air");
-		display.setCursor(1, 24);
-		display.print("ext");
-		display.write(233);
-		display.print("rieur");
+		// display.setTextColor(myWHITE);
+		// display.setFont(&Font4x7Fixed);
+		// display.setTextSize(1);
+		// display.setCursor(13, 14);
+		// display.print("Air");
+		// display.setCursor(1, 24);
+		// display.print("ext");
+		// display.write(233);
+		// display.print("rieur");
 		}
 		else
 		{
@@ -4992,18 +4825,22 @@ static void display_values_matrix()
 			display.setCursor(1, 0);
 			display.setTextSize(1);
 			display.print("Indice");
+			drawImage(55, 0, 7, 9, soleil);
 			displayColor = interpolate(atmoSud.multi, 20, 40, 50, 100, 150, gamma_correction);
 			myCUSTOM = display.color565(displayColor.R, displayColor.G, displayColor.B);
 			display.fillRect(50, 9, 14, 14, myCUSTOM);
 			display.setFont(NULL);
 			display.setTextColor(myWHITE);
 			display.setTextSize(2);
-			drawCentreString(String(atmoSud.multi, 0), 0, 9, 14); 
-			//drawgradient(0, 25, atmoSud.no2, 20, 40, 50, 100, 150);
-			if(gamma_correction){drawImage(0, 28, 4, 64, gradient_20_150_gamma);}else{drawImage(0, 28, 4, 64, gradient_20_150);}
-			display.setTextSize(1);
-			display.setCursor((uint8_t)((63*atmoSud.multi)/150)-2, 25-2); //2 pixels de offset
-			display.write(31);
+			drawCentreString(String(atmoSud.multi, 0), 0, 9, 14);
+			display.setTextColor(myCUSTOM);
+			messager5((int)atmoSud.multi);
+
+			// //drawgradient(0, 25, atmoSud.no2, 20, 40, 50, 100, 150);
+			// if(gamma_correction){drawImage(0, 28, 4, 64, gradient_20_150_gamma);}else{drawImage(0, 28, 4, 64, gradient_20_150);}
+			// display.setTextSize(1);
+			// display.setCursor((uint8_t)((63*atmoSud.multi)/150)-2, 25-2); //2 pixels de offset
+			// display.write(31);
 			}
 			else{
 			act_milli += 5000;  
@@ -5023,6 +4860,7 @@ static void display_values_matrix()
 			display.write(181);
 			display.print("g/m");
 			display.write(179);
+			drawImage(55, 0, 7, 9, soleil);
 			displayColor = interpolate(atmoSud.no2, 40, 90, 120, 230, 340, gamma_correction);
 			myCUSTOM = display.color565(displayColor.R, displayColor.G, displayColor.B);
 			display.fillRect(50, 9, 14, 14, myCUSTOM);
@@ -5054,6 +4892,7 @@ static void display_values_matrix()
 			display.write(181);
 			display.print("g/m");
 			display.write(179);
+			drawImage(55, 0, 7, 9, soleil);
 			displayColor = interpolate(atmoSud.o3, 50, 100, 130, 240, 380, gamma_correction);
 			myCUSTOM = display.color565(displayColor.R, displayColor.G, displayColor.B);
 			display.fillRect(50, 9, 14, 14, myCUSTOM);
@@ -5084,6 +4923,7 @@ static void display_values_matrix()
 			display.write(181);
 			display.print("g/m");
 			display.write(179);
+			drawImage(55, 0, 7, 9, soleil);
 			displayColor = interpolate(atmoSud.pm10, 20, 40, 50, 100, 150, gamma_correction);
 			myCUSTOM = display.color565(displayColor.R, displayColor.G, displayColor.B);
 			display.fillRect(50, 9, 14, 14, myCUSTOM);
@@ -5114,6 +4954,7 @@ static void display_values_matrix()
 			display.write(181);
 			display.print("g/m");
 			display.write(179);
+			drawImage(55, 0, 7, 9, soleil);
 			displayColor = interpolate(atmoSud.pm2_5, 10, 20, 25, 50, 75, gamma_correction);
 			myCUSTOM = display.color565(displayColor.R, displayColor.G, displayColor.B);
 			display.fillRect(50, 9, 14, 14, myCUSTOM);
@@ -5302,22 +5143,6 @@ static void init_matrix()
 	}else{
 		has_logo = false;
 	}
-
-	// display.fillScreen(myBLACK); 	//display.clearDisplay(); produces a flash
-	// drawImage(0, 0, 32, 64, logo_moduleair);
-	// delay(5000);
-	// display.fillScreen(myBLACK); 	//display.clearDisplay(); produces a flash
-	// drawImage(0, 0, 32, 64, logo_aircarto);
-	// delay(5000);
-	// display.fillScreen(myBLACK);
-	// drawImage(0, 0, 32, 64, logo_atmo);
-	// delay(5000);
-	// display.fillScreen(myBLACK);
-	// drawImage(0, 0, 32, 64, logo_region);
- 	// delay(5000);
-	// display.fillScreen(myBLACK); 	//display.clearDisplay(); produces a flash
-	// drawImage(0, 0, 32, 64, logo_moduleair);
-	// delay(5000);
 }
 
 /*****************************************************************
@@ -5386,33 +5211,34 @@ static bool initBMX280(char addr)
 }
 
 /*****************************************************************
- * Init SGP40                                            *
+ * Init CCS811                                            *
  *****************************************************************/
-static bool initSGP40()
+static bool initCCS811()
 {
-    uint16_t error;
-    char errorMessage[256];
 
-	debug_out(String(F("Trying SGP40 sensor: ")), DEBUG_MIN_INFO);
+  debug_out(String(F("Trying CCS811 sensor: ")), DEBUG_MIN_INFO);
 
-	sgp40.begin(Wire);
-    
-	uint16_t testResult;
-    error = sgp40.executeSelfTest(testResult);
-    if (error) {
-		debug_out(String(F("Error trying to execute executeSelfTest(): ")), DEBUG_MIN_INFO);
-        errorToString(error, errorMessage, 256);
-		debug_out(String(errorMessage), DEBUG_MIN_INFO);
-		return false;
-    } else if (testResult != 0xD400) {
-		debug_out(String(F("executeSelfTest failed with error: ")), DEBUG_MIN_INFO);
-		debug_out(String(testResult), DEBUG_MIN_INFO);
-		return false;
-    }else{
-		debug_out(String(F("SGP40 selftest OK")), DEBUG_MIN_INFO);
-		Debug.printf("\n");
-		return true;
-	}
+  if(!ccs811.begin()) {
+	debug_out(String(F("CCS811 begin FAILED")), DEBUG_MIN_INFO);
+	return false;
+  }else
+  {
+  // Print CCS811 versions
+  debug_outln_info(F("hardware version: "), ccs811.hardware_version());
+  debug_outln_info(F("bootloader version: "), ccs811.bootloader_version());
+  debug_outln_info(F("application version: "), ccs811.application_version());
+
+  if( !ccs811.start(CCS811_MODE_1SEC) )
+  {
+	debug_out(String(F("CCS811 start FAILED")), DEBUG_MIN_INFO);
+	return false;
+  }else
+  {
+	debug_out(String(F("CCS811 OK")), DEBUG_MIN_INFO);
+	Debug.printf("\n");
+	return true;
+  }
+  }
 }
 
 /*****************************************************************
@@ -5538,13 +5364,13 @@ if (nextpmconnected){
 		}
 	}
 
-	if (cfg::sgp40_read)
+	if (cfg::ccs811_read)
 	{
-		debug_outln_info(F("Read SGP40..."));
-		if (!initSGP40())
+		debug_outln_info(F("Read CCS811..."));
+		if (!initCCS811())
 		{
-			debug_outln_error(F("Check SGP40 wiring"));
-			sgp40_init_failed = true;
+			debug_outln_error(F("Check CCS811 wiring"));
+			ccs811_init_failed = true;
 		}
 	}
 }
@@ -6047,7 +5873,7 @@ static void prepareTxFrame()
 	datalora[19] = u1.temp_byte[1];
 	datalora[20] = u1.temp_byte[0];
 
-	u1.temp_int = (int16_t)round(last_value_SGP40);
+	u1.temp_int = (int16_t)round(last_value_CCS811);
 
 	datalora[21] = u1.temp_byte[1];
 	datalora[22] = u1.temp_byte[0];
@@ -6326,7 +6152,7 @@ void setup()
 	configlorawan[2] = cfg::bmx280_read;
 	configlorawan[3] = cfg::mhz16_read;
 	configlorawan[4] = cfg::mhz19_read;
-	configlorawan[5] = cfg::sgp40_read;
+	configlorawan[5] = cfg::ccs811_read;
 	configlorawan[6] = cfg::display_forecast;
 	configlorawan[7] = cfg::has_wifi;
 
@@ -6478,9 +6304,9 @@ void loop()
 				result = emptyString;
 			}
 
-			if (cfg::sgp40_read && (!sgp40_init_failed))
+			if (cfg::ccs811_read && (!ccs811_init_failed))
 			{
-				fetchSensorSGP40(result);
+				fetchSensorCCS811(result);
 				data += result;
 				result = emptyString;
 			}

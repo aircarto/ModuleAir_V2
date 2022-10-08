@@ -24,7 +24,7 @@ const char INTL_PRESSURE_AT_SEALEVEL[] PROGMEM = "Pression au niveau de la mer (
 const char INTL_NEO6M[] PROGMEM = "GPS (NEO 6M)";
 const char INTL_MHZ16[] PROGMEM = "Sonde MH-Z16";
 const char INTL_MHZ19[] PROGMEM = "Sonde MH-Z19";
-const char INTL_SGP40[] PROGMEM = "Sonde SGP40";
+const char INTL_CCS811[] PROGMEM = "Sonde CJMCU-811";
 const char INTL_BASICAUTH[] PROGMEM = "Activer BasicAuth";
 #define INTL_REPORT_ISSUE "Signaler un problème"
 const char INTL_FS_WIFI_DESCRIPTION[] PROGMEM = "Nom du capteur wifi en mode de configuration";

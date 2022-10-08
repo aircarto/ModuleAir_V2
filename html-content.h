@@ -11,7 +11,7 @@ const char DBG_TXT_TEMPERATURE[] PROGMEM = "Temperature (°C): ";
 const char DBG_TXT_HUMIDITY[] PROGMEM = "Humidity (%): ";
 const char DBG_TXT_PRESSURE[] PROGMEM = "Pressure (Pa): ";
 const char DBG_TXT_CO2PPM[] PROGMEM = "CO₂ (ppm): ";
-const char DBG_TXT_VOCPPM[] PROGMEM = "VOC (ppm): ";
+const char DBG_TXT_VOCPPB[] PROGMEM = "VOC (ppb): ";
 const char DBG_TXT_START_READING[] PROGMEM = "R/ ";
 const char DBG_TXT_END_READING[] PROGMEM = "/R ";
 const char DBG_TXT_CHECKSUM_IS[] PROGMEM = "Checksum is: ";
@@ -32,7 +32,7 @@ const char SENSORS_SDS011[] PROGMEM = "SDS011";
 const char SENSORS_NPM[] PROGMEM = "Tera Sensor Next PM";
 const char SENSORS_BME280[] PROGMEM = "BME280";
 const char SENSORS_BMP280[] PROGMEM = "BMP280";
-const char SENSORS_SGP40[] PROGMEM = "SGP40";
+const char SENSORS_CCS811[] PROGMEM = "CJMCU-811";
 const char SENSORS_MHZ16[] PROGMEM = "MH-Z16";
 const char SENSORS_MHZ19[] PROGMEM = "MH-Z19";
 

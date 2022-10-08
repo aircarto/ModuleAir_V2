@@ -1,4 +1,4 @@
-// Allow online acces
+// Allow online acces / not used yet
 
 bool online_acces = false;
 

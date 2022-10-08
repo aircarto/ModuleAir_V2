@@ -21,7 +21,7 @@ Bool		bmx280_read
 String		height_above_sealevel
 Bool		mhz16_read
 Bool		mhz19_read
-Bool		sgp40_read
+Bool		ccs811_read
 String		latitude
 String		longitude
 Bool		send2dusti

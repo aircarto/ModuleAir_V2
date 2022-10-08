@@ -46,7 +46,7 @@ enum ConfigShapeId {
 	Config_height_above_sealevel,
 	Config_mhz16_read,
 	Config_mhz19_read,
-	Config_sgp40_read,
+	Config_ccs811_read,
 	Config_latitude,
 	Config_longitude,
 	Config_send2dusti,
@@ -99,7 +99,7 @@ static constexpr char CFG_KEY_BMX280_READ[] PROGMEM = "bmx280_read";
 static constexpr char CFG_KEY_HEIGHT_ABOVE_SEALEVEL[] PROGMEM = "height_above_sealevel";
 static constexpr char CFG_KEY_MHZ16_READ[] PROGMEM = "mhz16_read";
 static constexpr char CFG_KEY_MHZ19_READ[] PROGMEM = "mhz19_read";
-static constexpr char CFG_KEY_SGP40_READ[] PROGMEM = "sgp40_read";
+static constexpr char CFG_KEY_CCS811_READ[] PROGMEM = "ccs811_read";
 static constexpr char CFG_KEY_LATITUDE[] PROGMEM = "latitude";
 static constexpr char CFG_KEY_LONGITUDE[] PROGMEM = "longitude";
 static constexpr char CFG_KEY_SEND2DUSTI[] PROGMEM = "send2dusti";
@@ -152,7 +152,7 @@ static constexpr ConfigShapeEntry configShape[] PROGMEM = {
 	{ Config_Type_String, sizeof(cfg::height_above_sealevel)-1, CFG_KEY_HEIGHT_ABOVE_SEALEVEL, cfg::height_above_sealevel },
 	{ Config_Type_Bool, 0, CFG_KEY_MHZ16_READ, &cfg::mhz16_read },
 	{ Config_Type_Bool, 0, CFG_KEY_MHZ19_READ, &cfg::mhz19_read },
-	{ Config_Type_Bool, 0, CFG_KEY_SGP40_READ, &cfg::sgp40_read },
+	{ Config_Type_Bool, 0, CFG_KEY_CCS811_READ, &cfg::ccs811_read },
 	{ Config_Type_String, sizeof(cfg::latitude)-1, CFG_KEY_LATITUDE, cfg::latitude },
 	{ Config_Type_String, sizeof(cfg::longitude)-1, CFG_KEY_LONGITUDE, cfg::longitude },
 	{ Config_Type_Bool, 0, CFG_KEY_SEND2DUSTI, &cfg::send2dusti },

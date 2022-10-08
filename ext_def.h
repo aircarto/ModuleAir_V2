@@ -2,8 +2,8 @@
 #define CURRENT_LANG INTL_LANG
 
 // Wifi config
-const char WLANSSID[] PROGMEM = "luftdaten";
-const char WLANPWD[] PROGMEM = "luftd4ten";
+const char WLANSSID[] PROGMEM = "FRITZ!Box 7530 UU";
+const char WLANPWD[] PROGMEM = "11527970136476254347";
 
 // BasicAuth config
 const char WWW_USERNAME[] PROGMEM = "admin";
@@ -56,8 +56,8 @@ static const char NTP_SERVER_1[] PROGMEM = "ntp-p1.obspm.fr";
 static const char NTP_SERVER_2[] PROGMEM = "ntp.obspm.fr";
 
 // define own API
-static const char HOST_CUSTOM[] PROGMEM = "192.168.234.1";
-static const char URL_CUSTOM[] PROGMEM = "/data.php";
+static const char HOST_CUSTOM[] PROGMEM = "moduleair.fr";
+static const char URL_CUSTOM[] PROGMEM = "/influx/dataModuleAir_v2_wifi.php";
 #define PORT_CUSTOM 80
 #define USER_CUSTOM ""
 #define PWD_CUSTOM ""
@@ -284,8 +284,8 @@ static const char URL_CUSTOM2[] PROGMEM = "/data.php";
 
 // SGP40, COV Sensor
 
-#define SGP40_READ 0
-// #define SGP40_API_PIN X
+#define CCS811_READ 0
+// #define CCS811_API_PIN X
 
 //Location
 
