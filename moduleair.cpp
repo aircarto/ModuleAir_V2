@@ -392,8 +392,63 @@ struct RGB interpolateint(float valueSensor, int step1, int step2, int step3, bo
 	}
 
 	rgb565 = ((result.R & 0b11111000) << 8) | ((result.G & 0b11111100) << 3) | (result.B >> 3);
-	Debug.println(rgb565); // to get list of color if drawGradient is acitvated
+	//Debug.println(rgb565); // to get list of color if drawGradient is acitvated
 	return result;
+}
+
+
+struct RGB interpolateindice(int valueIndice, bool correction)
+{
+
+	struct RGB result;
+	uint16_t rgb565;
+
+switch (valueIndice)  {
+    case 1:
+		result.R = 80;
+		result.G = 240;   //blue
+		result.B = 230;
+        break;
+    case 2:
+		result.R = 80;
+		result.G = 204;   //green
+		result.B = 170;
+        break;
+    case 3:
+		result.R = 237;
+		result.G = 230;   //yellow
+		result.B = 97;
+        break;
+    case 4:
+		result.R = 237;
+		result.G = 94;   //orange
+		result.B = 88;
+        break;
+    case 5:
+		result.R = 136;
+		result.G = 26;   //red
+		result.B = 51;
+        break;
+    case 6:
+		result.R = 115;
+		result.G = 40;   //violet
+		result.B = 125;
+        break;
+    default:
+		result.R = 0;
+		result.G = 0;
+		result.B = 0;
+}
+
+if (correction == true){
+result.R = pgm_read_byte(&gamma8[result.R]);
+result.G = pgm_read_byte(&gamma8[result.G]);
+result.B = pgm_read_byte(&gamma8[result.B]);
+}
+
+rgb565 = ((result.R & 0b11111000) << 8) | ((result.G & 0b11111100) << 3) | (result.B >> 3);
+//Debug.println(rgb565); // to get list of color if drawGradient is acitvated
+return result;
 }
 
 
@@ -535,7 +590,7 @@ result.B = pgm_read_byte(&gamma8[result.B]);
 }
 
 rgb565 = ((result.R & 0b11111000) << 8) | ((result.G & 0b11111100) << 3) | (result.B >> 3);
-Debug.println(rgb565); // to get list of color if drawGradient is acitvated
+//Debug.println(rgb565); // to get list of color if drawGradient is acitvated
 return result;
 }
 
@@ -588,7 +643,7 @@ struct RGB interpolateint2(float valueSensor, int step1, int step2, bool correct
 	}
 
 	rgb565 = ((result.R & 0b11111000) << 8) | ((result.G & 0b11111100) << 3) | (result.B >> 3);
-	Debug.println(rgb565); // to get list of color if drawGradient is acitvated
+	//Debug.println(rgb565); // to get list of color if drawGradient is acitvated
 	return result;
 }
 
@@ -639,7 +694,7 @@ struct RGB interpolateint3(float valueSensor, int step1, int step2, bool correct
 	}
 
 	rgb565 = ((result.R & 0b11111000) << 8) | ((result.G & 0b11111100) << 3) | (result.B >> 3);
-	Debug.println(rgb565); // to get list of color if drawGradient is acitvated
+	//Debug.println(rgb565); // to get list of color if drawGradient is acitvated
 	return result;
 }
 
@@ -684,7 +739,7 @@ struct RGB interpolateint4(float valueSensor, int step1, int step2, bool correct
 	}
 
 	rgb565 = ((result.R & 0b11111000) << 8) | ((result.G & 0b11111100) << 3) | (result.B >> 3);
-	Debug.println(rgb565); // to get list of color if drawGradient is acitvated
+	//Debug.println(rgb565); // to get list of color if drawGradient is acitvated
 	return result;
 }
 
@@ -897,9 +952,6 @@ void messager5(int value) // Indice Atmo
 		display.setCursor(14, 25);
 		display.print("ERREUR");
 }
-
-
-
 }
 
 
@@ -3581,6 +3633,8 @@ float getDataAtmoSud(unsigned int type)
 	HTTPClient http;
 	http.setTimeout(20 * 1000);
 
+if(sensor_type != "multi")
+{
 	double longbbox = atof(cfg::longitude) + 0.00001;
 	double latbbox = atof(cfg::latitude) + 0.00001;
 	// double longbbox1 = atof(cfg::longitude) + 0.00001;
@@ -3640,6 +3694,47 @@ float getDataAtmoSud(unsigned int type)
 		return -1.0;
 		http.end();
 	}
+}else
+{
+
+	String urlAirCarto = "http://moduleair.fr/devices/get_indice_atmo.php?id=";
+	String serverPath = urlAirCarto + esp_chipid;
+
+	debug_outln_info(F("Call: "), serverPath);
+	http.begin(serverPath.c_str());
+
+	int httpResponseCode = http.GET();
+
+	if (httpResponseCode > 0)
+	{
+		reponseAPI = http.getString();
+		debug_outln_info(F("Response: "), reponseAPI);
+		strcpy(reponseJSON, reponseAPI.c_str());
+
+		DeserializationError error = deserializeJson(json, reponseJSON);
+
+		if (strcmp(error.c_str(), "Ok") == 0)
+		{
+			return (float)json["indice"];
+		}
+		else
+		{
+			Debug.print(F("deserializeJson() failed: "));
+			Debug.println(error.c_str());
+			return -1;
+		}
+		http.end();
+	}
+	else
+	{
+		debug_outln_info(F("Failed connecting to AirCarto with error code:"), String(httpResponseCode));
+		return -1;
+		http.end();
+	}
+	
+
+
+}
 }
 
 /*****************************************************************
@@ -4826,7 +4921,7 @@ static void display_values_matrix()
 			display.setTextSize(1);
 			display.print("Indice");
 			drawImage(55, 0, 7, 9, soleil);
-			displayColor = interpolate(atmoSud.multi, 20, 40, 50, 100, 150, gamma_correction);
+			displayColor = interpolateindice((int)atmoSud.multi, gamma_correction);
 			myCUSTOM = display.color565(displayColor.R, displayColor.G, displayColor.B);
 			display.fillRect(50, 9, 14, 14, myCUSTOM);
 			display.setFont(NULL);
