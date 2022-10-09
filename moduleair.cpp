@@ -2125,6 +2125,7 @@ static void webserver_config_send_body_get(String &page_content)
 	add_form_checkbox(Config_display_device_info, FPSTR(INTL_DISPLAY_DEVICE_INFO));
 
 	server.sendContent(page_content);
+	
 
 	// page_content = FPSTR(WEB_BR_LF_B);
 	// page_content += F(INTL_ONLINE_CONFIG "</b>&nbsp;");
@@ -5931,8 +5932,8 @@ static void prepareTxFrame()
 	datalora[21] = u1.temp_byte[1];
 	datalora[22] = u1.temp_byte[0];
 
-
-	u1.temp_int = (int16_t)round(last_value_BMX280_T*10);
+	if (last_value_BMX280_T != -128.0) u1.temp_int = (int16_t)round(last_value_BMX280_T*10);
+	else u1.temp_int = (int16_t)round(last_value_BMX280_T);
 
 	datalora[23] = u1.temp_byte[1];
 	datalora[24] = u1.temp_byte[0];
@@ -6011,14 +6012,6 @@ void setup()
 	Debug.printf("End of Stack is near: %p \r\n", (void *)StackPtrEnd);
 	Debug.printf("Free Stack at setup is:  %d \r\n", (uint32_t)StackPtrAtStart - (uint32_t)StackPtrEnd);
 
-
-
-	// if (cfg::has_matrix)
-	// {
-	// 	init_matrix();
-	// }
-
-
 	esp_chipid = String((uint16_t)(ESP.getEfuseMac() >> 32), HEX); // for esp32
 	esp_chipid += String((uint32_t)ESP.getEfuseMac(), HEX);
 	esp_chipid.toUpperCase();
@@ -6029,15 +6022,10 @@ void setup()
 
 	init_config();
 
-	//SPI.end();
-
 	if (cfg::has_matrix)
 	{
 		init_matrix();
 	}
-
-
-
 
 #if defined(ESP32) and not defined(ARDUINO_HELTEC_WIFI_LORA_32_V2) and not defined(ARDUINO_TTGO_LoRa32_v21new)
 	Wire.begin(I2C_PIN_SDA, I2C_PIN_SCL);
@@ -6100,16 +6088,6 @@ void setup()
 		init_display();
 	}
 
-
-	// if (cfg::has_matrix)
-	// {
-	// 	init_matrix();
-	// }
-
-
-
-
-
 	debug_outln_info(F("\nChipId: "), esp_chipid);
 
 	// always start the Webserver on void setup to get access to the sensor
@@ -6141,13 +6119,6 @@ void setup()
 		last_display_millis_oled = starttime_SDS = starttime;
 		last_display_millis_matrix = starttime_SDS = starttime;
 	}
-
-	// if (cfg::has_matrix)
-	// {
-	// 	init_matrix();
-	// }
-
-	//powerOnTestSensors();
 
 	if (cfg::has_lora && lorachip)
 	{
@@ -6183,9 +6154,9 @@ void setup()
 				Debug.printf("\n");
 			}
 		}
-
 		// LMIC init
 		os_init();
+
 		// Reset the MAC state. Session and pending data transfers will be discarded.
 		LMIC_reset();
 
