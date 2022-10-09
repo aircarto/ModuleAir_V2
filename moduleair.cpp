@@ -359,7 +359,7 @@ struct RGB interpolateint(float valueSensor, int step1, int step2, int step3, bo
 	else if (valueSensor >= step1 && valueSensor < step2)
 		{
 			result.R = 255;
-			result.G = 140; // orange
+			result.G = 255; // jaune
 			result.B = 0;
 		}
 	else if (valueSensor >= step2 && valueSensor < step3)
