@@ -263,12 +263,12 @@ static const char URL_CUSTOM2[] PROGMEM = "/data.php";
 #endif
 
 // SDS011, the more expensive version of the particle sensor
-#define SDS_READ 1
+#define SDS_READ 0
 #define SDS_API_PIN 1
 
 // Tera Sensor Next PM sensor
-#define NPM_READ 0
-#define NPM_FULLTIME 0
+#define NPM_READ 1
+// #define NPM_FULLTIME 1
 #define NPM_API_PIN 1
 
 // BMP280/BME280, temperature, pressure (humidity on BME280)

@@ -100,7 +100,7 @@ namespace cfg
 	unsigned debug = DEBUG;
 
 	unsigned time_for_wifi_config = 600000;
-	unsigned sending_intervall_ms = 145000;
+	unsigned sending_intervall_ms = 120000;
 
 	char current_lang[3];
 
@@ -128,7 +128,7 @@ namespace cfg
 	// (in)active sensors
 	bool sds_read = SDS_READ;
 	bool npm_read = NPM_READ;
-	bool npm_fulltime = NPM_FULLTIME;
+	// bool npm_fulltime = NPM_FULLTIME;
 	bool bmx280_read = BMX280_READ;
 	bool mhz16_read = MHZ16_READ;
 	bool mhz19_read = MHZ19_READ;
@@ -2156,7 +2156,7 @@ static void webserver_config_send_body_get(String &page_content)
 	page_content += FPSTR(WEB_B_BR);
 	add_form_checkbox_sensor(Config_sds_read, FPSTR(INTL_SDS011));
 	add_form_checkbox_sensor(Config_npm_read, FPSTR(INTL_NPM));
-	add_form_checkbox_sensor(Config_npm_fulltime, FPSTR(INTL_NPM_FULLTIME));
+	// add_form_checkbox_sensor(Config_npm_fulltime, FPSTR(INTL_NPM_FULLTIME));
 
 	// Paginate page after ~ 1500 Bytes  //ATTENTION RYTHME PAGINATION !
 	server.sendContent(page_content);
@@ -3874,7 +3874,7 @@ static void fetchSensorSDS(String &s)
 			}
 		}
 	}
-	if (send_now)
+	if (send_now && cfg::sending_intervall_ms>=120000)
 	{
 		last_value_SDS_P1 = -1;
 		last_value_SDS_P2 = -1;
@@ -3924,33 +3924,38 @@ static void fetchSensorSDS(String &s)
 static void fetchSensorNPM(String &s)
 {
 
-	//bool NPM_new_data = false; // test if NPM produced new data
-	//NPM_new_data = true;
 
-	if (cfg::sending_intervall_ms > (WARMUPTIME_NPM_MS + READINGTIME_NPM_MS) && msSince(starttime) < (cfg::sending_intervall_ms - (WARMUPTIME_NPM_MS + READINGTIME_NPM_MS)))
-	{
-		if (is_NPM_running && !cfg::npm_fulltime && nextpmconnected)
-		{
-			debug_outln_info(F("Change NPM to stop..."));
-			is_NPM_running = NPM_start_stop();
-		}
-	}
-	else
-	{
-		if (!is_NPM_running && !cfg::npm_fulltime && nextpmconnected)
-		{
-			debug_outln_info(F("Change NPM to start..."));
-			is_NPM_running = NPM_start_stop();
+
+
+
+
+
+
+	// if (cfg::sending_intervall_ms > (WARMUPTIME_NPM_MS + READINGTIME_NPM_MS) && msSince(starttime) < (cfg::sending_intervall_ms - (WARMUPTIME_NPM_MS + READINGTIME_NPM_MS)))
+	// {
+	// 	// if (is_NPM_running && !cfg::npm_fulltime && nextpmconnected)
+	// 	// {
+	// 	// 	debug_outln_info(F("Change NPM to stop..."));
+	// 	// 	is_NPM_running = NPM_start_stop();
+	// 	// }
+	// }
+	// else
+	// {
+		// if (!is_NPM_running && !cfg::npm_fulltime && nextpmconnected)
+		// {
+		// 	debug_outln_info(F("Change NPM to start..."));
+		// 	is_NPM_running = NPM_start_stop();
+		// 	NPM_waiting_for_16 = NPM_REPLY_HEADER_16;
+		// }
 			NPM_waiting_for_16 = NPM_REPLY_HEADER_16;
-		}
 
-		if (is_NPM_running && cfg::npm_fulltime && nextpmconnected)
-		{
-			NPM_waiting_for_16 = NPM_REPLY_HEADER_16;
-		}
+		// if (is_NPM_running && cfg::npm_fulltime && nextpmconnected)
+		// {
+		// 	NPM_waiting_for_16 = NPM_REPLY_HEADER_16;
+		// }
 
-		if ((msSince(starttime) > (cfg::sending_intervall_ms - READINGTIME_NPM_MS)) && nextpmconnected)
-		{ // DIMINUER LE READING TIME
+		// if ((msSince(starttime) > (cfg::sending_intervall_ms - READINGTIME_NPM_MS)) && nextpmconnected)
+		// { // DIMINUER LE READING TIME
 
 			debug_outln_info(F("Concentration NPM..."));
 			NPM_cmd(PmSensorCmd2::Concentration);
@@ -3964,7 +3969,7 @@ static void fetchSensorNPM(String &s)
 
 			while (serialNPM.available() >= NPM_waiting_for_16)
 			{
-				const uint8_t constexpr header[2] = {0x81, 0x11};
+				const uint8_t constexpr header[2] = {0x81, 0x12}; 
 				uint8_t state[1];
 				uint8_t data[12];
 				uint8_t checksum[1];
@@ -4030,13 +4035,13 @@ static void fetchSensorNPM(String &s)
 						npm_pm25_sum_pcs += N25_serial;
 						npm_pm10_sum_pcs += N10_serial;
 
-						UPDATE_MIN_MAX(npm_pm1_min, npm_pm1_max, pm1_serial);
-						UPDATE_MIN_MAX(npm_pm25_min, npm_pm25_max, pm25_serial);
-						UPDATE_MIN_MAX(npm_pm10_min, npm_pm10_max, pm10_serial);
+						// UPDATE_MIN_MAX(npm_pm1_min, npm_pm1_max, pm1_serial);
+						// UPDATE_MIN_MAX(npm_pm25_min, npm_pm25_max, pm25_serial);
+						// UPDATE_MIN_MAX(npm_pm10_min, npm_pm10_max, pm10_serial);
 
-						UPDATE_MIN_MAX(npm_pm1_min_pcs, npm_pm1_max_pcs, N1_serial);
-						UPDATE_MIN_MAX(npm_pm25_min_pcs, npm_pm25_max_pcs, N25_serial);
-						UPDATE_MIN_MAX(npm_pm10_min_pcs, npm_pm10_max_pcs, N10_serial);
+						// UPDATE_MIN_MAX(npm_pm1_min_pcs, npm_pm1_max_pcs, N1_serial);
+						// UPDATE_MIN_MAX(npm_pm25_min_pcs, npm_pm25_max_pcs, N25_serial);
+						// UPDATE_MIN_MAX(npm_pm10_min_pcs, npm_pm10_max_pcs, N10_serial);
 
 						npm_val_count++;
 						debug_outln(String(npm_val_count), DEBUG_MAX_INFO);
@@ -4045,10 +4050,10 @@ static void fetchSensorNPM(String &s)
 					break;
 				}
 			}
-		}
-	}
+		// }
+	// }
 
-	if (send_now)
+	if (send_now && cfg::sending_intervall_ms >= 120000)
 	{
 		last_value_NPM_P0 = -1.0f;
 		last_value_NPM_P1 = -1.0f;
@@ -4057,17 +4062,18 @@ static void fetchSensorNPM(String &s)
 		last_value_NPM_N10 = -1.0f;
 		last_value_NPM_N25 = -1.0f;
 
-		if (npm_val_count > 2)
-		{
-			npm_pm1_sum = npm_pm1_sum - npm_pm1_min - npm_pm1_max;
-			npm_pm10_sum = npm_pm10_sum - npm_pm10_min - npm_pm10_max;
-			npm_pm25_sum = npm_pm25_sum - npm_pm25_min - npm_pm25_max;
-			npm_pm1_sum_pcs = npm_pm1_sum_pcs - npm_pm1_min_pcs - npm_pm1_max_pcs;
-			npm_pm10_sum_pcs = npm_pm10_sum_pcs - npm_pm10_min_pcs - npm_pm10_max_pcs;
-			npm_pm25_sum_pcs = npm_pm25_sum_pcs - npm_pm25_min_pcs - npm_pm25_max_pcs;
-			npm_val_count = npm_val_count - 2;
-		}
-		if (npm_val_count > 0)
+		// if (npm_val_count > 2)
+		// {
+		// 	npm_pm1_sum = npm_pm1_sum - npm_pm1_min - npm_pm1_max;
+		// 	npm_pm10_sum = npm_pm10_sum - npm_pm10_min - npm_pm10_max;
+		// 	npm_pm25_sum = npm_pm25_sum - npm_pm25_min - npm_pm25_max;
+		// 	npm_pm1_sum_pcs = npm_pm1_sum_pcs - npm_pm1_min_pcs - npm_pm1_max_pcs;
+		// 	npm_pm10_sum_pcs = npm_pm10_sum_pcs - npm_pm10_min_pcs - npm_pm10_max_pcs;
+		// 	npm_pm25_sum_pcs = npm_pm25_sum_pcs - npm_pm25_min_pcs - npm_pm25_max_pcs;
+		// 	npm_val_count = npm_val_count - 2;
+		// }
+
+		if (npm_val_count >= 2)
 		{
 			last_value_NPM_P0 = float(npm_pm1_sum) / (npm_val_count * 10.0f);
 			last_value_NPM_P1 = float(npm_pm10_sum) / (npm_val_count * 10.0f);
@@ -4086,7 +4092,7 @@ static void fetchSensorNPM(String &s)
 			add_Value2Json(s, F("NPM_N25"), F("NC2.5: "), last_value_NPM_N25);
 
 			debug_outln_info(FPSTR(DBG_TXT_SEP));
-			if (npm_val_count < 3)
+			if (npm_val_count < 2)
 			{
 				NPM_error_count++;
 			}
@@ -4120,16 +4126,19 @@ static void fetchSensorNPM(String &s)
 		npm_pm25_max_pcs = 0;
 		npm_pm25_min_pcs = 60000;
 
-		if ((cfg::sending_intervall_ms > (WARMUPTIME_NPM_MS + READINGTIME_NPM_MS))&& nextpmconnected)
-		{
 			debug_outln_info(F("Temperature and humidity in NPM after measure..."));
 			current_th_npm = NPM_temp_humi();
-			if (is_NPM_running && !cfg::npm_fulltime && nextpmconnected)
-			{
-				debug_outln_info(F("Change NPM to stop after measure..."));
-				is_NPM_running = NPM_start_stop();
-			}
-		}
+
+		// if ((cfg::sending_intervall_ms > (WARMUPTIME_NPM_MS + READINGTIME_NPM_MS))&& nextpmconnected)
+		// {
+		// 	debug_outln_info(F("Temperature and humidity in NPM after measure..."));
+		// 	current_th_npm = NPM_temp_humi();
+		// 	if (is_NPM_running && !cfg::npm_fulltime && nextpmconnected)
+		// 	{
+		// 		debug_outln_info(F("Change NPM to stop after measure..."));
+		// 		is_NPM_running = NPM_start_stop();
+		// 	}
+		// }
 	}
 }
 
@@ -4257,7 +4266,7 @@ static void display_values_oled()  //COMPLETER LES ECRANS
 		{
 			screens[screen_count++] = 8; // chipID, firmware and count of measurements
 			screens[screen_count++] = 9; // Coordinates
-			if (cfg::npm_read && cfg::npm_fulltime && cfg::display_measure)
+			if (cfg::npm_read && cfg::display_measure)
 			{	
 				screens[screen_count++] = 10; // info NPM
 			}
@@ -4522,7 +4531,7 @@ static void display_values_matrix()
 		{
 			screens[screen_count++] = 19; // chipID, firmware and count of measurements
 			screens[screen_count++] = 20; // Latitude, longitude, altitude
-			if (cfg::npm_read && cfg::npm_fulltime && cfg::display_measure)
+			if (cfg::npm_read && cfg::display_measure)
 			{	
 				screens[screen_count++] = 21; // info NPM
 			}
@@ -4690,7 +4699,7 @@ static void display_values_matrix()
 			display.setTextColor(myWHITE);
 			drawCentreString(String(pm01_value, 0), 0, 9, 14); 
 			display.setTextColor(myCUSTOM);
-            messager1(pm25_value, 10, 20, 50);
+            messager1(pm01_value, 10, 20, 50);
 			}
 			else
 			{
@@ -5075,7 +5084,7 @@ static void display_values_matrix()
 			display.print(cfg::height_above_sealevel);
 			break;
 		case 21:
-			if(cfg::npm_fulltime && (pm10_value != -1.0 || pm25_value != -1.0 || pm01_value != -1.0)){
+			if((pm10_value != -1.0 || pm25_value != -1.0 || pm01_value != -1.0)){
 			display.fillScreen(myBLACK);
 			display.setTextColor(myWHITE);
 			display.setFont(&Font4x7Fixed);
@@ -5378,13 +5387,12 @@ static void powerOnTestSensors()
 			if (bitRead(test_state, 0) == 0)
 			{
 				debug_outln_info(F("NPM already started..."));
+				is_NPM_running = true;
 			}
 			else
 			{
-				// if(!is_NPM_running){
 				debug_outln_info(F("Force start NPM..."));
 				is_NPM_running = NPM_start_stop();
-				//}
 			}
 		}
 	}
@@ -5396,15 +5404,15 @@ if (nextpmconnected){
 		NPM_temp_humi();
 		delay(2000);
 
-		if (!cfg::npm_fulltime)
-		{
-			is_NPM_running = NPM_start_stop();
-			delay(2000); //prevent any buffer overload on ESP82666
-		}
-		else
-		{
-			is_NPM_running = true;
-		}
+		// if (!cfg::npm_fulltime)
+		// {
+		// 	is_NPM_running = NPM_start_stop();
+		// 	delay(2000); //prevent any buffer overload on ESP82666
+		// }
+		// else
+		// {
+		// 	is_NPM_running = true;
+		// }
    }	
 }
 
@@ -6254,7 +6262,7 @@ void loop()
 	server.handleClient();
 	yield();
 
-	if (send_now)
+	if (send_now && cfg::sending_intervall_ms>=120000)
 	{
 
 		void *SpActual = NULL;

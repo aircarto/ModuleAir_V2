@@ -16,7 +16,6 @@ Password	fs_pwd
 Bool		www_basicauth_enabled
 Bool		sds_read
 Bool		npm_read
-Bool        npm_fulltime
 Bool		bmx280_read
 String		height_above_sealevel
 Bool		mhz16_read

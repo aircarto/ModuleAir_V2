@@ -365,8 +365,11 @@ void NPM_cmd(PmSensorCmd2 cmd) {
 		0x81, 0x15, 0x6A
 	};
 	static constexpr uint8_t concentration_cmd[] PROGMEM = { //No continous mode => repeat call
-		0x81, 0x11, 0x6E    //Concentrations reading’s averaged over 10 seconds and updated every 1 second
+		// 0x81, 0x11, 0x6E    //Concentrations reading’s averaged over 10 seconds and updated every 1 second
+			0x81, 0x12, 0x6D    //Concentrations reading’s averaged over 60 seconds and updated every 10 seconds
 	};
+
+
 
 	static constexpr uint8_t version_cmd[] PROGMEM = {
 		0x81, 0x17, 0x68 
