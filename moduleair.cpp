@@ -3924,9 +3924,6 @@ static void fetchSensorSDS(String &s)
 static void fetchSensorNPM(String &s)
 {
 
-	//bool NPM_new_data = false; // test if NPM produced new data
-	//NPM_new_data = true;
-
 	if (cfg::sending_intervall_ms > (WARMUPTIME_NPM_MS + READINGTIME_NPM_MS) && msSince(starttime) < (cfg::sending_intervall_ms - (WARMUPTIME_NPM_MS + READINGTIME_NPM_MS)))
 	{
 		if (is_NPM_running && !cfg::npm_fulltime && nextpmconnected)
@@ -4690,7 +4687,7 @@ static void display_values_matrix()
 			display.setTextColor(myWHITE);
 			drawCentreString(String(pm01_value, 0), 0, 9, 14); 
 			display.setTextColor(myCUSTOM);
-            messager1(pm25_value, 10, 20, 50);
+            messager1(pm01_value, 10, 20, 50);
 			}
 			else
 			{
@@ -5381,10 +5378,8 @@ static void powerOnTestSensors()
 			}
 			else
 			{
-				// if(!is_NPM_running){
 				debug_outln_info(F("Force start NPM..."));
 				is_NPM_running = NPM_start_stop();
-				//}
 			}
 		}
 	}
