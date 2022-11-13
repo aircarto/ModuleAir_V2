@@ -5,6 +5,10 @@
 const char WLANSSID[] PROGMEM = "FRITZ!Box 7530 UU";
 const char WLANPWD[] PROGMEM = "11527970136476254347";
 
+
+#define TIME_FOR_WIFI_CONFIG 60000;
+#define SENDING_INTERVALL_MS 120000;
+
 // BasicAuth config
 const char WWW_USERNAME[] PROGMEM = "admin";
 const char WWW_PASSWORD[] PROGMEM = "";
@@ -277,7 +281,7 @@ static const char URL_CUSTOM2[] PROGMEM = "/data.php";
 #define BME280_API_PIN 11
 
 // MH-Z16/MH-Z19, CO2 Sensor
-#define MHZ16_READ 0
+#define MHZ16_READ 1
 #define MHZ19_READ 0
 // #define MHZ16_API_PIN X
 // #define MHZ19_API_PIN X
@@ -304,17 +308,17 @@ const char LONGITUDE[] PROGMEM = "5.369";
 
 //Actual Data
 
-#define DISPLAY_MEASURE 0
+#define DISPLAY_MEASURE 1
 #define DISPLAY_FORECAST 0
 
 // Show wifi info on displays
-#define DISPLAY_WIFI_INFO 1
+#define DISPLAY_WIFI_INFO 0
 
 // Show wifi info on displays
 #define DISPLAY_LORA_INFO 0
 
 // Show device info on displays
-#define DISPLAY_DEVICE_INFO 1
+#define DISPLAY_DEVICE_INFO 0
 
 // Set debug level for serial output?
 #define DEBUG 5

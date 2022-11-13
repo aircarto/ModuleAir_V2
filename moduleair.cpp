@@ -99,8 +99,8 @@ namespace cfg
 {
 	unsigned debug = DEBUG;
 
-	unsigned time_for_wifi_config = 600000;
-	unsigned sending_intervall_ms = 120000;
+	unsigned time_for_wifi_config = TIME_FOR_WIFI_CONFIG;
+	unsigned sending_intervall_ms = SENDING_INTERVALL_MS;
 
 	char current_lang[3];
 
@@ -305,19 +305,56 @@ void IRAM_ATTR display_updater()
 
 void display_update_enable(bool is_enable)
 {
+	Debug.print("Call display_update_enable function with:");
 	if (is_enable)
 	{
-		timer = timerBegin(0, 80, true);
+		Debug.println("true");
+		// timer = timerBegin(0, 80, true); //changer le nom du timer ? //Sortir la definition de la fonction ?
 		timerAttachInterrupt(timer, &display_updater, true);
 		timerAlarmWrite(timer, 4000, true);
 		timerAlarmEnable(timer);
 	}
 	else
 	{
+		Debug.println("false");
 		timerDetachInterrupt(timer);
 		timerAlarmDisable(timer);
 	}
 }
+
+
+// timerAlarmEnabled¶
+
+// This function is used to get status of timer alarm.
+
+// bool timerAlarmEnabled(hw_timer_t *timer);
+
+//     timer timer struct.
+
+// This function will return true if the timer alarm is enabled. If false returned, the timer alarm is disabled.
+
+void kill_interrupt()
+{
+		// timer = timerBegin(0, 80, true); //changer le nom du timer ?
+		// timerAttachInterrupt(timer, &display_updater, true);
+		// timerAlarmWrite(timer, 4000, true);
+		// timerAlarmEnable(timer);
+		// delay(1000);
+		// timerDetachInterrupt(timer);
+		// timerAlarmDisable(timer);	
+
+
+
+		if (timerAlarmEnabled(timer)){
+		timerDetachInterrupt(timer);
+		timerAlarmDisable(timer);	
+		}
+
+
+
+
+}
+
 
 void drawImage(int x, int y, int h, int w, uint16_t image[])
 {
@@ -1005,6 +1042,9 @@ unsigned long last_update_attempt;
 int last_update_returncode;
 int last_sendData_returncode;
 
+uint8_t connection_status;
+bool connection_lost = false;
+
 /*****************************************************************
  * SDS variables and enums                                      *
  *****************************************************************/
@@ -1173,6 +1213,8 @@ static String displayGenerateFooter(unsigned int screen_count)
 static void display_debug(const String &text1, const String &text2)
 {
 	debug_outln_info(F("output debug text to displays..."));
+	debug_outln_info(text1);
+	debug_outln_info(text2);
 
 if(cfg::has_ssd1306){
 	if (oled_ssd1306)
@@ -1541,11 +1583,14 @@ static String NPM_temp_humi()
 /*****************************************************************
  * write config to spiffs                                        *
  *****************************************************************/
-static bool writeConfig()
-{
-	if (cfg::has_matrix){
-		display_update_enable(false); //prevent crash
-	}
+static bool writeConfig(){
+
+
+	// if (cfg::has_matrix){
+	// 	display_update_enable(false); //prevent crash
+	// }
+
+	kill_interrupt();
 
 	DynamicJsonDocument json(JSON_BUFFER_SIZE);
 	debug_outln_info(F("Saving config..."));
@@ -2397,6 +2442,12 @@ static void webserver_config()
 	if (server.method() == HTTP_POST)
 	{
 		display_debug(F("Writing config"), emptyString);
+
+
+
+	//display_update_enable(false);
+
+
 		if (writeConfig())
 		{
 			display_debug(F("Writing config"), F("and restarting"));
@@ -3091,7 +3142,7 @@ static void wifiConfig()
 
 	if (cfg::has_matrix)
 		{
-		display_update_enable(true); //deactivate matrix during wifi connection because of interrupts
+		display_update_enable(true); 
 		}
 
 	debug_outln_info(F("Starting WiFiManager"));
@@ -3148,7 +3199,7 @@ static void wifiConfig()
 
 	setup_webserver();
 
-	// 10 minutes timeout for wifi config
+	// X minutes timeout for wifi config
 	last_page_load = millis();
 	while ((millis() - last_page_load) < cfg::time_for_wifi_config + 500)
 	{
@@ -3168,16 +3219,13 @@ static void wifiConfig()
 
 	if (cfg::has_wifi)
 	{
-
 		WiFi.mode(WIFI_STA);
-
 		dnsServer.stop();
 		delay(100);
-
 		debug_outln_info(FPSTR(DBG_TXT_CONNECTING_TO), cfg::wlanssid);
-
 		WiFi.begin(cfg::wlanssid, cfg::wlanpwd);
 	}
+
 	debug_outln_info(F("---- Result Webconfig ----"));
 	debug_outln_info(F("WiFi: "), cfg::has_wifi);
 	debug_outln_info(F("LoRa: "), cfg::has_lora);
@@ -3205,6 +3253,16 @@ static void wifiConfig()
 	debug_outln_info_bool(F("Display forecast: "), cfg::display_forecast);
 	debug_outln_info(F("Debug: "), String(cfg::debug));
 	wificonfig_loop = false; // VOIR ICI
+}
+
+static void disconnectAll()
+{
+		cfg::has_wifi = false;	//stop wifi
+		cfg::send2dusti = false;
+		cfg::send2madavi = false;
+		cfg::send2custom = false;
+		cfg::send2custom2 = false;
+		WiFi.disconnect(true);
 }
 
 static void waitForWifiToConnect(int maxRetries)
@@ -3327,9 +3385,11 @@ static void connectWifi()
 		wifi.policy = WIFI_COUNTRY_POLICY_AUTO;
 
 		wifiConfig();
+		
 		if (WiFi.status() != WL_CONNECTED)
 		{
-			waitForWifiToConnect(20);
+			//if still not connected => no available wifi
+			disconnectAll();
 			debug_outln_info(emptyString);
 		}
 	}else{
@@ -3452,8 +3512,6 @@ static unsigned long sendSensorCommunity(const String &data, const int pin, cons
 {
 	unsigned long sum_send_time = 0;
 
-	Debug.println(data);
-
 	if (cfg::send2dusti && data.length())
 	{
 		RESERVE_STRING(data_sensorcommunity, LARGE_STR);
@@ -3464,6 +3522,7 @@ static unsigned long sendSensorCommunity(const String &data, const int pin, cons
 		data_sensorcommunity.remove(data_sensorcommunity.length() - 1);
 		data_sensorcommunity.replace(replace_str, emptyString);
 		data_sensorcommunity += "]}";
+		Debug.println(data_sensorcommunity);
 		sum_send_time = sendData(LoggerSensorCommunity, data_sensorcommunity, pin, HOST_SENSORCOMMUNITY, URL_SENSORCOMMUNITY);
 	}
 
@@ -3778,7 +3837,7 @@ static void fetchSensorMHZ16(String &s)
 	{
 		last_value_MHZ16 = -1.0f;
 
-		if (mhz16_val_count >= 12)
+		if (mhz16_val_count == 12)
 		{
 			last_value_MHZ16 = float(mhz16_sum / mhz16_val_count);
 			add_Value2Json(s, F("MHZ16_CO2"), FPSTR(DBG_TXT_CO2PPM), last_value_MHZ16);
@@ -3824,7 +3883,7 @@ static void fetchSensorMHZ19(String &s)
 	{
 		last_value_MHZ19 = -1.0f;
 
-		if (mhz19_val_count >= 12)
+		if (mhz19_val_count == 12)
 		{
 			last_value_MHZ19 = float(mhz19_sum / mhz19_val_count);
 			add_Value2Json(s, F("MHZ19_CO2"), FPSTR(DBG_TXT_CO2PPM), last_value_MHZ19);
@@ -3875,7 +3934,7 @@ static void fetchSensorCCS811(String &s)
 	{
 		last_value_CCS811 = -1.0f;
 
-		if (ccs811_val_count >= 12)
+		if (ccs811_val_count == 12)
 		{
 			last_value_CCS811 = float(ccs811_sum / ccs811_val_count);
 			add_Value2Json(s, F("CCS811_VOC"), FPSTR(DBG_TXT_VOCPPB), last_value_CCS811);
@@ -4097,7 +4156,7 @@ static void fetchSensorNPM(String &s)
 		last_value_NPM_N10 = -1.0f;
 		last_value_NPM_N25 = -1.0f;
 
-		if (npm_val_count >= 2)
+		if (npm_val_count == 2)
 		{
 			last_value_NPM_P0 = float(npm_pm1_sum) / (npm_val_count * 10.0f);
 			last_value_NPM_P1 = float(npm_pm10_sum) / (npm_val_count * 10.0f);
@@ -5135,6 +5194,7 @@ static void display_values_matrix()
 
 static void init_matrix()
 {
+	Debug.println("Init Matrix");
 	display.begin(16);
 	display.setDriverChip(SHIFT);
 	display_update_enable(true);
@@ -5992,9 +6052,35 @@ bool loratest(int lora_dio0)
 /*****************************************************************
  * Check stack                                                    *
  *****************************************************************/
-void *StackPtrAtStart;
-void *StackPtrEnd;
-UBaseType_t watermarkStart;
+// void *StackPtrAtStart;
+// void *StackPtrEnd;
+// UBaseType_t watermarkStart;
+
+/*****************************************************************
+ * Check Wifi                                                    *
+ *****************************************************************/
+
+void WiFiStationConnected(WiFiEvent_t event, WiFiEventInfo_t info){
+  Debug.println("Connected to AP successfully!");
+  connection_status = WL_CONNECTED;
+}
+
+void WiFiGotIP(WiFiEvent_t event, WiFiEventInfo_t info){
+  Debug.println("WiFi connected");
+  Debug.println("IP address: ");
+  Debug.println(WiFi.localIP());
+}
+
+void WiFiStationDisconnected(WiFiEvent_t event, WiFiEventInfo_t info){
+  Debug.println("Disconnected from WiFi access point");
+  Debug.print("WiFi lost connection. Reason: ");
+  Debug.println(info.wifi_sta_disconnected.reason);
+  connection_status = WL_DISCONNECTED;
+
+
+//   Serial.println("Trying to Reconnect");
+//   WiFi.begin(cfg::wlanssid, cfg::wlanpwd);
+}
 
 
 /*****************************************************************
@@ -6003,17 +6089,17 @@ UBaseType_t watermarkStart;
 
 void setup()
 {
-	void *SpStart = NULL;
-	StackPtrAtStart = (void *)&SpStart;
-	watermarkStart = uxTaskGetStackHighWaterMark(NULL);
-	StackPtrEnd = StackPtrAtStart - watermarkStart;
+	// void *SpStart = NULL;
+	// StackPtrAtStart = (void *)&SpStart;
+	// watermarkStart = uxTaskGetStackHighWaterMark(NULL);
+	// StackPtrEnd = StackPtrAtStart - watermarkStart;
 
 	Debug.begin(115200); // Output to Serial at 115200 baud
 	Debug.println(F("Starting"));
 
-	Debug.printf("\r\n\r\nAddress of Stackpointer near start is:  %p \r\n", (void *)StackPtrAtStart);
-	Debug.printf("End of Stack is near: %p \r\n", (void *)StackPtrEnd);
-	Debug.printf("Free Stack at setup is:  %d \r\n", (uint32_t)StackPtrAtStart - (uint32_t)StackPtrEnd);
+	// Debug.printf("\r\n\r\nAddress of Stackpointer near start is:  %p \r\n", (void *)StackPtrAtStart);
+	// Debug.printf("End of Stack is near: %p \r\n", (void *)StackPtrEnd);
+	// Debug.printf("Free Stack at setup is:  %d \r\n", (uint32_t)StackPtrAtStart - (uint32_t)StackPtrEnd);
 
 	esp_chipid = String((uint16_t)(ESP.getEfuseMac() >> 32), HEX); // for esp32
 	esp_chipid += String((uint32_t)ESP.getEfuseMac(), HEX);
@@ -6024,6 +6110,15 @@ void setup()
 	debug_outln_info(F("ModuleAirV2: " SOFTWARE_VERSION_STR "/"), String(CURRENT_LANG));
 
 	init_config();
+
+//ATTENTION
+	// le timer est activé par défaut dans le setup
+	 timer = timerBegin(0, 80, true); //changer le nom du timer ? //Sortir la definition de la fonction ?
+	// timerAttachInterrupt(timer, &display_updater, true);
+	// timerAlarmWrite(timer, 4000, true);
+	// timerAlarmEnable(timer);
+
+//ATTENTION
 
 	if (cfg::has_matrix)
 	{
@@ -6212,6 +6307,7 @@ void setup()
 void loop()
 {
 	String result_SDS, result_NPM, result_MHZ16, result_MHZ19, result_CCS811;
+	
 
 	unsigned sum_send_time = 0;
 
@@ -6241,7 +6337,7 @@ void loop()
 
 	if (cfg::npm_read)
 	{
-		if ((msSince(starttime_NPM) > SAMPLETIME_NPM_MS) || send_now)
+		if ((msSince(starttime_NPM) > SAMPLETIME_NPM_MS && npm_val_count == 0) || send_now)
 		{
 			starttime_NPM = act_milli;
 			fetchSensorNPM(result_NPM);
@@ -6259,7 +6355,7 @@ void loop()
 
 	if (cfg::mhz16_read)
 			{
-		if ((msSince(starttime_MHZ16) > SAMPLETIME_MHZ16_MS) || send_now)
+		if ((msSince(starttime_MHZ16) > SAMPLETIME_MHZ16_MS && mhz16_val_count < 11) || send_now)
 		{
 			starttime_MHZ16 = act_milli;
 			fetchSensorMHZ16(result_MHZ16);
@@ -6268,7 +6364,7 @@ void loop()
 
 			if (cfg::mhz19_read)
 			{
-				if ((msSince(starttime_MHZ19) > SAMPLETIME_MHZ19_MS) || send_now)
+				if ((msSince(starttime_MHZ19) > SAMPLETIME_MHZ19_MS && mhz19_val_count < 11) || send_now)
 		{
 				starttime_MHZ19 = act_milli;
 				fetchSensorMHZ19(result_MHZ19);
@@ -6277,7 +6373,7 @@ void loop()
 
 			if (cfg::ccs811_read && (!ccs811_init_failed))
 			{
-	if ((msSince(starttime_CCS811) > SAMPLETIME_CCS811_MS) || send_now)
+	if ((msSince(starttime_CCS811) > SAMPLETIME_CCS811_MS && ccs811_val_count < 11) || send_now)
 		{
 				starttime_CCS811 = act_milli;
 				fetchSensorCCS811(result_CCS811);
@@ -6295,21 +6391,92 @@ void loop()
 
 	if ((msSince(last_display_millis_matrix) > DISPLAY_UPDATE_INTERVAL_MS) && (cfg::has_matrix))
 	{
-
-		// display.fillScreen(myBLACK); //to avoid blink with display.clearDisplay();
-		//display.clearDisplay();// to reinit
 		display_values_matrix();
 		last_display_millis_matrix = act_milli;
 	}
 
-	server.handleClient();
-	yield();
+	//Debug.println(WiFi.waitForConnectResult());
 
+
+
+        // uint8_t status = WiFi.waitForConnectResult();
+
+        // String m = connectionStatusMessage(status);
+        // log("Connection attempt %d: status is%s", attempt, m.c_str());
+
+
+		// connection_status = WiFi.waitForConnectResult();
+		// Debug.print("status:");
+		// Debug.println(connection_status);
+		// Debug.println("01");
+
+
+
+        // if (WiFi.waitForConnectResult() == WL_CONNECTED ) {
+		// 	server.handleClient();
+		// 	yield();
+        // }else{
+		// 	//timerWrite(timer, 0); a voir
+		// 	//timerRestart(hw_timer_t *timer)
+		// 	//vTaskSuspendAll();
+		// 	//xTaskResumeAll();
+		// 	//display_update_enable(false);
+		// 	//display_update_enable(true);
+		// 	Debug.print("status:");
+		// 	Debug.println("connection issue");
+		// }
+
+//   WiFi.onEvent(WiFiStationConnected, WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_CONNECTED);
+//   WiFi.onEvent(WiFiGotIP, WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_GOT_IP);
+//   WiFi.onEvent(WiFiStationDisconnected, WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_DISCONNECTED);
+
+	// if (connection_status != WL_DISCONNECTED){
+			// server.handleClient();
+			// yield();
+	// }
+
+       if (WiFi.waitForConnectResult() == WL_CONNECTED ) {
+			server.handleClient();
+			yield();
+			if (cfg::has_matrix && connection_lost)
+			{
+				display_update_enable(true);
+				connection_lost = false;
+			};
+
+        }else{
+			//timerWrite(timer, 0); //reset timer should be just once
+			//timerRestart(timer);
+			//vTaskSuspendAll();
+			//xTaskResumeAll();
+			//display_update_enable(false);
+			//display_update_enable(true);
+			// Debug.print("status:");
+			// Debug.println("connection issue");
+			if (cfg::has_matrix && !connection_lost){
+				display_update_enable(false);
+				connection_lost = true;
+			};
+		}
+
+
+
+
+
+		//assert failed: xQueueSemaphoreTake queue.c:1554 (!( ( xTaskGetSchedulerState() == ( ( BaseType_t ) 0 ) ) && ( xTicksToWait != 0 ) ))
+		// AJOUTER PREVIOUS POUR RELANCER SI BESOIN LE handleclient => NON
+		// Attendre reconnection!!!!
+
+		// build_flags =   -DBOARD_HAS_PSRAM
+        //         -mfix-esp32-psram-cache-issue
+        //         -DCORE_DEBUG_LEVEL=0
+
+//build_flags = -DBOARD_HAS_PSRAM -mfix-esp32-psram-cache-issue -mfix-esp32-psram-cache-strategy=memw
 	if (send_now && cfg::sending_intervall_ms>=120000)
 	{
 
-		void *SpActual = NULL;
-		Debug.printf("Free Stack at send_now is: %d \r\n", (uint32_t)&SpActual - (uint32_t)StackPtrEnd);
+		// void *SpActual = NULL;
+		// Debug.printf("Free Stack at send_now is: %d \r\n", (uint32_t)&SpActual - (uint32_t)StackPtrEnd);
 
 		if (cfg::has_wifi)
 		{
@@ -6429,14 +6596,34 @@ void loop()
 				debug_outln_info(F("Time for Sending (ms): "), String(sending_time));
 			}
 
+			// Debug.println(WiFi.status());
+			// Debug.println(cfg::has_wifi);
+
 			// reconnect to WiFi if disconnected
-			if (WiFi.status() != WL_CONNECTED)
+
+			//WiFi.waitForConnectResult();
+
+			//if ((WiFi.status() != WL_CONNECTED || sending_time > 30000 )&& cfg::has_wifi)
+			if ((WiFi.status() != WL_CONNECTED || sending_time > 10000 )&& cfg::has_wifi)
 			{
 				debug_outln_info(F("Connection lost, reconnecting "));
 				WiFi_error_count++;
-				WiFi.reconnect();
+				WiFi.disconnect(true);
+				WiFi.begin(cfg::wlanssid, cfg::wlanpwd);
 				waitForWifiToConnect(20);
+				if(cfg::has_matrix && connection_lost)
+				{
+				display_update_enable(true);
+				connection_lost = false;
+				}
+				debug_outln_info(emptyString);
+				//METTRE UN RESTART ICI?
 			}
+
+// [348752][V][WiFiGeneric.cpp:298] _arduino_event_cb(): STA IP Lost
+// [348753][D][WiFiGeneric.cpp:831] _eventCallback(): Arduino Event: 9 - STA_LOST_IP
+
+
 			}
 			// only do a restart after finishing sending (Wifi). Befor Lora to avoid conflicts with the LMIC
 			if (msSince(time_point_device_start_ms) > DURATION_BEFORE_FORCED_RESTART_MS)
