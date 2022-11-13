@@ -4295,7 +4295,6 @@ static void display_values_oled()  //COMPLETER LES ECRANS
 		{
 			screens[screen_count++] = 2;
 		}
-
 		if (cfg::mhz16_read  && cfg::display_measure)
         {
             screens[screen_count++] = 3;
@@ -4533,28 +4532,28 @@ static void display_values_matrix()
 			screens[screen_count++] = 0; //Air intérieur
 		}
 
-		if (cfg::sds_read && cfg::display_measure)
-		{
-
-			if (cfg_screen_pm10) screens[screen_count++] = 1; //PM10
-			if (cfg_screen_pm25) screens[screen_count++] = 2; //PM2.5
-		}
-		if (cfg::npm_read && cfg::display_measure)
-		{
-			if(cfg_screen_pm10)screens[screen_count++] = 3; //PM10
-			if(cfg_screen_pm25)screens[screen_count++] = 4; //PM2.5
-			if(cfg_screen_pm01)screens[screen_count++] = 5; //PM1
-		}
-
-
 		if (cfg::mhz16_read  && cfg::display_measure)
 		{
-			if(cfg_screen_co2)screens[screen_count++] = 6;
+			if(cfg_screen_co2)screens[screen_count++] = 1;
 		}
 		if (cfg::mhz19_read && cfg::display_measure)
 		{
-			if(cfg_screen_co2)screens[screen_count++] = 7;
+			if(cfg_screen_co2)screens[screen_count++] = 2;
 		}
+
+		if (cfg::sds_read && cfg::display_measure)
+		{
+
+			if (cfg_screen_pm10) screens[screen_count++] = 3; //PM10
+			if (cfg_screen_pm25) screens[screen_count++] = 4; //PM2.5
+		}
+		if (cfg::npm_read && cfg::display_measure)
+		{
+			if(cfg_screen_pm10)screens[screen_count++] = 5; //PM10
+			if(cfg_screen_pm25)screens[screen_count++] = 6; //PM2.5
+			if(cfg_screen_pm01)screens[screen_count++] = 7; //PM1
+		}
+
 		if (cfg::ccs811_read && cfg::display_measure)
 		{
 			if(cfg_screen_cov)screens[screen_count++] = 8;
@@ -4615,7 +4614,7 @@ static void display_values_matrix()
 			act_milli += 5000;	
 		}
 			break;
-		case 1:   //SDS
+		case 3:   //SDS
 		if(pm10_value != -1.0){
 			display.fillScreen(myBLACK);
 			display.setTextColor(myBLUE);
@@ -4625,64 +4624,6 @@ static void display_values_matrix()
 			display.print("PM10");
 			display.setFont(&Font4x7Fixed);
 			display.setCursor(display.getCursorX()+2, 7); //Decaler vers le bas?
-			display.write(181);
-			display.print("g/m");
-			display.write(179);
-			drawImage(55, 0, 7, 9, maison);
-			displayColor = interpolateint(pm10_value, 15, 30, 75, gamma_correction);
-			myCUSTOM = display.color565(displayColor.R, displayColor.G, displayColor.B);
-			display.fillRect(50, 9, 14, 14, myCUSTOM);
-			display.setFont(NULL);
-			display.setTextSize(2);
-			display.setTextColor(myWHITE);
-			drawCentreString(String(pm10_value, 0), 0, 9, 14); 
-			display.setTextColor(myCUSTOM);
-			messager1(pm10_value, 15, 30, 75);
-			}
-			else
-			{
-				act_milli += 5000;	
-			}
-			break;
-		case 2:
-		if(pm25_value != -1.0){
-			display.fillScreen(myBLACK);
-			display.setTextColor(myBLUE);
-			display.setFont(NULL);
-			display.setCursor(1, 0);
-			display.setTextSize(1);
-			display.print("PM2.5");
-			display.setFont(&Font4x7Fixed);
-			display.setCursor(display.getCursorX()+2, 7);
-			display.write(181);
-			display.print("g/m");
-			display.write(179);
-			drawImage(55, 0, 7, 9, maison);
-			displayColor = interpolateint(pm25_value, 10, 20, 50, gamma_correction);
-			myCUSTOM = display.color565(displayColor.R, displayColor.G, displayColor.B);
-			display.fillRect(50, 9, 14, 14, myCUSTOM);
-			display.setFont(NULL);
-			display.setTextSize(2);
-			display.setTextColor(myWHITE);
-			drawCentreString(String(pm25_value, 0), 0, 9, 14); 
-			display.setTextColor(myCUSTOM);
-            messager1(pm25_value, 10, 20, 50);
-			}
-			else
-			{
-			act_milli += 5000;	
-			}
-			break;
-		case 3:   //NPM
-			if(pm10_value != -1.0){
-			display.fillScreen(myBLACK);
-			display.setTextColor(myBLUE);
-			display.setFont(NULL);
-			display.setCursor(1, 0);
-			display.setTextSize(1);
-			display.print("PM10");
-			display.setFont(&Font4x7Fixed);
-			display.setCursor(display.getCursorX()+2, 7);
 			display.write(181);
 			display.print("g/m");
 			display.write(179);
@@ -4731,7 +4672,65 @@ static void display_values_matrix()
 			act_milli += 5000;	
 			}
 			break;
-		case 5:
+		case 5:   //NPM
+			if(pm10_value != -1.0){
+			display.fillScreen(myBLACK);
+			display.setTextColor(myBLUE);
+			display.setFont(NULL);
+			display.setCursor(1, 0);
+			display.setTextSize(1);
+			display.print("PM10");
+			display.setFont(&Font4x7Fixed);
+			display.setCursor(display.getCursorX()+2, 7);
+			display.write(181);
+			display.print("g/m");
+			display.write(179);
+			drawImage(55, 0, 7, 9, maison);
+			displayColor = interpolateint(pm10_value, 15, 30, 75, gamma_correction);
+			myCUSTOM = display.color565(displayColor.R, displayColor.G, displayColor.B);
+			display.fillRect(50, 9, 14, 14, myCUSTOM);
+			display.setFont(NULL);
+			display.setTextSize(2);
+			display.setTextColor(myWHITE);
+			drawCentreString(String(pm10_value, 0), 0, 9, 14); 
+			display.setTextColor(myCUSTOM);
+			messager1(pm10_value, 15, 30, 75);
+			}
+			else
+			{
+				act_milli += 5000;	
+			}
+			break;
+		case 6:
+		if(pm25_value != -1.0){
+			display.fillScreen(myBLACK);
+			display.setTextColor(myBLUE);
+			display.setFont(NULL);
+			display.setCursor(1, 0);
+			display.setTextSize(1);
+			display.print("PM2.5");
+			display.setFont(&Font4x7Fixed);
+			display.setCursor(display.getCursorX()+2, 7);
+			display.write(181);
+			display.print("g/m");
+			display.write(179);
+			drawImage(55, 0, 7, 9, maison);
+			displayColor = interpolateint(pm25_value, 10, 20, 50, gamma_correction);
+			myCUSTOM = display.color565(displayColor.R, displayColor.G, displayColor.B);
+			display.fillRect(50, 9, 14, 14, myCUSTOM);
+			display.setFont(NULL);
+			display.setTextSize(2);
+			display.setTextColor(myWHITE);
+			drawCentreString(String(pm25_value, 0), 0, 9, 14); 
+			display.setTextColor(myCUSTOM);
+            messager1(pm25_value, 10, 20, 50);
+			}
+			else
+			{
+			act_milli += 5000;	
+			}
+			break;
+		case 7:
 		if(pm01_value != -1.0){
 			display.fillScreen(myBLACK);
 			display.setTextColor(myBLUE);
@@ -4760,7 +4759,7 @@ static void display_values_matrix()
 			act_milli += 5000;	
 			}
 			break;
-		case 6:
+		case 1:
 		if(co2_value != -1.0){
 			display.fillScreen(myBLACK);
 			display.setTextColor(myBLUE);
@@ -4788,7 +4787,7 @@ static void display_values_matrix()
 			act_milli += 5000;	
 			}
 			break;
-		case 7:
+		case 2:
 		if(co2_value != -1.0){
 			display.fillScreen(myBLACK);
 			display.setTextColor(myBLUE);
@@ -6442,6 +6441,7 @@ void loop()
 			{
 				display_update_enable(true);
 				connection_lost = false;
+				timerWrite(timer, 0);
 			};
 
         }else{
@@ -6453,7 +6453,9 @@ void loop()
 			//display_update_enable(true);
 			// Debug.print("status:");
 			// Debug.println("connection issue");
+			timerWrite(timer, 0);
 			if (cfg::has_matrix && !connection_lost){
+				//AJOUTER SCREEN CONNECTION LOST ICI????
 				display_update_enable(false);
 				connection_lost = true;
 			};
@@ -6608,10 +6610,11 @@ void loop()
 			{
 				debug_outln_info(F("Connection lost, reconnecting "));
 				WiFi_error_count++;
+				timerWrite(timer, 0);
 				WiFi.disconnect(true);
 				WiFi.begin(cfg::wlanssid, cfg::wlanpwd);
 				waitForWifiToConnect(20);
-				if(cfg::has_matrix && connection_lost)
+				if(cfg::has_matrix && connection_lost && WiFi.status() == WL_CONNECTED )
 				{
 				display_update_enable(true);
 				connection_lost = false;
