@@ -2,8 +2,8 @@
 #define CURRENT_LANG INTL_LANG
 
 // Wifi config
-const char WLANSSID[] PROGMEM = "FRITZ!Box 7530 UU";
-const char WLANPWD[] PROGMEM = "11527970136476254347";
+const char WLANSSID[] PROGMEM = "luftdaten";
+const char WLANPWD[] PROGMEM = "luftd4ten";
 
 
 #define TIME_FOR_WIFI_CONFIG 60000;
@@ -18,6 +18,9 @@ const char WWW_PASSWORD[] PROGMEM = "";
 #define FS_SSID ""
 #define FS_PWD "moduleaircfg"
 
+#define TIME_FOR_WIFI_CONFIG 60000;
+#define SENDING_INTERVALL_MS 120000;
+
 #define HAS_WIFI 1
 #define HAS_LORA 0
 const char APPEUI[] = "0000000000000000";
@@ -25,12 +28,12 @@ const char DEVEUI [] = "0000000000000000";
 const char APPKEY[] = "00000000000000000000000000000000";
 
 // Where to send the data?
-#define SEND2SENSORCOMMUNITY 0
+#define SEND2SENSORCOMMUNITY 1
 #define SSL_SENSORCOMMUNITY 0
-#define SEND2MADAVI 0
+#define SEND2MADAVI 1
 #define SSL_MADAVI 0
 #define SEND2CSV 0
-#define SEND2CUSTOM 0
+#define SEND2CUSTOM 1
 #define SEND2CUSTOM2 0
 
 enum LoggerEntry {

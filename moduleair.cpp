@@ -309,7 +309,7 @@ void display_update_enable(bool is_enable)
 	if (is_enable)
 	{
 		Debug.println("true");
-		// timer = timerBegin(0, 80, true); //changer le nom du timer ? //Sortir la definition de la fonction ?
+		timer = timerBegin(0, 80, true);
 		timerAttachInterrupt(timer, &display_updater, true);
 		timerAlarmWrite(timer, 4000, true);
 		timerAlarmEnable(timer);
@@ -321,40 +321,6 @@ void display_update_enable(bool is_enable)
 		timerAlarmDisable(timer);
 	}
 }
-
-
-// timerAlarmEnabled¶
-
-// This function is used to get status of timer alarm.
-
-// bool timerAlarmEnabled(hw_timer_t *timer);
-
-//     timer timer struct.
-
-// This function will return true if the timer alarm is enabled. If false returned, the timer alarm is disabled.
-
-void kill_interrupt()
-{
-		// timer = timerBegin(0, 80, true); //changer le nom du timer ?
-		// timerAttachInterrupt(timer, &display_updater, true);
-		// timerAlarmWrite(timer, 4000, true);
-		// timerAlarmEnable(timer);
-		// delay(1000);
-		// timerDetachInterrupt(timer);
-		// timerAlarmDisable(timer);	
-
-
-
-		if (timerAlarmEnabled(timer)){
-		timerDetachInterrupt(timer);
-		timerAlarmDisable(timer);	
-		}
-
-
-
-
-}
-
 
 void drawImage(int x, int y, int h, int w, uint16_t image[])
 {
@@ -1042,8 +1008,8 @@ unsigned long last_update_attempt;
 int last_update_returncode;
 int last_sendData_returncode;
 
-uint8_t connection_status;
-bool connection_lost = false;
+bool wifi_connection_lost; //INITIALISER PLSU TARD
+bool lora_connection_lost;
 
 /*****************************************************************
  * SDS variables and enums                                      *
@@ -1213,8 +1179,6 @@ static String displayGenerateFooter(unsigned int screen_count)
 static void display_debug(const String &text1, const String &text2)
 {
 	debug_outln_info(F("output debug text to displays..."));
-	debug_outln_info(text1);
-	debug_outln_info(text2);
 
 if(cfg::has_ssd1306){
 	if (oled_ssd1306)
@@ -1583,14 +1547,11 @@ static String NPM_temp_humi()
 /*****************************************************************
  * write config to spiffs                                        *
  *****************************************************************/
-static bool writeConfig(){
-
-
-	// if (cfg::has_matrix){
-	// 	display_update_enable(false); //prevent crash
-	// }
-
-	kill_interrupt();
+static bool writeConfig()
+{
+	if (cfg::has_matrix){
+		display_update_enable(false); //prevent crash
+	}
 
 	DynamicJsonDocument json(JSON_BUFFER_SIZE);
 	debug_outln_info(F("Saving config..."));
@@ -2442,12 +2403,6 @@ static void webserver_config()
 	if (server.method() == HTTP_POST)
 	{
 		display_debug(F("Writing config"), emptyString);
-
-
-
-	//display_update_enable(false);
-
-
 		if (writeConfig())
 		{
 			display_debug(F("Writing config"), F("and restarting"));
@@ -3137,12 +3092,142 @@ static int selectChannelForAp()
 /*****************************************************************
  * WifiConfig                                                    *
  *****************************************************************/
+
+
+
+// static void wifiConfig()
+// {
+
+// 	if (cfg::has_matrix)
+// 		{
+// 		display_update_enable(true); //reactivate matrix during the X min config time
+// 		}
+
+// 	debug_outln_info(F("Starting WiFiManager"));
+// 	debug_outln_info(F("AP ID: "), String(cfg::fs_ssid));
+// 	debug_outln_info(F("Password: "), String(cfg::fs_pwd));
+
+// 	wificonfig_loop = true;
+
+// 	WiFi.disconnect(true);
+// 	debug_outln_info(F("scan for wifi networks..."));
+// 	int8_t scanReturnCode = WiFi.scanNetworks(false /* scan async */, true /* show hidden networks */);
+// 	if (scanReturnCode < 0)
+// 	{
+// 		debug_outln_error(F("WiFi scan failed. Treating as empty. "));
+// 		count_wifiInfo = 0;
+// 	}
+// 	else
+// 	{
+// 		count_wifiInfo = (uint8_t)scanReturnCode;
+// 	}
+
+// 	delete[] wifiInfo;
+// 	wifiInfo = new struct_wifiInfo[std::max(count_wifiInfo, (uint8_t)1)];
+
+// 	for (unsigned i = 0; i < count_wifiInfo; i++)
+// 	{
+// 		String SSID;
+// 		uint8_t *BSSID;
+
+// 		memset(&wifiInfo[i], 0, sizeof(struct_wifiInfo));
+// 		WiFi.getNetworkInfo(i, SSID, wifiInfo[i].encryptionType, wifiInfo[i].RSSI, BSSID, wifiInfo[i].channel);
+// 		SSID.toCharArray(wifiInfo[i].ssid, sizeof(wifiInfo[0].ssid));
+// 	}
+
+// 	// Use 13 channels if locale is not "EN"
+// 	wifi_country_t wifi;
+// 	wifi.policy = WIFI_COUNTRY_POLICY_MANUAL;
+// 	strcpy(wifi.cc, INTL_LANG);
+// 	wifi.nchan = (INTL_LANG[0] == 'E' && INTL_LANG[1] == 'N') ? 11 : 13;
+// 	wifi.schan = 1;
+
+// 	WiFi.mode(WIFI_AP);
+// 	const IPAddress apIP(192, 168, 4, 1);
+// 	WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0));
+// 	WiFi.softAP(cfg::fs_ssid, cfg::fs_pwd, selectChannelForAp());
+// 	// In case we create a unique password at first start
+// 	debug_outln_info(F("AP Password is: "), cfg::fs_pwd);
+
+// 	DNSServer dnsServer;
+// 	// Ensure we don't poison the client DNS cache
+// 	dnsServer.setTTL(0);
+// 	dnsServer.setErrorReplyCode(DNSReplyCode::NoError);
+// 	dnsServer.start(53, "*", apIP); // 53 is port for DNS server
+
+// 	setup_webserver();
+
+// 	// 10 minutes timeout for wifi config
+// 	last_page_load = millis();
+// 	while ((millis() - last_page_load) < cfg::time_for_wifi_config + 500)
+// 	{
+// 		dnsServer.processNextRequest();
+// 		server.handleClient();
+// 		yield();
+// 	}
+
+// 	if (cfg::has_matrix)
+// 	{
+// 	display_update_enable(false); //deactivate after X minutes
+// 	}
+
+// 	WiFi.softAPdisconnect(true);
+
+// 	wifi.policy = WIFI_COUNTRY_POLICY_MANUAL;
+// 	strcpy(wifi.cc, INTL_LANG);
+// 	wifi.nchan = 13;
+// 	wifi.schan = 1;
+
+// 	// The station mode starts only if WiFi communication is enabled.
+
+// 	if (cfg::has_wifi)
+// 	{
+
+// 		WiFi.mode(WIFI_STA);
+
+// 		dnsServer.stop();
+// 		delay(100);
+
+// 		debug_outln_info(FPSTR(DBG_TXT_CONNECTING_TO), cfg::wlanssid);
+
+// 		WiFi.begin(cfg::wlanssid, cfg::wlanpwd);
+// 	}
+// 	debug_outln_info(F("---- Result Webconfig ----"));
+// 	debug_outln_info(F("WiFi: "), cfg::has_wifi);
+// 	debug_outln_info(F("LoRa: "), cfg::has_lora);
+// 	debug_outln_info(F("APPEUI: "), cfg::appeui);
+// 	debug_outln_info(F("DEVEUI: "), cfg::deveui);
+// 	debug_outln_info(F("APPKEY: "), cfg::appkey);
+// 	debug_outln_info(F("WLANSSID: "), cfg::wlanssid);
+// 	debug_outln_info(FPSTR(DBG_TXT_SEP));
+// 	debug_outln_info_bool(F("SDS: "), cfg::sds_read);
+// 	debug_outln_info_bool(F("NPM: "), cfg::npm_read);
+// 	debug_outln_info_bool(F("BMX: "), cfg::bmx280_read);
+// 	debug_outln_info_bool(F("MHZ16: "), cfg::mhz16_read);
+// 	debug_outln_info_bool(F("MHZ19: "), cfg::mhz19_read);
+// 	debug_outln_info_bool(F("CCS811: "), cfg::ccs811_read);
+// 	debug_outln_info(FPSTR(DBG_TXT_SEP));
+// 	debug_outln_info_bool(F("SensorCommunity: "), cfg::send2dusti);
+// 	debug_outln_info_bool(F("Madavi: "), cfg::send2madavi);
+// 	debug_outln_info_bool(F("CSV: "), cfg::send2csv);
+// 	debug_outln_info_bool(F("AirCarto: "), cfg::send2custom);
+// 	debug_outln_info_bool(F("AtmoSud: "), cfg::send2custom2);
+// 	debug_outln_info(FPSTR(DBG_TXT_SEP));
+// 	debug_outln_info_bool(F("Display: "), cfg::has_ssd1306);
+// 	debug_outln_info_bool(F("Matrix: "), cfg::has_matrix);
+// 	debug_outln_info_bool(F("Display Measures: "), cfg::display_measure);
+// 	debug_outln_info_bool(F("Display forecast: "), cfg::display_forecast);
+// 	debug_outln_info(F("Debug: "), String(cfg::debug));
+// 	wificonfig_loop = false; // VOIR ICI
+// }
+
+
 static void wifiConfig()
 {
 
 	if (cfg::has_matrix)
 		{
-		display_update_enable(true); 
+		display_update_enable(true); //reactivate matrix during the X min config time
 		}
 
 	debug_outln_info(F("Starting WiFiManager"));
@@ -3199,7 +3284,7 @@ static void wifiConfig()
 
 	setup_webserver();
 
-	// X minutes timeout for wifi config
+	// 10 minutes timeout for wifi config
 	last_page_load = millis();
 	while ((millis() - last_page_load) < cfg::time_for_wifi_config + 500)
 	{
@@ -3208,23 +3293,13 @@ static void wifiConfig()
 		yield();
 	}
 
+	// if (cfg::has_matrix)
+	// {
+	// display_update_enable(false); //deactivate after X minutes A VOIR SI NECESSAIRE ?
+	// }
+
 	WiFi.softAPdisconnect(true);
-
-	wifi.policy = WIFI_COUNTRY_POLICY_MANUAL;
-	strcpy(wifi.cc, INTL_LANG);
-	wifi.nchan = 13;
-	wifi.schan = 1;
-
-	// The station mode starts only if WiFi communication is enabled.
-
-	if (cfg::has_wifi)
-	{
-		WiFi.mode(WIFI_STA);
-		dnsServer.stop();
-		delay(100);
-		debug_outln_info(FPSTR(DBG_TXT_CONNECTING_TO), cfg::wlanssid);
-		WiFi.begin(cfg::wlanssid, cfg::wlanpwd);
-	}
+	WiFi.disconnect(true);
 
 	debug_outln_info(F("---- Result Webconfig ----"));
 	debug_outln_info(F("WiFi: "), cfg::has_wifi);
@@ -3253,16 +3328,6 @@ static void wifiConfig()
 	debug_outln_info_bool(F("Display forecast: "), cfg::display_forecast);
 	debug_outln_info(F("Debug: "), String(cfg::debug));
 	wificonfig_loop = false; // VOIR ICI
-}
-
-static void disconnectAll()
-{
-		cfg::has_wifi = false;	//stop wifi
-		cfg::send2dusti = false;
-		cfg::send2madavi = false;
-		cfg::send2custom = false;
-		cfg::send2custom2 = false;
-		WiFi.disconnect(true);
 }
 
 static void waitForWifiToConnect(int maxRetries)
@@ -3338,7 +3403,87 @@ gps getGPS(String id)
  * WiFi auto connecting script                                   *
  *****************************************************************/
 
-//static WiFiEventHandler disconnectEventHandler;
+//static WiFiEventHandler disconnectEventHandler; 
+
+// static void connectWifi()
+// {
+// 	if (cfg::has_matrix)
+// 		{
+// 		display_update_enable(false); //deactivate matrix during wifi connection because of interrupts
+// 		}
+
+// 	display_debug(F("Connecting to"), String(cfg::wlanssid));
+
+// 	if (WiFi.getAutoConnect())
+// 	{
+// 		WiFi.setAutoConnect(false);
+// 	}
+// 	if (!WiFi.getAutoReconnect())
+// 	{
+// 		WiFi.setAutoReconnect(true);
+// 	}
+
+// 	// Use 13 channels for connect to known AP
+// 	wifi_country_t wifi;
+// 	wifi.policy = WIFI_COUNTRY_POLICY_MANUAL;
+// 	strcpy(wifi.cc, INTL_LANG);
+// 	wifi.nchan = 13;
+// 	wifi.schan = 1;
+
+// 	WiFi.mode(WIFI_STA);
+
+// 	WiFi.setHostname(cfg::fs_ssid);
+
+// 	WiFi.begin(cfg::wlanssid, cfg::wlanpwd); // Start WiFI
+
+// 	debug_outln_info(FPSTR(DBG_TXT_CONNECTING_TO), cfg::wlanssid);
+
+// 	waitForWifiToConnect(40);
+// 	debug_outln_info(emptyString);
+
+
+// 	if (WiFi.status() != WL_CONNECTED)
+// 	{
+// 		String fss(cfg::fs_ssid);
+// 		display_debug(fss.substring(0, 16), fss.substring(16));
+
+// 		wifi.policy = WIFI_COUNTRY_POLICY_AUTO;
+
+// 		wifiConfig();
+// 		if (WiFi.status() != WL_CONNECTED)
+// 		{
+// 			waitForWifiToConnect(20);
+// 			debug_outln_info(emptyString);
+// 		}
+// 	}else{
+// 		Debug.println("Get coordinates..."); //only once!
+// 		gps coordinates = getGPS(esp_chipid);
+// 		latitude_aircarto = coordinates.latitude;
+// 		longitude_aircarto = coordinates.longitude;
+
+// 		Debug.println(coordinates.latitude);
+// 		Debug.println(coordinates.longitude);
+// 		if (coordinates.latitude != "0.00000" && coordinates.latitude != "0.00000"){
+// 		strcpy_P(cfg::latitude, latitude_aircarto.c_str()); //replace the values in the firmware but not in the SPIFFS
+// 		strcpy_P(cfg::longitude, longitude_aircarto.c_str());
+// 		}
+// 	}
+	
+// 	debug_outln_info(F("WiFi connected, IP is: "), WiFi.localIP().toString());
+// 	last_signal_strength = WiFi.RSSI();
+
+// 	if (MDNS.begin(cfg::fs_ssid))
+// 	{
+// 		MDNS.addService("http", "tcp", 80);
+// 		MDNS.addServiceTxt("http", "tcp", "PATH", "/config");
+// 	}
+
+// if (cfg::has_matrix)
+// 		{
+// 		display_update_enable(true); //reactivate matrix
+// 		}
+// }
+
 
 static void connectWifi()
 {
@@ -3377,22 +3522,14 @@ static void connectWifi()
 	debug_outln_info(emptyString);
 
 
-	if (WiFi.status() != WL_CONNECTED)
+	if (WiFi.status() != WL_CONNECTED) //Waitforwifistatus ?
 	{
-		String fss(cfg::fs_ssid);
-		display_debug(fss.substring(0, 16), fss.substring(16));
-
-		wifi.policy = WIFI_COUNTRY_POLICY_AUTO;
-
+		wifi_connection_lost = true;
+		cfg::has_wifi = false;
 		wifiConfig();
 		
-		if (WiFi.status() != WL_CONNECTED)
-		{
-			//if still not connected => no available wifi
-			disconnectAll();
-			debug_outln_info(emptyString);
-		}
 	}else{
+		wifi_connection_lost = false;
 		Debug.println("Get coordinates..."); //only once!
 		gps coordinates = getGPS(esp_chipid);
 		latitude_aircarto = coordinates.latitude;
@@ -3511,6 +3648,7 @@ static unsigned long sendData(const LoggerEntry logger, const String &data, cons
 static unsigned long sendSensorCommunity(const String &data, const int pin, const __FlashStringHelper *sensorname, const char *replace_str)
 {
 	unsigned long sum_send_time = 0;
+
 
 	if (cfg::send2dusti && data.length())
 	{
@@ -3879,11 +4017,11 @@ static void fetchSensorMHZ19(String &s)
 		debug_outln(String(mhz19_val_count), DEBUG_MAX_INFO);
 	}
 
-	if (send_now && cfg::sending_intervall_ms >= 120000)
+	if (send_now && cfg::sending_intervall_ms == 120000)
 	{
 		last_value_MHZ19 = -1.0f;
 
-		if (mhz19_val_count == 12)
+		if (mhz19_val_count >= 12)
 		{
 			last_value_MHZ19 = float(mhz19_sum / mhz19_val_count);
 			add_Value2Json(s, F("MHZ19_CO2"), FPSTR(DBG_TXT_CO2PPM), last_value_MHZ19);
@@ -3930,11 +4068,11 @@ static void fetchSensorCCS811(String &s)
 	  Debug.println(ccs811.errstat_str(errstat));
   }
 
-	if (send_now && cfg::sending_intervall_ms >= 120000)
+	if (send_now && cfg::sending_intervall_ms == 120000)
 	{
 		last_value_CCS811 = -1.0f;
 
-		if (ccs811_val_count == 12)
+		if (ccs811_val_count >= 12)
 		{
 			last_value_CCS811 = float(ccs811_sum / ccs811_val_count);
 			add_Value2Json(s, F("CCS811_VOC"), FPSTR(DBG_TXT_VOCPPB), last_value_CCS811);
@@ -4295,6 +4433,7 @@ static void display_values_oled()  //COMPLETER LES ECRANS
 		{
 			screens[screen_count++] = 2;
 		}
+
 		if (cfg::mhz16_read  && cfg::display_measure)
         {
             screens[screen_count++] = 3;
@@ -4532,28 +4671,28 @@ static void display_values_matrix()
 			screens[screen_count++] = 0; //Air intérieur
 		}
 
-		if (cfg::mhz16_read  && cfg::display_measure)
-		{
-			if(cfg_screen_co2)screens[screen_count++] = 1;
-		}
-		if (cfg::mhz19_read && cfg::display_measure)
-		{
-			if(cfg_screen_co2)screens[screen_count++] = 2;
-		}
-
 		if (cfg::sds_read && cfg::display_measure)
 		{
 
-			if (cfg_screen_pm10) screens[screen_count++] = 3; //PM10
-			if (cfg_screen_pm25) screens[screen_count++] = 4; //PM2.5
+			if (cfg_screen_pm10) screens[screen_count++] = 1; //PM10
+			if (cfg_screen_pm25) screens[screen_count++] = 2; //PM2.5
 		}
 		if (cfg::npm_read && cfg::display_measure)
 		{
-			if(cfg_screen_pm10)screens[screen_count++] = 5; //PM10
-			if(cfg_screen_pm25)screens[screen_count++] = 6; //PM2.5
-			if(cfg_screen_pm01)screens[screen_count++] = 7; //PM1
+			if(cfg_screen_pm10)screens[screen_count++] = 3; //PM10
+			if(cfg_screen_pm25)screens[screen_count++] = 4; //PM2.5
+			if(cfg_screen_pm01)screens[screen_count++] = 5; //PM1
 		}
 
+
+		if (cfg::mhz16_read  && cfg::display_measure)
+		{
+			if(cfg_screen_co2)screens[screen_count++] = 6;
+		}
+		if (cfg::mhz19_read && cfg::display_measure)
+		{
+			if(cfg_screen_co2)screens[screen_count++] = 7;
+		}
 		if (cfg::ccs811_read && cfg::display_measure)
 		{
 			if(cfg_screen_cov)screens[screen_count++] = 8;
@@ -4600,21 +4739,14 @@ static void display_values_matrix()
 		{
 		case 0:
 		if(pm10_value != -1.0 || pm25_value != -1.0 || pm01_value != -1.0 || t_value != -128.0 || h_value != -1.0 || p_value != -1.0 || co2_value != -1.0 || cov_value != -1.0){
-		drawImage(0, 0, 32, 64, interieur);
-		// display.setTextColor(myWHITE);
-		// display.setFont(&Font4x7Fixed);
-		// display.setTextSize(1);
-		// display.setCursor(13, 14);
-		// display.print("Air");
-		// display.setCursor(1, 24);
-		// display.print("int");
-		// display.write(233);
-		// display.print("rieur");
+			if((!cfg::has_wifi && !cfg::has_lora) || (cfg::has_wifi && wifi_connection_lost && !cfg::has_lora ) || (cfg::has_lora && lora_connection_lost && !cfg::has_wifi)){drawImage(0, 0, 32, 64, interieur_no_connection);}
+			if(cfg::has_wifi && !wifi_connection_lost){drawImage(0, 0, 32, 64, interieur_wifi);}
+			if(cfg::has_lora && (!cfg::has_wifi || (cfg::has_wifi && wifi_connection_lost))&& !lora_connection_lost){drawImage(0, 0, 32, 64, interieur_lora);} //wifi prioritaire
 		}else{
 			act_milli += 5000;	
 		}
 			break;
-		case 3:   //SDS
+		case 1:   //SDS
 		if(pm10_value != -1.0){
 			display.fillScreen(myBLACK);
 			display.setTextColor(myBLUE);
@@ -4624,6 +4756,64 @@ static void display_values_matrix()
 			display.print("PM10");
 			display.setFont(&Font4x7Fixed);
 			display.setCursor(display.getCursorX()+2, 7); //Decaler vers le bas?
+			display.write(181);
+			display.print("g/m");
+			display.write(179);
+			drawImage(55, 0, 7, 9, maison);
+			displayColor = interpolateint(pm10_value, 15, 30, 75, gamma_correction);
+			myCUSTOM = display.color565(displayColor.R, displayColor.G, displayColor.B);
+			display.fillRect(50, 9, 14, 14, myCUSTOM);
+			display.setFont(NULL);
+			display.setTextSize(2);
+			display.setTextColor(myWHITE);
+			drawCentreString(String(pm10_value, 0), 0, 9, 14); 
+			display.setTextColor(myCUSTOM);
+			messager1(pm10_value, 15, 30, 75);
+			}
+			else
+			{
+				act_milli += 5000;	
+			}
+			break;
+		case 2:
+		if(pm25_value != -1.0){
+			display.fillScreen(myBLACK);
+			display.setTextColor(myBLUE);
+			display.setFont(NULL);
+			display.setCursor(1, 0);
+			display.setTextSize(1);
+			display.print("PM2.5");
+			display.setFont(&Font4x7Fixed);
+			display.setCursor(display.getCursorX()+2, 7);
+			display.write(181);
+			display.print("g/m");
+			display.write(179);
+			drawImage(55, 0, 7, 9, maison);
+			displayColor = interpolateint(pm25_value, 10, 20, 50, gamma_correction);
+			myCUSTOM = display.color565(displayColor.R, displayColor.G, displayColor.B);
+			display.fillRect(50, 9, 14, 14, myCUSTOM);
+			display.setFont(NULL);
+			display.setTextSize(2);
+			display.setTextColor(myWHITE);
+			drawCentreString(String(pm25_value, 0), 0, 9, 14); 
+			display.setTextColor(myCUSTOM);
+            messager1(pm25_value, 10, 20, 50);
+			}
+			else
+			{
+			act_milli += 5000;	
+			}
+			break;
+		case 3:   //NPM
+			if(pm10_value != -1.0){
+			display.fillScreen(myBLACK);
+			display.setTextColor(myBLUE);
+			display.setFont(NULL);
+			display.setCursor(1, 0);
+			display.setTextSize(1);
+			display.print("PM10");
+			display.setFont(&Font4x7Fixed);
+			display.setCursor(display.getCursorX()+2, 7);
 			display.write(181);
 			display.print("g/m");
 			display.write(179);
@@ -4672,65 +4862,7 @@ static void display_values_matrix()
 			act_milli += 5000;	
 			}
 			break;
-		case 5:   //NPM
-			if(pm10_value != -1.0){
-			display.fillScreen(myBLACK);
-			display.setTextColor(myBLUE);
-			display.setFont(NULL);
-			display.setCursor(1, 0);
-			display.setTextSize(1);
-			display.print("PM10");
-			display.setFont(&Font4x7Fixed);
-			display.setCursor(display.getCursorX()+2, 7);
-			display.write(181);
-			display.print("g/m");
-			display.write(179);
-			drawImage(55, 0, 7, 9, maison);
-			displayColor = interpolateint(pm10_value, 15, 30, 75, gamma_correction);
-			myCUSTOM = display.color565(displayColor.R, displayColor.G, displayColor.B);
-			display.fillRect(50, 9, 14, 14, myCUSTOM);
-			display.setFont(NULL);
-			display.setTextSize(2);
-			display.setTextColor(myWHITE);
-			drawCentreString(String(pm10_value, 0), 0, 9, 14); 
-			display.setTextColor(myCUSTOM);
-			messager1(pm10_value, 15, 30, 75);
-			}
-			else
-			{
-				act_milli += 5000;	
-			}
-			break;
-		case 6:
-		if(pm25_value != -1.0){
-			display.fillScreen(myBLACK);
-			display.setTextColor(myBLUE);
-			display.setFont(NULL);
-			display.setCursor(1, 0);
-			display.setTextSize(1);
-			display.print("PM2.5");
-			display.setFont(&Font4x7Fixed);
-			display.setCursor(display.getCursorX()+2, 7);
-			display.write(181);
-			display.print("g/m");
-			display.write(179);
-			drawImage(55, 0, 7, 9, maison);
-			displayColor = interpolateint(pm25_value, 10, 20, 50, gamma_correction);
-			myCUSTOM = display.color565(displayColor.R, displayColor.G, displayColor.B);
-			display.fillRect(50, 9, 14, 14, myCUSTOM);
-			display.setFont(NULL);
-			display.setTextSize(2);
-			display.setTextColor(myWHITE);
-			drawCentreString(String(pm25_value, 0), 0, 9, 14); 
-			display.setTextColor(myCUSTOM);
-            messager1(pm25_value, 10, 20, 50);
-			}
-			else
-			{
-			act_milli += 5000;	
-			}
-			break;
-		case 7:
+		case 5:
 		if(pm01_value != -1.0){
 			display.fillScreen(myBLACK);
 			display.setTextColor(myBLUE);
@@ -4759,7 +4891,7 @@ static void display_values_matrix()
 			act_milli += 5000;	
 			}
 			break;
-		case 1:
+		case 6:
 		if(co2_value != -1.0){
 			display.fillScreen(myBLACK);
 			display.setTextColor(myBLUE);
@@ -4787,7 +4919,7 @@ static void display_values_matrix()
 			act_milli += 5000;	
 			}
 			break;
-		case 2:
+		case 7:
 		if(co2_value != -1.0){
 			display.fillScreen(myBLACK);
 			display.setTextColor(myBLUE);
@@ -4917,16 +5049,7 @@ static void display_values_matrix()
 			break;
 		case 12:
 		if(atmoSud.multi != -1.0 || atmoSud.no2 != -1.0 || atmoSud.o3 != -1.0 || atmoSud.pm10 != -1.0 || atmoSud.pm2_5 != -1.0){
-		drawImage(0, 0, 32, 64, exterieur);
-		// display.setTextColor(myWHITE);
-		// display.setFont(&Font4x7Fixed);
-		// display.setTextSize(1);
-		// display.setCursor(13, 14);
-		// display.print("Air");
-		// display.setCursor(1, 24);
-		// display.print("ext");
-		// display.write(233);
-		// display.print("rieur");
+			drawImage(0, 0, 32, 64, exterieur);	
 		}
 		else
 		{
@@ -5193,7 +5316,6 @@ static void display_values_matrix()
 
 static void init_matrix()
 {
-	Debug.println("Init Matrix");
 	display.begin(16);
 	display.setDriverChip(SHIFT);
 	display_update_enable(true);
@@ -6051,35 +6173,9 @@ bool loratest(int lora_dio0)
 /*****************************************************************
  * Check stack                                                    *
  *****************************************************************/
-// void *StackPtrAtStart;
-// void *StackPtrEnd;
-// UBaseType_t watermarkStart;
-
-/*****************************************************************
- * Check Wifi                                                    *
- *****************************************************************/
-
-void WiFiStationConnected(WiFiEvent_t event, WiFiEventInfo_t info){
-  Debug.println("Connected to AP successfully!");
-  connection_status = WL_CONNECTED;
-}
-
-void WiFiGotIP(WiFiEvent_t event, WiFiEventInfo_t info){
-  Debug.println("WiFi connected");
-  Debug.println("IP address: ");
-  Debug.println(WiFi.localIP());
-}
-
-void WiFiStationDisconnected(WiFiEvent_t event, WiFiEventInfo_t info){
-  Debug.println("Disconnected from WiFi access point");
-  Debug.print("WiFi lost connection. Reason: ");
-  Debug.println(info.wifi_sta_disconnected.reason);
-  connection_status = WL_DISCONNECTED;
-
-
-//   Serial.println("Trying to Reconnect");
-//   WiFi.begin(cfg::wlanssid, cfg::wlanpwd);
-}
+void *StackPtrAtStart;
+void *StackPtrEnd;
+UBaseType_t watermarkStart;
 
 
 /*****************************************************************
@@ -6088,17 +6184,17 @@ void WiFiStationDisconnected(WiFiEvent_t event, WiFiEventInfo_t info){
 
 void setup()
 {
-	// void *SpStart = NULL;
-	// StackPtrAtStart = (void *)&SpStart;
-	// watermarkStart = uxTaskGetStackHighWaterMark(NULL);
-	// StackPtrEnd = StackPtrAtStart - watermarkStart;
+	void *SpStart = NULL;
+	StackPtrAtStart = (void *)&SpStart;
+	watermarkStart = uxTaskGetStackHighWaterMark(NULL);
+	StackPtrEnd = StackPtrAtStart - watermarkStart;
 
 	Debug.begin(115200); // Output to Serial at 115200 baud
 	Debug.println(F("Starting"));
 
-	// Debug.printf("\r\n\r\nAddress of Stackpointer near start is:  %p \r\n", (void *)StackPtrAtStart);
-	// Debug.printf("End of Stack is near: %p \r\n", (void *)StackPtrEnd);
-	// Debug.printf("Free Stack at setup is:  %d \r\n", (uint32_t)StackPtrAtStart - (uint32_t)StackPtrEnd);
+	Debug.printf("\r\n\r\nAddress of Stackpointer near start is:  %p \r\n", (void *)StackPtrAtStart);
+	Debug.printf("End of Stack is near: %p \r\n", (void *)StackPtrEnd);
+	Debug.printf("Free Stack at setup is:  %d \r\n", (uint32_t)StackPtrAtStart - (uint32_t)StackPtrEnd);
 
 	esp_chipid = String((uint16_t)(ESP.getEfuseMac() >> 32), HEX); // for esp32
 	esp_chipid += String((uint32_t)ESP.getEfuseMac(), HEX);
@@ -6109,15 +6205,6 @@ void setup()
 	debug_outln_info(F("ModuleAirV2: " SOFTWARE_VERSION_STR "/"), String(CURRENT_LANG));
 
 	init_config();
-
-//ATTENTION
-	// le timer est activé par défaut dans le setup
-	 timer = timerBegin(0, 80, true); //changer le nom du timer ? //Sortir la definition de la fonction ?
-	// timerAttachInterrupt(timer, &display_updater, true);
-	// timerAlarmWrite(timer, 4000, true);
-	// timerAlarmEnable(timer);
-
-//ATTENTION
 
 	if (cfg::has_matrix)
 	{
@@ -6189,13 +6276,26 @@ void setup()
 
 	// always start the Webserver on void setup to get access to the sensor
 
-	if (cfg::has_wifi)
-	{
-		setupNetworkTime();
-	}
 
+	//Si pas wifi => seulement X minutes de config avec wificonfi();
+
+	// separer has_wifi et !haswifi dans if
+
+
+	if(cfg::has_wifi)
+	{
+	setupNetworkTime();
 	connectWifi();
 	setup_webserver();
+
+	}else
+	{
+		wifiConfig();
+	}
+
+
+
+	
 	createLoggerConfigs();
 	logEnabledAPIs();
 	powerOnTestSensors();
@@ -6280,9 +6380,11 @@ void setup()
 		do_send(&sendjob); // values are -1, -128 etc. they can be easily filtered
 	}
 
+	//AJOUTER lora_connection_lost ??
+
 	if (cfg::display_forecast)
 	{
-		forecast_selector = 0; //initialisation after firs LoRaWAN payload
+		forecast_selector = 0; //initialisation after first LoRaWAN payload
 	}
 
 	// Prepare the configuration summary for the following messages (the first is 00000000)
@@ -6301,12 +6403,12 @@ void setup()
 	datalora[0] = booltobyte(configlorawan);
 
 	Debug.printf("End of void setup()\n");
+	//ajouter test stack cf. code
 }
 
 void loop()
 {
 	String result_SDS, result_NPM, result_MHZ16, result_MHZ19, result_CCS811;
-	
 
 	unsigned sum_send_time = 0;
 
@@ -6316,7 +6418,7 @@ void loop()
 
 	// Wait at least 30s for each NTP server to sync
 
-	if (cfg::has_wifi)
+	if (cfg::has_wifi && !wifi_connection_lost)
 	{
 		if (!sntp_time_set && send_now && msSince(time_point_device_start_ms) < 1000 * 2 * 30 + 5000)
 		{
@@ -6336,7 +6438,7 @@ void loop()
 
 	if (cfg::npm_read)
 	{
-		if ((msSince(starttime_NPM) > SAMPLETIME_NPM_MS && npm_val_count == 0) || send_now)
+	if ((msSince(starttime_NPM) > SAMPLETIME_NPM_MS && npm_val_count == 0) || send_now)
 		{
 			starttime_NPM = act_milli;
 			fetchSensorNPM(result_NPM);
@@ -6363,7 +6465,7 @@ void loop()
 
 			if (cfg::mhz19_read)
 			{
-				if ((msSince(starttime_MHZ19) > SAMPLETIME_MHZ19_MS && mhz19_val_count < 11) || send_now)
+			if ((msSince(starttime_MHZ19) > SAMPLETIME_MHZ19_MS && mhz19_val_count < 11) || send_now)
 		{
 				starttime_MHZ19 = act_milli;
 				fetchSensorMHZ19(result_MHZ19);
@@ -6390,97 +6492,39 @@ void loop()
 
 	if ((msSince(last_display_millis_matrix) > DISPLAY_UPDATE_INTERVAL_MS) && (cfg::has_matrix))
 	{
+
+		// display.fillScreen(myBLACK); //to avoid blink with display.clearDisplay();
+		//display.clearDisplay();// to reinit
 		display_values_matrix();
 		last_display_millis_matrix = act_milli;
 	}
 
-	//Debug.println(WiFi.waitForConnectResult());
 
 
-
-        // uint8_t status = WiFi.waitForConnectResult();
-
-        // String m = connectionStatusMessage(status);
-        // log("Connection attempt %d: status is%s", attempt, m.c_str());
-
-
-		// connection_status = WiFi.waitForConnectResult();
-		// Debug.print("status:");
-		// Debug.println(connection_status);
-		// Debug.println("01");
-
-
-
-        // if (WiFi.waitForConnectResult() == WL_CONNECTED ) {
-		// 	server.handleClient();
-		// 	yield();
-        // }else{
-		// 	//timerWrite(timer, 0); a voir
-		// 	//timerRestart(hw_timer_t *timer)
-		// 	//vTaskSuspendAll();
-		// 	//xTaskResumeAll();
-		// 	//display_update_enable(false);
-		// 	//display_update_enable(true);
-		// 	Debug.print("status:");
-		// 	Debug.println("connection issue");
-		// }
-
-//   WiFi.onEvent(WiFiStationConnected, WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_CONNECTED);
-//   WiFi.onEvent(WiFiGotIP, WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_GOT_IP);
-//   WiFi.onEvent(WiFiStationDisconnected, WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_DISCONNECTED);
-
-	// if (connection_status != WL_DISCONNECTED){
-			// server.handleClient();
-			// yield();
-	// }
-
-       if (WiFi.waitForConnectResult() == WL_CONNECTED ) {
+       if (cfg::has_wifi && WiFi.waitForConnectResult() == WL_CONNECTED ) {
+			if (wifi_connection_lost)
+			{
+				Debug.println("Wifi reconnected");
+				wifi_connection_lost = false;
+			};
 			server.handleClient();
 			yield();
-			if (cfg::has_matrix && connection_lost)
-			{
-				display_update_enable(true);
-				connection_lost = false;
-				timerWrite(timer, 0);
-			};
 
-        }else{
-			//timerWrite(timer, 0); //reset timer should be just once
-			//timerRestart(timer);
-			//vTaskSuspendAll();
-			//xTaskResumeAll();
-			//display_update_enable(false);
-			//display_update_enable(true);
-			// Debug.print("status:");
-			// Debug.println("connection issue");
-			timerWrite(timer, 0);
-			if (cfg::has_matrix && !connection_lost){
-				//AJOUTER SCREEN CONNECTION LOST ICI????
-				display_update_enable(false);
-				connection_lost = true;
+        }else if(cfg::has_wifi && WiFi.waitForConnectResult() != WL_CONNECTED){
+			if (!wifi_connection_lost){
+				wifi_connection_lost = true;
+				WiFi.disconnect(true);
+				Debug.println("Wifi disconnected");
 			};
 		}
 
-
-
-
-
-		//assert failed: xQueueSemaphoreTake queue.c:1554 (!( ( xTaskGetSchedulerState() == ( ( BaseType_t ) 0 ) ) && ( xTicksToWait != 0 ) ))
-		// AJOUTER PREVIOUS POUR RELANCER SI BESOIN LE handleclient => NON
-		// Attendre reconnection!!!!
-
-		// build_flags =   -DBOARD_HAS_PSRAM
-        //         -mfix-esp32-psram-cache-issue
-        //         -DCORE_DEBUG_LEVEL=0
-
-//build_flags = -DBOARD_HAS_PSRAM -mfix-esp32-psram-cache-issue -mfix-esp32-psram-cache-strategy=memw
 	if (send_now && cfg::sending_intervall_ms>=120000)
 	{
 
-		// void *SpActual = NULL;
-		// Debug.printf("Free Stack at send_now is: %d \r\n", (uint32_t)&SpActual - (uint32_t)StackPtrEnd);
+		void *SpActual = NULL;
+		Debug.printf("Free Stack at send_now is: %d \r\n", (uint32_t)&SpActual - (uint32_t)StackPtrEnd);
 
-		if (cfg::has_wifi)
+		if (cfg::has_wifi && !wifi_connection_lost)
 		{
 			last_signal_strength = WiFi.RSSI();
 		}
@@ -6496,7 +6540,7 @@ void loop()
 			if (cfg::sds_read)
 			{
 				data += result_SDS;
-				if (cfg::has_wifi)
+				if (cfg::has_wifi && !wifi_connection_lost)
 				{
 				sum_send_time += sendSensorCommunity(result_SDS, SDS_API_PIN, FPSTR(SENSORS_SDS011), "SDS_");
 				}
@@ -6504,7 +6548,7 @@ void loop()
 			if (cfg::npm_read)
 			{
 				data += result_NPM;
-				if (cfg::has_wifi)
+				if (cfg::has_wifi && !wifi_connection_lost)
 				{
 				sum_send_time += sendSensorCommunity(result_NPM, NPM_API_PIN, FPSTR(SENSORS_NPM), "NPM_");
 				}
@@ -6516,14 +6560,14 @@ void loop()
 				data += result;
 				if (bmx280.sensorID() == BME280_SENSOR_ID)
 				{
-				if (cfg::has_wifi)
+				if (cfg::has_wifi && !wifi_connection_lost)
 				{
 					sum_send_time += sendSensorCommunity(result, BME280_API_PIN, FPSTR(SENSORS_BME280), "BME280_");
 				}
 				}
 				else
 				{
-				if (cfg::has_wifi)
+				if (cfg::has_wifi && !wifi_connection_lost)
 				{
 					sum_send_time += sendSensorCommunity(result, BMP280_API_PIN, FPSTR(SENSORS_BMP280), "BMP280_");
 				}
@@ -6565,7 +6609,7 @@ void loop()
 
 			yield();
 
-			if (cfg::has_wifi)
+			if (cfg::has_wifi && !wifi_connection_lost)
 				{
 			sum_send_time += sendDataToOptionalApis(data);
 			
@@ -6598,36 +6642,41 @@ void loop()
 				debug_outln_info(F("Time for Sending (ms): "), String(sending_time));
 			}
 
-			// Debug.println(WiFi.status());
-			// Debug.println(cfg::has_wifi);
 
-			// reconnect to WiFi if disconnected
+			//RECONNECT ETAIT ICI
 
-			//WiFi.waitForConnectResult();
 
-			//if ((WiFi.status() != WL_CONNECTED || sending_time > 30000 )&& cfg::has_wifi)
-			if ((WiFi.status() != WL_CONNECTED || sending_time > 10000 )&& cfg::has_wifi)
+			}
+
+
+			if ((WiFi.status() != WL_CONNECTED || sending_time > 10000 || wifi_connection_lost)&& cfg::has_wifi)
 			{
 				debug_outln_info(F("Connection lost, reconnecting "));
 				WiFi_error_count++;
-				timerWrite(timer, 0);
 				WiFi.disconnect(true);
 				WiFi.begin(cfg::wlanssid, cfg::wlanpwd);
+				//WiFi.reconnect(); OU BIEN CA + Wifi.Status au lieu de waitfor ?
 				waitForWifiToConnect(20);
-				if(cfg::has_matrix && connection_lost && WiFi.status() == WL_CONNECTED )
+				if(wifi_connection_lost && WiFi.waitForConnectResult() == WL_CONNECTED )
 				{
-				display_update_enable(true);
-				connection_lost = false;
+				Debug.println("Reconnect success");
+				wifi_connection_lost = false;
+				}else{
+					Debug.println("Reconnect failed");
+					WiFi.disconnect(true);
 				}
+				// if(cfg::has_matrix && connection_lost && WiFi.status() != WL_CONNECTED )
+				// {
+				// //FORCER LE RESTART ICI POUR PASSER EN SANS WIFI => LE REONNEXION A ECHOUÈ
+				// ESP.restart();
+				// }
+
+				//WiFi.waitForConnectResult()
+
+
 				debug_outln_info(emptyString);
-				//METTRE UN RESTART ICI?
 			}
 
-// [348752][V][WiFiGeneric.cpp:298] _arduino_event_cb(): STA IP Lost
-// [348753][D][WiFiGeneric.cpp:831] _eventCallback(): Arduino Event: 9 - STA_LOST_IP
-
-
-			}
 			// only do a restart after finishing sending (Wifi). Befor Lora to avoid conflicts with the LMIC
 			if (msSince(time_point_device_start_ms) > DURATION_BEFORE_FORCED_RESTART_MS)
 			{
@@ -6642,7 +6691,7 @@ void loop()
 			max_micro = 0;
 			sum_send_time = 0;
 
-			if (cfg::display_forecast && cfg::has_wifi) //the reception through LoRaWAN downlink is automatically done
+			if (cfg::display_forecast && cfg::has_wifi && !wifi_connection_lost) //the reception through LoRaWAN downlink is automatically done
 			{
 				switch (forecast_selector)
 				{
@@ -6662,8 +6711,26 @@ void loop()
 					atmoSud.pm2_5 = getDataAtmoSud(forecast_selector);
 					break;
 				}
+			}else{
+				switch (forecast_selector)
+				{
+				case 0:
+					atmoSud.multi = -1.0;
+					break;
+				case 1:
+					atmoSud.no2 = -1.0;
+					break;
+				case 2:
+					atmoSud.o3 = -1.0;
+					break;
+				case 3:
+					atmoSud.pm10 = -1.0;
+					break;
+				case 4:
+					atmoSud.pm2_5 = -1.0;
+					break;
 			}
-		//}
+		}
 
 		if (cfg::has_lora && lorachip)
 		{
