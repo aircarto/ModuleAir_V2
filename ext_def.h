@@ -18,9 +18,6 @@ const char WWW_PASSWORD[] PROGMEM = "";
 #define FS_SSID ""
 #define FS_PWD "moduleaircfg"
 
-#define TIME_FOR_WIFI_CONFIG 60000;
-#define SENDING_INTERVALL_MS 120000;
-
 #define HAS_WIFI 1
 #define HAS_LORA 0
 const char APPEUI[] = "0000000000000000";
