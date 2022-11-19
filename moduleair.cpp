@@ -13,6 +13,8 @@ String SOFTWARE_VERSION_SHORT(SOFTWARE_VERSION_STR_SHORT);
 #include <hal/hal.h>
 #include <SPI.h>
 
+//Detection connection internet
+
 
 /*****************************************************************
  * IMPORTANT                                          *
@@ -5879,6 +5881,7 @@ void onEvent(ev_t ev)
 	{
 	case EV_SCAN_TIMEOUT:
 		Debug.println(F("EV_SCAN_TIMEOUT"));
+		//lora_connection_lost = true; //lora_connection_lost = true;
 		break;
 	case EV_BEACON_FOUND:
 		Debug.println(F("EV_BEACON_FOUND"));
@@ -5925,6 +5928,8 @@ void onEvent(ev_t ev)
 		// during join, but because slow data rates change max TX
 		// size, we don't use it in this example.
 		// LMIC_setLinkCheckMode(0);
+
+		lora_connection_lost = false;
 		break;
 	/*
 		|| This event is defined but not used in the code. No
@@ -5935,10 +5940,12 @@ void onEvent(ev_t ev)
 		||     break;
 		*/
 	case EV_JOIN_FAILED:
-		Debug.println(F("EV_JOIN_FAILED"));
+		Debug.println(F("EV_JOIN_FAILED")); //lora_connection_lost = true;
+		//lora_connection_lost = true;
 		break;
 	case EV_REJOIN_FAILED:
-		Debug.println(F("EV_REJOIN_FAILED"));
+		Debug.println(F("EV_REJOIN_FAILED")); //lora_connection_lost = true;
+		//lora_connection_lost = true;
 		break;
 	case EV_TXCOMPLETE:
 		Debug.println(F("EV_TXCOMPLETE (includes waiting for RX windows)"));
@@ -5967,6 +5974,7 @@ void onEvent(ev_t ev)
 			}
 		}
 
+		lora_connection_lost = false;
 		// Schedule next transmission
 		os_setTimedCallback(&sendjob, os_getTime() + sec2osticks(TX_INTERVAL), do_send);
 		Debug.println(F("Next transmission scheduled"));
@@ -6007,6 +6015,7 @@ void onEvent(ev_t ev)
 		break;
 	case EV_JOIN_TXCOMPLETE:
 		Debug.println(F("EV_JOIN_TXCOMPLETE: no JoinAccept"));
+		lora_connection_lost = true;
 		break;
 
 	default:
@@ -6052,6 +6061,17 @@ static void prepareTxFrame()
 
 	//datalora[0] is already defined and is 1 byte
 
+
+	if (wifi_connection_lost && cfg::has_wifi){
+		configlorawan[7] = false;
+		datalora[0] = booltobyte(configlorawan); //wifi perdu et lora connecté
+	}
+
+	if (!wifi_connection_lost && cfg::has_wifi){
+		configlorawan[7] = true;
+		datalora[0] = booltobyte(configlorawan); //wifi OK et lora connecté => priorité wifi
+	}
+	
 	//x10 to get 1 decimal for PM
 
 	if (last_value_SDS_P1 != -1.0) u1.temp_int = (int16_t)round(last_value_SDS_P1 * 10);
@@ -6397,7 +6417,9 @@ void setup()
 	configlorawan[4] = cfg::mhz19_read;
 	configlorawan[5] = cfg::ccs811_read;
 	configlorawan[6] = cfg::display_forecast;
-	configlorawan[7] = cfg::has_wifi;
+	configlorawan[7] = cfg::has_wifi; //si connection manquée => false
+
+	//IL va falloir ajouter un byte pour RGPD?
 
 	Debug.print("Configuration:");
 	Debug.println(booltobyte(configlorawan));
@@ -6654,9 +6676,9 @@ void loop()
 			{
 				debug_outln_info(F("Connection lost, reconnecting "));
 				WiFi_error_count++;
-				WiFi.disconnect(true);
-				WiFi.begin(cfg::wlanssid, cfg::wlanpwd);
-				//WiFi.reconnect(); OU BIEN CA + Wifi.Status au lieu de waitfor ?
+				// WiFi.disconnect(true);
+				// WiFi.begin(cfg::wlanssid, cfg::wlanpwd); //ATTENTION ICI
+				WiFi.reconnect(); //OU BIEN CA + Wifi.Status au lieu de waitfor ?
 				waitForWifiToConnect(20);
 				if(wifi_connection_lost && WiFi.waitForConnectResult() == WL_CONNECTED )
 				{

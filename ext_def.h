@@ -6,7 +6,7 @@ const char WLANSSID[] PROGMEM = "luftdaten";
 const char WLANPWD[] PROGMEM = "luftd4ten";
 
 
-#define TIME_FOR_WIFI_CONFIG 60000;
+#define TIME_FOR_WIFI_CONFIG 120000;
 #define SENDING_INTERVALL_MS 120000;
 
 // BasicAuth config
