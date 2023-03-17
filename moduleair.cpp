@@ -94,6 +94,8 @@ String SOFTWARE_VERSION_SHORT(SOFTWARE_VERSION_STR_SHORT);
 #include "ext_def.h"
 #include "html-content.h"
 
+#include "./ca-root.h"
+
 /*****************************************************************
  * CONFIGURATION                                          *
  *****************************************************************/
@@ -123,6 +125,8 @@ namespace cfg
 
 	bool has_wifi = HAS_WIFI;
 	bool has_lora = HAS_LORA;
+	// bool has_wifi;
+	// bool has_lora;
 	char appeui[LEN_APPEUI];
 	char deveui[LEN_DEVEUI];
 	char appkey[LEN_APPKEY];
@@ -179,10 +183,12 @@ namespace cfg
 	char user_custom2[LEN_USER_CUSTOM2] = USER_CUSTOM2;
 	char pwd_custom2[LEN_CFG_PASSWORD] = PWD_CUSTOM2;
 
-	// First load
+	// First load  //ajouter isic Wifi et Lora??
 	void initNonTrivials(const char *id)
 	{
 		strcpy(cfg::current_lang, CURRENT_LANG);
+		// memccpy_P(has_wifi, HAS_WIFI);
+		// memccpy_P(has_lora, HAS_LORA);
 		strcpy_P(appeui, APPEUI);
 		strcpy_P(deveui, DEVEUI);
 		strcpy_P(appkey, APPKEY);
@@ -2210,16 +2216,16 @@ static void webserver_config_send_body_get(String &page_content)
 	page_content += FPSTR(BR_TAG);
 	page_content += form_checkbox(Config_send2dusti, FPSTR(WEB_SENSORCOMMUNITY), false);
 
-	// Remove https because not supported in esp32
-	// page_content += FPSTR(WEB_NBSP_NBSP_BRACE);
-	// page_content += form_checkbox(Config_ssl_dusti, FPSTR(WEB_HTTPS), false);
-	// page_content += FPSTR(WEB_BRACE_BR);
+
+	page_content += FPSTR(WEB_NBSP_NBSP_BRACE);
+	page_content += form_checkbox(Config_ssl_dusti, FPSTR(WEB_HTTPS), false);
+	page_content += FPSTR(WEB_BRACE_BR);
 	page_content += FPSTR("<br>");
 	page_content += form_checkbox(Config_send2madavi, FPSTR(WEB_MADAVI), false);
-	// Remove https because not supported in esp32
-	// page_content += FPSTR(WEB_NBSP_NBSP_BRACE);
-	// page_content += form_checkbox(Config_ssl_madavi, FPSTR(WEB_HTTPS), false);
-	// page_content += FPSTR(WEB_BRACE_BR);
+	
+	page_content += FPSTR(WEB_NBSP_NBSP_BRACE);
+	page_content += form_checkbox(Config_ssl_madavi, FPSTR(WEB_HTTPS), false);
+	page_content += FPSTR(WEB_BRACE_BR);
 	page_content += FPSTR("<br>");
 
 	add_form_checkbox(Config_send2csv, FPSTR(WEB_CSV));
@@ -2229,10 +2235,10 @@ static void webserver_config_send_body_get(String &page_content)
 
 	page_content += FPSTR(BR_TAG);
 	page_content += form_checkbox(Config_send2custom, FPSTR(INTL_SEND_TO_OWN_API), false);
-	// Remove https because not supported in esp32
-	// page_content += FPSTR(WEB_NBSP_NBSP_BRACE);
-	// page_content += form_checkbox(Config_ssl_custom, FPSTR(WEB_HTTPS), false);
-	// page_content += FPSTR(WEB_BRACE_BR);
+
+	page_content += FPSTR(WEB_NBSP_NBSP_BRACE);
+	page_content += form_checkbox(Config_ssl_custom, FPSTR(WEB_HTTPS), false);
+	page_content += FPSTR(WEB_BRACE_BR);
 
 	server.sendContent(page_content);
 	page_content = FPSTR(TABLE_TAG_OPEN);
@@ -2245,10 +2251,10 @@ static void webserver_config_send_body_get(String &page_content)
 
 	page_content += FPSTR(BR_TAG);
 	page_content += form_checkbox(Config_send2custom2, FPSTR(INTL_SEND_TO_OWN_API2), false);
-	// Remove https because not supported in esp32
-	// page_content += FPSTR(WEB_NBSP_NBSP_BRACE);
-	// page_content += form_checkbox(Config_ssl_custom2, FPSTR(WEB_HTTPS), false);
-	// page_content += FPSTR(WEB_BRACE_BR);
+
+	page_content += FPSTR(WEB_NBSP_NBSP_BRACE);
+	page_content += form_checkbox(Config_ssl_custom2, FPSTR(WEB_HTTPS), false);
+	page_content += FPSTR(WEB_BRACE_BR);
 
 	server.sendContent(page_content);
 	page_content = emptyString;
@@ -2260,7 +2266,6 @@ static void webserver_config_send_body_get(String &page_content)
 	add_form_input(page_content, Config_pwd_custom2, FPSTR(INTL_PASSWORD2), LEN_CFG_PASSWORD2 - 1);
 	page_content += FPSTR(TABLE_TAG_CLOSE_BR);
 
-	//server.sendContent(page_content);
 	// page_content = tmpl(FPSTR(WEB_DIV_PANEL), String(6));
 	// page_content += FPSTR("<b>");
 	// page_content += FPSTR(INTL_LOGOS);
@@ -3095,135 +3100,6 @@ static int selectChannelForAp()
  * WifiConfig                                                    *
  *****************************************************************/
 
-
-
-// static void wifiConfig()
-// {
-
-// 	if (cfg::has_matrix)
-// 		{
-// 		display_update_enable(true); //reactivate matrix during the X min config time
-// 		}
-
-// 	debug_outln_info(F("Starting WiFiManager"));
-// 	debug_outln_info(F("AP ID: "), String(cfg::fs_ssid));
-// 	debug_outln_info(F("Password: "), String(cfg::fs_pwd));
-
-// 	wificonfig_loop = true;
-
-// 	WiFi.disconnect(true);
-// 	debug_outln_info(F("scan for wifi networks..."));
-// 	int8_t scanReturnCode = WiFi.scanNetworks(false /* scan async */, true /* show hidden networks */);
-// 	if (scanReturnCode < 0)
-// 	{
-// 		debug_outln_error(F("WiFi scan failed. Treating as empty. "));
-// 		count_wifiInfo = 0;
-// 	}
-// 	else
-// 	{
-// 		count_wifiInfo = (uint8_t)scanReturnCode;
-// 	}
-
-// 	delete[] wifiInfo;
-// 	wifiInfo = new struct_wifiInfo[std::max(count_wifiInfo, (uint8_t)1)];
-
-// 	for (unsigned i = 0; i < count_wifiInfo; i++)
-// 	{
-// 		String SSID;
-// 		uint8_t *BSSID;
-
-// 		memset(&wifiInfo[i], 0, sizeof(struct_wifiInfo));
-// 		WiFi.getNetworkInfo(i, SSID, wifiInfo[i].encryptionType, wifiInfo[i].RSSI, BSSID, wifiInfo[i].channel);
-// 		SSID.toCharArray(wifiInfo[i].ssid, sizeof(wifiInfo[0].ssid));
-// 	}
-
-// 	// Use 13 channels if locale is not "EN"
-// 	wifi_country_t wifi;
-// 	wifi.policy = WIFI_COUNTRY_POLICY_MANUAL;
-// 	strcpy(wifi.cc, INTL_LANG);
-// 	wifi.nchan = (INTL_LANG[0] == 'E' && INTL_LANG[1] == 'N') ? 11 : 13;
-// 	wifi.schan = 1;
-
-// 	WiFi.mode(WIFI_AP);
-// 	const IPAddress apIP(192, 168, 4, 1);
-// 	WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0));
-// 	WiFi.softAP(cfg::fs_ssid, cfg::fs_pwd, selectChannelForAp());
-// 	// In case we create a unique password at first start
-// 	debug_outln_info(F("AP Password is: "), cfg::fs_pwd);
-
-// 	DNSServer dnsServer;
-// 	// Ensure we don't poison the client DNS cache
-// 	dnsServer.setTTL(0);
-// 	dnsServer.setErrorReplyCode(DNSReplyCode::NoError);
-// 	dnsServer.start(53, "*", apIP); // 53 is port for DNS server
-
-// 	setup_webserver();
-
-// 	// 10 minutes timeout for wifi config
-// 	last_page_load = millis();
-// 	while ((millis() - last_page_load) < cfg::time_for_wifi_config + 500)
-// 	{
-// 		dnsServer.processNextRequest();
-// 		server.handleClient();
-// 		yield();
-// 	}
-
-// 	if (cfg::has_matrix)
-// 	{
-// 	display_update_enable(false); //deactivate after X minutes
-// 	}
-
-// 	WiFi.softAPdisconnect(true);
-
-// 	wifi.policy = WIFI_COUNTRY_POLICY_MANUAL;
-// 	strcpy(wifi.cc, INTL_LANG);
-// 	wifi.nchan = 13;
-// 	wifi.schan = 1;
-
-// 	// The station mode starts only if WiFi communication is enabled.
-
-// 	if (cfg::has_wifi)
-// 	{
-
-// 		WiFi.mode(WIFI_STA);
-
-// 		dnsServer.stop();
-// 		delay(100);
-
-// 		debug_outln_info(FPSTR(DBG_TXT_CONNECTING_TO), cfg::wlanssid);
-
-// 		WiFi.begin(cfg::wlanssid, cfg::wlanpwd);
-// 	}
-// 	debug_outln_info(F("---- Result Webconfig ----"));
-// 	debug_outln_info(F("WiFi: "), cfg::has_wifi);
-// 	debug_outln_info(F("LoRa: "), cfg::has_lora);
-// 	debug_outln_info(F("APPEUI: "), cfg::appeui);
-// 	debug_outln_info(F("DEVEUI: "), cfg::deveui);
-// 	debug_outln_info(F("APPKEY: "), cfg::appkey);
-// 	debug_outln_info(F("WLANSSID: "), cfg::wlanssid);
-// 	debug_outln_info(FPSTR(DBG_TXT_SEP));
-// 	debug_outln_info_bool(F("SDS: "), cfg::sds_read);
-// 	debug_outln_info_bool(F("NPM: "), cfg::npm_read);
-// 	debug_outln_info_bool(F("BMX: "), cfg::bmx280_read);
-// 	debug_outln_info_bool(F("MHZ16: "), cfg::mhz16_read);
-// 	debug_outln_info_bool(F("MHZ19: "), cfg::mhz19_read);
-// 	debug_outln_info_bool(F("CCS811: "), cfg::ccs811_read);
-// 	debug_outln_info(FPSTR(DBG_TXT_SEP));
-// 	debug_outln_info_bool(F("SensorCommunity: "), cfg::send2dusti);
-// 	debug_outln_info_bool(F("Madavi: "), cfg::send2madavi);
-// 	debug_outln_info_bool(F("CSV: "), cfg::send2csv);
-// 	debug_outln_info_bool(F("AirCarto: "), cfg::send2custom);
-// 	debug_outln_info_bool(F("AtmoSud: "), cfg::send2custom2);
-// 	debug_outln_info(FPSTR(DBG_TXT_SEP));
-// 	debug_outln_info_bool(F("Display: "), cfg::has_ssd1306);
-// 	debug_outln_info_bool(F("Matrix: "), cfg::has_matrix);
-// 	debug_outln_info_bool(F("Display Measures: "), cfg::display_measure);
-// 	debug_outln_info_bool(F("Display forecast: "), cfg::display_forecast);
-// 	debug_outln_info(F("Debug: "), String(cfg::debug));
-// 	wificonfig_loop = false; // VOIR ICI
-// }
-
-
 static void wifiConfig()
 {
 
@@ -3304,8 +3180,8 @@ static void wifiConfig()
 	WiFi.disconnect(true);
 
 	debug_outln_info(F("---- Result Webconfig ----"));
-	debug_outln_info(F("WiFi: "), cfg::has_wifi);
-	debug_outln_info(F("LoRa: "), cfg::has_lora);
+	debug_outln_info_bool(F("WiFi: "), cfg::has_wifi);
+	debug_outln_info_bool(F("LoRa: "), cfg::has_lora);
 	debug_outln_info(F("APPEUI: "), cfg::appeui);
 	debug_outln_info(F("DEVEUI: "), cfg::deveui);
 	debug_outln_info(F("APPKEY: "), cfg::appkey);
@@ -3563,17 +3439,35 @@ if (cfg::has_matrix)
 static WiFiClient *getNewLoggerWiFiClient(const LoggerEntry logger)
 {
 
-	WiFiClient *_client;
 	if (loggerConfigs[logger].session)
 	{
+		WiFiClientSecure *_client;
 		_client = new WiFiClientSecure;
+
+		if(cfg::ssl_dusti){_client->setCACert(root_ca_dusti);}
+
+		if(cfg::ssl_madavi){_client->setCACert(root_ca_madavi);}
+
+		if(cfg::ssl_custom){_client->setCACert(root_ca_custom);}
+
+		if(cfg::ssl_custom2){_client->setCACert(root_ca_custom2);}
+
+		return _client;
 	}
 	else
 	{
+		WiFiClient *_client;
 		_client = new WiFiClient;
+		return _client;
 	}
-	return _client;
 }
+
+
+	// if(cfg::ssl_madavi || cfg::ssl_dusti || cfg::ssl_custom || cfg::ssl_custom2)
+	// {
+	// client.setCACert(root_ca);
+	// }
+
 
 /*****************************************************************
  * send data to rest api                                         *
@@ -3596,6 +3490,33 @@ static unsigned long sendData(const LoggerEntry logger, const String &data, cons
 	}
 
 	std::unique_ptr<WiFiClient> client(getNewLoggerWiFiClient(logger));
+
+
+	//std::unique_ptr<WiFiClientSecure> client(getNewLoggerWiFiClient(logger));
+
+	
+	//std::unique_ptr<WiFiClientSecure> client(getNewLoggerWiFiClient(logger));
+
+
+	// if(cfg::ssl_madavi || cfg::ssl_dusti || cfg::ssl_custom || cfg::ssl_custom2)
+	// {
+	// 	std::unique_ptr<WiFiClientSecure> client;
+	// 	WiFiClientSecure *client = new WiFiClientSecure;
+	// 	client->setCACert(root_ca);
+	// }else{
+	// 	std::unique_ptr<WiFiClient> client;
+	// 	WiFiClient *client = new WiFiClient;
+	// }
+
+
+
+
+
+
+
+
+
+
 
 	HTTPClient http;
 	http.setTimeout(20 * 1000);
