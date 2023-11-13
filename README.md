@@ -1,6 +1,6 @@
 # ModuleAir V2
 
-Please find the updated verion of the code on the [ModuleAir V2.1](https://github.com/aircarto/ModuleAir_V2.1) repository.
+Please find the updated version of the code on the [ModuleAir V2.1](https://github.com/aircarto/ModuleAir_V2.1) repository.
 
 More information on Aircarto.fr
 
