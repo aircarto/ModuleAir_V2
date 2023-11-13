@@ -1,8 +1,8 @@
 # ModuleAir V2
 
 > [!IMPORTANT]  
-> Crucial information necessary for users to succeed.
-Please find the updated version of the code on the [ModuleAir V2.1](https://github.com/aircarto/ModuleAir_V2.1) repository.
+> Please find the updated version of the code on the [ModuleAir V2.1](https://github.com/aircarto/ModuleAir_V2.1) repository.
+
 
 More information on Aircarto.fr
 
